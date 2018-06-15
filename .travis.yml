@@ -1,0 +1,40 @@
+language: python
+sudo: false
+dist: trusty
+cache: pip
+
+env:
+  global:
+    - PYTHONFAULTHANDLER=x
+
+matrix:
+  include:
+    - python: '2.7'
+      env:
+        - TOXENV=.python27
+#        - PYTEST_ADDOPTS="--cov ./sqlathanor --cov-append --cov-config setup.cfg"
+    - python: '3.4'
+      env:
+        - TOXENV=.python34
+#        - PYTEST_ADDOPTS="--cov ./sqlathanor --cov-append --cov-config setup.cfg"
+    - python: '3.5'
+      env:
+        - TOXENV=.python35
+#        - PYTEST_ADDOPTS="--cov ./sqlathanor --cov-append --cov-config setup.cfg"
+    - python: '3.6'
+      env:
+        - TOXENV=.python36
+#        - PYTEST_ADDOPTS="--cov ./sqlathanor --cov-append --cov-config setup.cfg"
+    - python: '3.6'
+      env: TOXENV=docs
+    - python: '3.6'
+      env: TOXENV=coverage
+
+install:
+  - pip install -U tox codecov
+
+script:
+  - tox -- -v
+
+after_success:
+  - if [[ -e .coverage ]]; then codecov -e $TOXENV; fi
