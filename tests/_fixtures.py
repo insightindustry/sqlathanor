@@ -15,6 +15,7 @@ from sqlathanor import BaseModel as Base
 
 from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, MetaData
 from sqlalchemy.orm import relationship, clear_mappers
+from sqlalchemy.ext.declarative import declarative_base
 
 class State(object):
     """Class to hold incremental test state."""
@@ -32,24 +33,23 @@ def state(request):
         scope = "session"
     )
 
-@pytest.fixture(scope = 'function')
+@pytest.yield_fixture
 def base_model(request):
 
     engine = create_engine('sqlite://')
 
-    def finalizer():
-        clear_mappers()
-        Base.metadata.drop_all(engine)
-        Base.metadata.clear()
+    BaseModel = declarative_base(cls = Base, metadata = MetaData())
+    BaseModel.metadata.clear()
+    BaseModel.metadata.create_all(engine)
 
-    request.addfinalizer(finalizer)
+    yield BaseModel
 
-    Base.metadata.create_all(engine)
+    clear_mappers()
+    BaseModel.metadata.drop_all(engine)
+    BaseModel.metadata.clear()
 
-    return Base
 
-
-@pytest.fixture(scope = "function")
+@pytest.fixture
 def model_single_pk(request, base_model):
 
     User = None
@@ -84,7 +84,7 @@ def model_single_pk(request, base_model):
     return (User, Address)
 
 
-@pytest.fixture(scope = "function")
+@pytest.fixture
 def model_composite_pk(request, base_model):
 
     class User2(base_model):
