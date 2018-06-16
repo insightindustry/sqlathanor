@@ -45,19 +45,3 @@ def pytest_runtest_setup(item):
             pytest.xfail(
                 "previous test failed (%s) for reason: %s" % (previousfailed.name,
                                                               previousfailed))
-
-
-class State(object):
-    """Class to hold incremental test state."""
-    # pylint: disable=too-few-public-methods
-    pass
-
-
-@pytest.fixture
-def state(request):
-    """Return the :class:`State` object that holds incremental test state."""
-    # pylint: disable=W0108
-    return request.cached_setup(
-        setup = lambda: State(),
-        scope = "session"
-    )

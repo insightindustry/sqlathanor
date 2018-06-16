@@ -16,7 +16,7 @@ with open(os.path.join(os.path.dirname(__file__), '__version__.py')) as version_
 
 __version__ = version_dict.get('__version__')
 
-from sqlathanor.declarate import BaseModel
+from sqlathanor.declarative import BaseModel
 
 __all__ = [
     'BaseModel',
