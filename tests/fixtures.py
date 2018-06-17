@@ -12,10 +12,10 @@ Fixtures used by the SQLAthanor test suite.
 import pytest
 
 from sqlathanor import BaseModel as Base
-from sqlathanor import Column
+from sqlathanor import Column, relationship
 
 from sqlalchemy import Integer, String, ForeignKey, create_engine, MetaData
-from sqlalchemy.orm import relationship, clear_mappers, Session
+from sqlalchemy.orm import clear_mappers, Session
 from sqlalchemy.ext.declarative import declarative_base
 
 from validator_collection import validators
@@ -134,7 +134,11 @@ def tables(request, db_engine):
         hidden = Column('hidden_column',
                         String(50))
 
-        addresses = relationship('Address_Complex', backref = 'user')
+        addresses = relationship('Address_Complex',
+                                 backref = 'user',
+                                 supports_json = True,
+                                 supports_yaml = (True, True),
+                                 supports_dict = (True, False))
 
     class Address_Complex(BaseModel):
         """Mocked class with a single primary key."""

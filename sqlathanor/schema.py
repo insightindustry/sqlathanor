@@ -6,6 +6,8 @@
 # there as needed.
 
 from sqlalchemy import Column as SA_Column
+from sqlalchemy.orm.relationships import RelationshipProperty as SA_RelationshipProperty
+from sqlalchemy.util.langhelpers import public_factory
 
 from validator_collection import checkers
 
@@ -149,3 +151,146 @@ class Column(SA_Column):
         self.value_validator = value_validator
 
         super(Column, self).__init__(*args, **kwargs)
+
+
+class RelationshipProperty(SA_RelationshipProperty):
+    """Describes an object property that holds a single item or list of items that
+    correspond to a related database table.
+
+    Public constructor is the :func:`sqlathanor.schema.relationship` function.
+    """
+
+    def __init__(self,
+                 argument,
+                 supports_json = False,
+                 supports_yaml = False,
+                 supports_dict = False,
+                 **kwargs):
+        """Provide a relationship between two mapped classes.
+
+        This corresponds to a parent-child or associate table relationship.
+        The constructed class is an instance of :class:`RelationshipProperty`.
+
+        When serializing or de-serializing relationships, they essentially become
+        "nested" objects. For example, if you have an ``Account`` table with a
+        relationship to a ``User`` table, you might want to nest or embed a list of
+        ``User`` objects within a serialized ``Account`` object.
+
+        .. caution::
+
+          Unlike columns, hybrid properties, or association proxies, relationships
+          cannot be serialized to CSV. This is because a serialized relationship
+          is essentially a "nested" object within another object.
+
+          Therefore, the ``supports_csv`` option cannot be set and will always be
+          interpreted as ``False``.
+
+        .. warning::
+
+          This constructor is analogous to the original
+          :ref:`SQLAlchemy relationship() <sqlalchemy:sqlalchemy.orm.relationship>`
+          from which it inherits. The only difference is that it supports additional
+          keyword arguments which are not supported in the original, and which
+          are documented below.
+
+          **For the original SQLAlchemy version, see:**
+          :ref:`(SQLAlchemy) relationship() <sqlalchemy:sqlalchemy.orm.relationship>`
+
+        :param argument: see
+          :ref:`(SQLAlchemy) relationship() <sqlalchemy:sqlalchemy.orm.relationship>`
+
+        :param supports_json: Determines whether the column can be serialized to or
+          de-serialized from JSON format. If ``True``, can be serialized to JSON and
+          de-serialized from JSON. If ``False``, will not be included when serialized
+          to JSON and will be ignored if present in a de-serialized JSON.
+
+          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          which determines de-serialization and serialization support respectively.
+
+          Defaults to ``False``, which means the column will not be serialized to JSON
+          or de-serialized from JSON.
+
+        :type supports_json: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
+          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+
+        :param supports_yaml: Determines whether the column can be serialized to or
+          de-serialized from YAML format. If ``True``, can be serialized to YAML and
+          de-serialized from YAML. If ``False``, will not be included when serialized
+          to YAML and will be ignored if present in a de-serialized YAML.
+
+          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          which determines de-serialization and serialization support respectively.
+
+          Defaults to ``False``, which means the column will not be serialized to YAML
+          or de-serialized from YAML.
+
+        :type supports_yaml: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
+          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+
+        :param supports_dict: Determines whether the column can be serialized to or
+          de-serialized to a Python :ref:`dict <python:dict>`. If ``True``, can
+          be serialized to :ref:`dict <python:dict>` and de-serialized from a
+          :ref:`dict <python:dict>`. If ``False``, will not be included when serialized
+          to :ref:`dict <python:dict>` and will be ignored if present in a de-serialized
+          :ref:`dict <python:dict>`.
+
+          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          which determines de-serialization and serialization support respectively.
+
+          Defaults to ``False``, which means the column will not be serialized to a
+          :ref:`dict <python:dict>` or de-serialized from a :ref:`dict <python:dict>`.
+
+        :type supports_dict: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
+          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+
+        """
+        if supports_json is True:
+            supports_json = (True, True)
+        elif not supports_json:
+            supports_json = (False, False)
+
+        if supports_yaml is True:
+            supports_yaml = (True, True)
+        elif not supports_yaml:
+            supports_yaml = (False, False)
+
+        if supports_dict is True:
+            supports_dict = (True, True)
+        elif not supports_dict:
+            supports_dict = (False, False)
+
+        self.supports_csv = (False, False)
+        self.csv_sequence = None
+        self.supports_json = supports_json
+        self.supports_yaml = supports_yaml
+        self.supports_dict = supports_dict
+
+        comparator_factory = kwargs.pop('comparator_factory', RelationshipProperty.Comparator)
+
+        super(RelationshipProperty, self).__init__(argument,
+                                                   comparator_factory = comparator_factory,
+                                                   **kwargs)
+
+    class Comparator(SA_RelationshipProperty.Comparator):
+        @property
+        def supports_csv(self):
+            return self.prop.supports_csv
+
+        @property
+        def csv_sequence(self):
+            return self.prop.csv_sequence
+
+        @property
+        def supports_json(self):
+            return self.prop.supports_json
+
+        @property
+        def supports_yaml(self):
+            return self.prop.supports_yaml
+
+        @property
+        def supports_dict(self):
+            return self.prop.supports_dict
+
+
+relationship = public_factory(RelationshipProperty, ".orm.relationship")

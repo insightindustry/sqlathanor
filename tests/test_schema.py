@@ -27,6 +27,9 @@ from tests.fixtures import db_engine, tables, base_model, db_session, \
     (0, True, 'password', (True, False)),
     (0, True, 'hidden', (False, False)),
 
+    (0, False, 'addresses', (False, False)),
+    (0, True, 'addresses', (False, False)),
+
     (1, False, 'email', (False, False)),
     (1, True, 'email', (True, True)),
     (1, False, 'user_id', (False, False)),
@@ -59,6 +62,9 @@ def test_model_supports_csv(request,
     (0, True, 'password', (True, False)),
     (0, True, 'hidden', (False, False)),
 
+    (0, False, 'addresses', (False, False)),
+    (0, True, 'addresses', (True, True)),
+
     (1, False, 'email', (False, False)),
     (1, True, 'email', (True, True)),
     (1, False, 'user_id', (False, False)),
@@ -79,6 +85,9 @@ def test_model_supports_json(request,
     assert hasattr(target, column_name)
     column = getattr(target, column_name)
 
+    print(type(column.comparator.prop))
+    print(dir(column.comparator.prop))
+
     assert column.supports_json == expected_result
 
 
@@ -90,6 +99,9 @@ def test_model_supports_json(request,
 
     (0, True, 'password', (True, False)),
     (0, True, 'hidden', (False, False)),
+
+    (0, False, 'addresses', (False, False)),
+    (0, True, 'addresses', (True, True)),
 
     (1, False, 'email', (False, False)),
     (1, True, 'email', (True, True)),
@@ -122,6 +134,9 @@ def test_model_supports_yaml(request,
 
     (0, True, 'password', (True, False)),
     (0, True, 'hidden', (False, False)),
+
+    (0, False, 'addresses', (False, False)),
+    (0, True, 'addresses', (True, False)),
 
     (1, False, 'email', (False, False)),
     (1, True, 'email', (True, True)),
