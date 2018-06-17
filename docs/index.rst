@@ -155,64 +155,62 @@ definitions that control whether and how they are serialized or validated.
                 Integer,
                 primary_key = True,
                 autoincrement = True,
-                supports_csv_out = True,
+                supports_csv = True,
                 csv_sequence = 1,
-                supports_json_out = True,
-                supports_yaml_out = True,
-                supports_dict_out = True,
-                value_validator = None,
-                supports_csv_in = True,
-                supports_json_in = True,
-                supports_yaml_in = True,
-                supports_dict_in = True)
+                supports_json = True,
+                supports_yaml = True,
+                supports_dict = True,
+                value_validator = None)
 
     name = Column("name",
                   Text,
-                  supports_csv_out = True,
+                  supports_csv = True,
                   csv_sequence = 2,
-                  supports_json_out = True,
-                  supports_yaml_out = True,
-                  supports_dict_out = True,
-                  value_validator = None,
-                  supports_csv_in = True,
-                  supports_json_in = True,
-                  supports_yaml_in = True,
-                  supports_dict_in = True)
+                  supports_json = True,
+                  supports_yaml = True,
+                  supports_dict = True,
+                  value_validator = None)
 
     email = Column("email",
                    Text,
-                   supports_csv_out = True,
+                   supports_csv = True,
                    csv_sequence = 3,
-                   supports_json_out = True,
-                   supports_yaml_out = True,
-                   supports_dict_out = True,
-                   value_validator = validators.email,
-                   supports_csv_in = True,
-                   supports_json_in = True,
-                   supports_yaml_in = True,
-                   supports_dict_in = True)
+                   supports_json = True,
+                   supports_yaml = True,
+                   supports_dict = True,
+                   value_validator = validators.email)
 
      password = Column("password",
                        Text,
-                       supports_csv_out = False,
+                       supports_csv = (True, False),
                        csv_sequence = 4,
-                       supports_json_out = False,
-                       supports_yaml_out = False,
-                       supports_dict_out = False,
-                       value_validator = my_custom_password_hash_function,
-                       supports_csv_in = True,
-                       supports_json_in = True,
-                       supports_yaml_in = True,
-                       supports_dict_in = True)
+                       supports_json = (True, False),
+                       supports_yaml = (True, False),
+                       supports_dict = (True, False),
+                       value_validator = my_custom_password_hash_function)
 
 As you can see, we've just added some (optional) arguments to the
 :ref:`Column <sqlalchemy:sqlalchemy.schema.Column>` constructor. Hopefully, they're
 pretty self-explanatory:
 
-  * ``supports_<format>_out`` determines whether that attribute is included when
-    :term:`serializing <serialization>` a :term:`model instance`
-  * ``supports_<format>_in`` determines whether that attribute is expected when
-    :term:`de-serializing <deserialization>` a :term:`model instance`
+  * ``supports_<format>`` determines whether that attribute is included when
+    :term:`serializing <serialization>` or :term:`de-serializing <de-serialization>`
+    the object.
+
+    .. tip::
+
+      If you give these options one value, it will either enable (``True``) / disable
+      (``False``) both serialization and de-serialization.
+
+      But you can also supply a :ref:`tuple <python:tuple>` with two values,
+      where the first value controls whether the attribute supports the format
+      when inbound (de-serialization) or whether it supports the format when
+      outbound (serialization).
+
+      In the example above, the ``password`` attribute will **not** be included when
+      serializing the object (outbound). But it *will* be expected / supported
+      when de-serializing the object (inbound).
+
   * ``value_validator`` is a function that can be used to validate / mutate
     an attribute value when it is set.
 
@@ -365,6 +363,23 @@ code to an underlying SQL database. That's a super hard problem, especially when
 you consider the complexity of abstraction, different SQL databases, different SQL
 dialects, performance optimization, etc. It ain't easy, and the SQLAlchemy team
 has spent years building one of the most elegant solutions out there.
+
+.. sidebar:: What's in a name?
+
+
+  Who can resist a good (for certain values of good) pun?
+
+  .. image:: _static/athanor.png
+    :alt: A diagram of an athanor
+    :align: right
+
+  In the time-honored "science" of alchemy, an :term:`athanor` is a furnace that
+  provides uniform heat over an extended period of time.
+
+  Since **SQLAthanor** extends the great `SQLAlchemy <https://www.sqlalchemy.org>`_
+  library, the idea was to keep the alchemical theme going.
+
+  Bottom line: I - for one - clearly cannot resist a pun, whether good or not.
 
 But as hard as Pythonically communicating with a database is, in the real world
 with microservices, serverless architectures, RESTful APIs and the like we often

@@ -4,6 +4,18 @@ Glossary
 
 .. glossary::
 
+  Athanor
+    An alchemical furnace, sometimes called a *piger henricus* (slow henry),
+    philosophical furnace, Furnace of Arcana, or Tower furnace. They were used
+    by alchemists to apply uniform heat over an extended (weeks, even!) period
+    of time and require limited maintenance / management.
+
+    Basically, these were alchemical slow cookers.
+
+    The term "athanor" is believed to derive from the Arabic *al-tannoor* ("bread
+    oven") which Califate-era alchemical texts describe as being used for slow,
+    uniform alchemical disgestion in talismanic alchemy.
+
   Object Relational Mapper (ORM)
     An **Object Relational Mapper** (ORM) is a software tool that makes it easier
     to write code that reads data from or writes data to a relational database.
@@ -28,7 +40,7 @@ Glossary
     written in JavaScript? You serialize (translate) it into a format that other
     language can understand.
 
-  De-Serialization
+  De-serialization
     De-Serialization - as you can probably guess - is the reverse of
     :term:`serialization`. It's the process whereby data is received in one format
     (say a JSON string) and is converted into a Python object (say a
