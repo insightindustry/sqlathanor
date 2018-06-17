@@ -16,6 +16,22 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__name__), '..'))
+
+import sphinx_rtd_theme
+
+# Load Version Information
+version_dict = {}
+with open(os.path.join(os.path.dirname(__file__),
+                       '../',
+                       'sqlathanor',
+                       '__version__.py')) as version_file:
+    exec(version_file.read(), version_dict)                                     # pylint: disable=W0122
+
+__version__ = version_dict.get('__version__')
+
 
 # -- Project information -----------------------------------------------------
 
@@ -24,9 +40,9 @@ copyright = '2018, Insight Industry Inc.'
 author = 'Insight Industry Inc.'
 
 # The short X.Y version
-version = ''
+version = __version__[:3]
 # The full version, including alpha/beta/rc tags
-release = '0.1.0'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -46,6 +62,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
+    'sphinx_tabs.tabs'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -75,19 +92,28 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
+# Autodoc configuration settings.
+autoclass_content = 'both'
+autodoc_member_order = 'groupwise'
+add_module_names = False
+
 
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'navigation_depth': 4,
+    'display_version': True,
+    'prev_next_buttons_location': 'both'
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -103,6 +129,14 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+html_context = {
+    "display_github": True, # Integrate GitHub
+    "github_user": "insightindustry", # Username
+    "github_repo": "sqlathanor", # Repo name
+    "github_version": "master", # Version
+    "conf_py_path": "/docs/", # Path in the checkout to the docs root
+}
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -188,7 +222,10 @@ epub_exclude_files = ['search.html']
 # -- Options for intersphinx extension ---------------------------------------
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3.6', None),
+    'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest/', None)
+}
 
 # -- Options for todo extension ----------------------------------------------
 

@@ -1,0 +1,5 @@
+********************
+SQLAthanor License
+********************
+
+.. include:: ../LICENSE
