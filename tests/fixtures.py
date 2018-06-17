@@ -12,10 +12,13 @@ Fixtures used by the SQLAthanor test suite.
 import pytest
 
 from sqlathanor import BaseModel as Base
+from sqlathanor import Column
 
-from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, MetaData
+from sqlalchemy import Integer, String, ForeignKey, create_engine, MetaData
 from sqlalchemy.orm import relationship, clear_mappers, Session
 from sqlalchemy.ext.declarative import declarative_base
+
+from validator_collection import validators
 
 class State(object):
     """Class to hold incremental test state."""
@@ -101,12 +104,67 @@ def tables(request, db_engine):
                          Integer,
                          ForeignKey('users_composite.id'))
 
+    class User_Complex(BaseModel):
+        """Mocked class with a single primary key with varied serialization support."""
+
+        __tablename__ = 'users_complex'
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True,
+                    supports_csv = True,
+                    csv_sequence = 1,
+                    supports_json = True,
+                    supports_yaml = True,
+                    supports_dict = True)
+        name = Column('username',
+                      String(50),
+                      supports_csv = True,
+                      csv_sequence = 2,
+                      supports_json = True,
+                      supports_yaml = True,
+                      supports_dict = True)
+        password = Column('password',
+                          String(50),
+                          supports_csv = (True, False),
+                          csv_sequence = 3,
+                          supports_json = (True, False),
+                          supports_yaml = (True, False),
+                          supports_dict = (True, False))
+        hidden = Column('hidden_column',
+                        String(50))
+
+        addresses = relationship('Address_Complex', backref = 'user')
+
+    class Address_Complex(BaseModel):
+        """Mocked class with a single primary key."""
+
+        __tablename__ = 'addresses_complex'
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+        email = Column('email_address',
+                       String(50),
+                       supports_csv = True,
+                       supports_json = True,
+                       supports_yaml = True,
+                       supports_dict = True,
+                       value_validator = validators.email)
+        user_id = Column('user_id',
+                         Integer,
+                         ForeignKey('users_complex.id'))
+
+
+
+
     BaseModel.metadata.create_all(db_engine)
 
     yield {
         'base_model': BaseModel,
         'model_single_pk': (User, Address),
-        'model_composite_pk': (User2, Address2)
+        'model_composite_pk': (User2, Address2),
+        'model_complex': (User_Complex, Address_Complex)
     }
 
     clear_mappers()
@@ -174,3 +232,36 @@ def instance_composite_pk(request, model_composite_pk):
     instance = user(**instance_values)
 
     return (instance, instance_values)
+
+
+@pytest.fixture(scope = 'session')
+def model_complex(request, tables):
+    User = tables['model_complex'][0]
+    Address = tables['model_complex'][1]
+
+    return (User, Address)
+
+
+@pytest.fixture
+def instance_complex(request, model_complex):
+    user_instance_values = {
+        'id': 1,
+        'name': 'test_username',
+        'password': 'test_password',
+        'hidden': 'hidden value'
+    }
+    address_instance_values = {
+        'id': 1,
+        'email': 'test@domain.com',
+        'user_id': 1
+    }
+    user = model_complex[0]
+    address = model_complex[1]
+
+    user_instance = user(**user_instance_values)
+    address_instance = address(**address_instance_values)
+
+    instances = (user_instance, address_instance)
+    instance_values = (user_instance_values, address_instance_values)
+
+    return (instances, instance_values)

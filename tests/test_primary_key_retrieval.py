@@ -11,7 +11,7 @@ Tests for the :class:`BaseModel` ability to retrieve primary key data.
 
 import pytest
 
-from sqlalchemy import Column
+from sqlathanor import Column
 
 from tests.fixtures import db_engine, tables, base_model, db_session, \
     model_single_pk, model_composite_pk, instance_single_pk, instance_composite_pk
