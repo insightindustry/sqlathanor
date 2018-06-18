@@ -371,7 +371,13 @@ class BaseModel(object):
         for key in dict_attributes:
             item = getattr(self, key, None)
 
-            if hasattr(item, 'to_dict') and current_nesting < max_nesting:
+            try:
+                getattr(item, 'to_dict')
+                has_attribute = True
+            except AttributeError:
+                has_attribute = False
+
+            if has_attribute and current_nesting < max_nesting:
                 item = item.to_dict(max_nesting = max_nesting,
                                     current_nesting = current_nesting + 1)
 

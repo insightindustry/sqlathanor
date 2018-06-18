@@ -12,7 +12,7 @@ Fixtures used by the SQLAthanor test suite.
 import pytest
 
 from sqlathanor import BaseModel as Base
-from sqlathanor import Column, relationship
+from sqlathanor import Column, relationship, hybrid_property
 
 from sqlalchemy import Integer, String, ForeignKey, create_engine, MetaData
 from sqlalchemy.orm import clear_mappers, Session
@@ -58,6 +58,24 @@ def tables(request, db_engine):
                       String(50))
         addresses = relationship('Address', backref = 'user')
 
+        _hybrid = 1
+
+        @hybrid_property
+        def hybrid(self):
+            return self._hybrid
+
+        @hybrid.setter
+        def hybrid(self, value):
+            self._hybrid = value
+
+        @hybrid_property
+        def hybrid_differentiated(self):
+            return self._hybrid
+
+        @hybrid_differentiated.setter
+        def hybrid_differentiated(self, value):
+            self._hybrid = value
+
     class Address(BaseModel):
         """Mocked class with a single primary key."""
 
@@ -89,6 +107,15 @@ def tables(request, db_engine):
         name = Column('username',
                       String(50))
         addresses = relationship('Address2', backref = 'user')
+
+        _hybrid = 1
+        @hybrid_property
+        def hybrid(self):
+            return self._hybrid
+
+        @hybrid_property
+        def hybrid_differentiated(self):
+            return self._hybrid
 
     class Address2(BaseModel):
         """Mocked class with a single primary key."""
@@ -139,6 +166,31 @@ def tables(request, db_engine):
                                  supports_json = True,
                                  supports_yaml = (True, True),
                                  supports_dict = (True, False))
+
+        _hybrid = 1
+
+        @hybrid_property(supports_csv = True,
+                         supports_json = True,
+                         supports_yaml = False,
+                         supports_dict = True)
+        def hybrid(self):
+            return self._hybrid
+
+        @hybrid.setter
+        def hybrid(self, value):
+            self._hybrid = value
+
+        @hybrid_property(supports_csv = (False, True),
+                         supports_json = (False, True),
+                         supports_yaml = (False, True),
+                         supports_dict = (False, True))
+        def hybrid_differentiated(self):
+            return self._hybrid
+
+        @hybrid_differentiated.setter
+        def hybrid_differentiated(self, value):
+            self._hybrid = value
+
 
     class Address_Complex(BaseModel):
         """Mocked class with a single primary key."""

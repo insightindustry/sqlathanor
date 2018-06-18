@@ -34,6 +34,12 @@ from tests.fixtures import db_engine, tables, base_model, db_session, \
     (1, True, 'email', (True, True)),
     (1, False, 'user_id', (False, False)),
     (1, True, 'user_id', (False, False)),
+
+    (0, False, 'hybrid', (False, False)),
+    (0, True, 'hybrid', (True, True)),
+
+    (0, False, 'hybrid_differentiated', (False, False)),
+    (0, True, 'hybrid_differentiated', (False, True))
 ])
 def test_model_supports_csv(request,
                             model_single_pk,
@@ -47,10 +53,39 @@ def test_model_supports_csv(request,
     else:
         target = model_single_pk[test_index]
 
-    assert hasattr(target, column_name)
     column = getattr(target, column_name)
 
     assert column.supports_csv == expected_result
+
+
+@pytest.mark.parametrize('test_index, column_name, expected_result', [
+    (0, 'hybrid', 1),
+])
+def test_instance_hybrid_property_get(request,
+                                      test_index,
+                                      instance_complex,
+                                      column_name,
+                                      expected_result):
+    target = instance_complex[0][test_index]
+    result = getattr(target, column_name)
+
+    assert result == expected_result
+
+
+@pytest.mark.parametrize('test_index, column_name, new_value', [
+    (0, 'hybrid', 3),
+])
+def test_instance_hybrid_property_set(request,
+                                      test_index,
+                                      instance_complex,
+                                      column_name,
+                                      new_value):
+    target = instance_complex[0][test_index]
+    setattr(target, column_name, new_value)
+
+    result = getattr(target, column_name)
+
+    assert result == new_value
 
 
 @pytest.mark.parametrize('test_index, test_complex, column_name, expected_result', [
@@ -69,6 +104,12 @@ def test_model_supports_csv(request,
     (1, True, 'email', (True, True)),
     (1, False, 'user_id', (False, False)),
     (1, True, 'user_id', (False, False)),
+
+    (0, False, 'hybrid', (False, False)),
+    (0, True, 'hybrid', (True, True)),
+
+    (0, False, 'hybrid_differentiated', (False, False)),
+    (0, True, 'hybrid_differentiated', (False, True))
 ])
 def test_model_supports_json(request,
                              model_single_pk,
@@ -82,11 +123,7 @@ def test_model_supports_json(request,
     else:
         target = model_single_pk[test_index]
 
-    assert hasattr(target, column_name)
     column = getattr(target, column_name)
-
-    print(type(column.comparator.prop))
-    print(dir(column.comparator.prop))
 
     assert column.supports_json == expected_result
 
@@ -107,6 +144,12 @@ def test_model_supports_json(request,
     (1, True, 'email', (True, True)),
     (1, False, 'user_id', (False, False)),
     (1, True, 'user_id', (False, False)),
+
+    (0, False, 'hybrid', (False, False)),
+    (0, True, 'hybrid', (False, False)),
+
+    (0, False, 'hybrid_differentiated', (False, False)),
+    (0, True, 'hybrid_differentiated', (False, True)),
 ])
 def test_model_supports_yaml(request,
                              model_single_pk,
@@ -120,7 +163,6 @@ def test_model_supports_yaml(request,
     else:
         target = model_single_pk[test_index]
 
-    assert hasattr(target, column_name)
     column = getattr(target, column_name)
 
     assert column.supports_yaml == expected_result
@@ -142,6 +184,12 @@ def test_model_supports_yaml(request,
     (1, True, 'email', (True, True)),
     (1, False, 'user_id', (False, False)),
     (1, True, 'user_id', (False, False)),
+
+    (0, False, 'hybrid', (False, False)),
+    (0, True, 'hybrid', (True, True)),
+
+    (0, False, 'hybrid_differentiated', (False, False)),
+    (0, True, 'hybrid_differentiated', (False, True)),
 ])
 def test_model_supports_dict(request,
                              model_single_pk,
@@ -155,7 +203,6 @@ def test_model_supports_dict(request,
     else:
         target = model_single_pk[test_index]
 
-    assert hasattr(target, column_name)
     column = getattr(target, column_name)
 
     assert column.supports_dict == expected_result
