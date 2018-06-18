@@ -14,6 +14,8 @@ from sqlalchemy.ext.hybrid import hybrid_property as SA_hybrid_property
 
 from validator_collection import checkers
 
+from sqlathanor.errors import SQLAthanorError
+
 
 class Column(SA_Column):
     """Represents a column in a database table."""
@@ -105,20 +107,91 @@ class Column(SA_Column):
         :type supports_dict: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
           form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
 
-        :param value_validator: A function that will be called when assigning a value
-          to the column. The function will either coerce the value being assigned
-          to a form that is acceptable by the column, or will raise an exception
-          if it cannot be coerced. If :class:`None`, the data type's default validator
-          function will be called instead.
+        :param on_deserialize: A function that will be called when attempting to
+          assign a de-serialized value to the column. This is intended to either coerce
+          the value being assigned to a form that is acceptable by the column, or
+          raise an exception if it cannot be coerced. If :class:`None`, the data
+          type's default ``on_deserialize`` function will be called instead.
+
+          .. tip::
+
+            If you need to execute different ``on_deserialize`` functions for
+            different formats, you can also supply a :ref:`dict <python:dict>`:
+
+            .. code-block:: python
+
+              on_deserialize = {
+                'csv': csv_on_deserialize_callable,
+                'json': json_on_deserialize_callable,
+                'yaml': yaml_on_deserialize_callable,
+                'dict': dict_on_deserialize_callable
+              }
 
           Defaults to :class:`None`.
 
-        :type value_validator: function
+        :type on_deserialize: callable / :ref:`dict <python:dict>` with formats
+          as keys and values as callables
 
         """
-        value_validator = kwargs.pop('value_validator', None)
-        if value_validator is not None and not checkers.is_callable(value_validator):
-            raise ValueError('value_validator must be callable')
+        on_serialize = kwargs.pop('on_serialize', None)
+        if on_serialize is not None and not isinstance(on_serialize, dict):
+            on_serialize = {
+                'csv': on_serialize,
+                'json': on_serialize,
+                'yaml': on_serialize,
+                'dict': on_serialize
+            }
+        elif on_serialize is not None:
+            if 'csv' not in on_serialize:
+                on_serialize['csv'] = None
+            if 'json' not in on_serialize:
+                on_serialize['json'] = None
+            if 'yaml' not in on_serialize:
+                on_serialize['yaml'] = None
+            if 'dict' not in on_serialize:
+                on_serialize['dict'] = None
+        else:
+            on_serialize = {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+
+        for key in on_serialize:
+            item = on_serialize[key]
+            if item is not None and not checkers.is_callable(item):
+                raise SQLAthanorError('on_serialize for %s must be callable' % key)
+
+        on_deserialize = kwargs.pop('on_deserialize', None)
+        if on_deserialize is not None and not isinstance(on_deserialize, dict):
+            on_deserialize = {
+                'csv': on_deserialize,
+                'json': on_deserialize,
+                'yaml': on_deserialize,
+                'dict': on_deserialize
+            }
+        elif on_deserialize is not None:
+            if 'csv' not in on_deserialize:
+                on_deserialize['csv'] = None
+            if 'json' not in on_deserialize:
+                on_deserialize['json'] = None
+            if 'yaml' not in on_deserialize:
+                on_deserialize['yaml'] = None
+            if 'dict' not in on_deserialize:
+                on_deserialize['dict'] = None
+        else:
+            on_deserialize = {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+
+        for key in on_deserialize:
+            item = on_deserialize[key]
+            if item is not None and not checkers.is_callable(item):
+                raise SQLAthanorError('on_deserialize for %s must be callable' % key)
 
         supports_csv = kwargs.pop('supports_csv', (False, False))
         csv_sequence = kwargs.pop('csv_sequence', None)
@@ -151,7 +224,8 @@ class Column(SA_Column):
         self.supports_json = supports_json
         self.supports_yaml = supports_yaml
         self.supports_dict = supports_dict
-        self.value_validator = value_validator
+        self.on_serialize = on_serialize
+        self.on_deserialize = on_deserialize
 
         super(Column, self).__init__(*args, **kwargs)
 
@@ -314,7 +388,9 @@ class hybrid_property(SA_hybrid_property):
                  csv_sequence = None,
                  supports_json = False,
                  supports_yaml = False,
-                 supports_dict = False):
+                 supports_dict = False,
+                 on_serialize = None,
+                 on_deserialize = None):
         """Create a new :class:`hybrid_property`.
 
         Usage is typically via decorator::
@@ -455,6 +531,67 @@ class hybrid_property(SA_hybrid_property):
         self.supports_json = supports_json
         self.supports_yaml = supports_yaml
         self.supports_dict = supports_dict
+
+        if on_serialize is not None and not isinstance(on_serialize, dict):
+            on_serialize = {
+                'csv': on_serialize,
+                'json': on_serialize,
+                'yaml': on_serialize,
+                'dict': on_serialize
+            }
+        elif on_serialize is not None:
+            if 'csv' not in on_serialize:
+                on_serialize['csv'] = None
+            if 'json' not in on_serialize:
+                on_serialize['json'] = None
+            if 'yaml' not in on_serialize:
+                on_serialize['yaml'] = None
+            if 'dict' not in on_serialize:
+                on_serialize['dict'] = None
+        else:
+            on_serialize = {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+
+        for key in on_serialize:
+            item = on_serialize[key]
+            if item is not None and not checkers.is_callable(item):
+                raise SQLAthanorError('on_serialize for %s must be callable' % key)
+
+        if on_deserialize is not None and not isinstance(on_deserialize, dict):
+            on_deserialize = {
+                'csv': on_deserialize,
+                'json': on_deserialize,
+                'yaml': on_deserialize,
+                'dict': on_deserialize
+            }
+        elif on_deserialize is not None:
+            if 'csv' not in on_deserialize:
+                on_deserialize['csv'] = None
+            if 'json' not in on_deserialize:
+                on_deserialize['json'] = None
+            if 'yaml' not in on_deserialize:
+                on_deserialize['yaml'] = None
+            if 'dict' not in on_deserialize:
+                on_deserialize['dict'] = None
+        else:
+            on_deserialize = {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+
+        for key in on_deserialize:
+            item = on_deserialize[key]
+            if item is not None and not checkers.is_callable(item):
+                raise SQLAthanorError('on_deserialize for %s must be callable' % key)
+
+        self.on_serialize = on_serialize
+        self.on_deserialize = on_deserialize
 
         self.fget = fget
         self.fset = fset

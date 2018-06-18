@@ -222,19 +222,53 @@ def test_model_supports_dict(request,
     (1, False, 'user_id', False),
     (1, True, 'user_id', False),
 ])
-def test_model_value_validator(request,
-                               model_single_pk,
-                               model_complex,
-                               test_index,
-                               test_complex,
-                               column_name,
-                               not_none):
+def test_model_on_serialize(request,
+                            model_single_pk,
+                            model_complex,
+                            test_index,
+                            test_complex,
+                            column_name,
+                            not_none):
     if test_complex:
         target = model_complex[test_index]
     else:
         target = model_single_pk[test_index]
 
-    assert hasattr(target, column_name)
     column = getattr(target, column_name)
 
-    assert (column.value_validator is not None) is not_none
+    assert isinstance(column.on_serialize, dict)
+    for key in column.on_serialize:
+        assert (column.on_serialize[key] is not None) is not_none
+
+
+@pytest.mark.parametrize('test_index, test_complex, column_name, not_none', [
+    (0, False, 'id', False),
+    (0, True, 'id', False),
+    (0, False, 'name', False),
+    (0, True, 'name', False),
+
+    (0, True, 'password', False),
+    (0, True, 'hidden', False),
+
+    (1, False, 'email', False),
+    (1, True, 'email', True),
+    (1, False, 'user_id', False),
+    (1, True, 'user_id', False),
+])
+def test_model_on_deserialize(request,
+                              model_single_pk,
+                              model_complex,
+                              test_index,
+                              test_complex,
+                              column_name,
+                              not_none):
+    if test_complex:
+        target = model_complex[test_index]
+    else:
+        target = model_single_pk[test_index]
+
+    column = getattr(target, column_name)
+
+    assert isinstance(column.on_deserialize, dict)
+    for key in column.on_deserialize:
+        assert (column.on_deserialize[key] is not None) is not_none

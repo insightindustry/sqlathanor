@@ -206,12 +206,11 @@ def tables(request, db_engine):
                        supports_json = True,
                        supports_yaml = True,
                        supports_dict = True,
-                       value_validator = validators.email)
+                       on_serialize = validators.email,
+                       on_deserialize = validators.email)
         user_id = Column('user_id',
                          Integer,
                          ForeignKey('users_complex.id'))
-
-
 
 
     BaseModel.metadata.create_all(db_engine)

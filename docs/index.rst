@@ -96,7 +96,7 @@ To start using it, all you need to do is import it in place of your standard SQL
 
       # The following are optional, depending on how your data model is designed:
       from sqlalchemy.orm import relationship
-      from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
+      from sqlalchemy.ext.hybrid import hybrid_property
       from sqlalchemy.ext.associationproxy import association_proxy
 
   .. tab:: Using SQLAthanor
@@ -108,7 +108,7 @@ To start using it, all you need to do is import it in place of your standard SQL
 
       # The following are optional, depending on how your data model is designed:
       from sqlathanor import relationship
-      from sqlathanor import hybrid_property, hybrid_method
+      from sqlathanor import hybrid_property
       from sqlathanor import association_proxy
 
     .. tip::
@@ -160,7 +160,8 @@ definitions that control whether and how they are serialized or validated.
                 supports_json = True,
                 supports_yaml = True,
                 supports_dict = True,
-                value_validator = None)
+                on_serialize = None,
+                on_deserialize = None)
 
     name = Column("name",
                   Text,
@@ -169,7 +170,8 @@ definitions that control whether and how they are serialized or validated.
                   supports_json = True,
                   supports_yaml = True,
                   supports_dict = True,
-                  value_validator = None)
+                  on_serialize = None,
+                  on_deserialize = None)
 
     email = Column("email",
                    Text,
@@ -178,7 +180,8 @@ definitions that control whether and how they are serialized or validated.
                    supports_json = True,
                    supports_yaml = True,
                    supports_dict = True,
-                   value_validator = validators.email)
+                   on_serialize = None,
+                   on_deserialize = validators.email)
 
      password = Column("password",
                        Text,
@@ -187,7 +190,8 @@ definitions that control whether and how they are serialized or validated.
                        supports_json = (True, False),
                        supports_yaml = (True, False),
                        supports_dict = (True, False),
-                       value_validator = my_custom_password_hash_function)
+                       on_serialize = None,
+                       on_deserialize = my_custom_password_hash_function)
 
 As you can see, we've just added some (optional) arguments to the
 :ref:`Column <sqlalchemy:sqlalchemy.schema.Column>` constructor. Hopefully, they're
@@ -211,14 +215,27 @@ pretty self-explanatory:
       serializing the object (outbound). But it *will* be expected / supported
       when de-serializing the object (inbound).
 
-  * ``value_validator`` is a function that can be used to validate / mutate
-    an attribute value when it is set.
+  * ``on_serialize`` indicates the function or functions that are used to prepare
+    an attribute for serialization. This can either be a single function (that applies
+    to all serialization formats) or a :ref:`dict <python>` where each key corresponds
+    to a format and its value is the function to use when serializing to that format.
 
     .. tip::
 
-      If ``value_validator`` is left as :class:`None <python:None>`, then
-      **SQLAthanor** will apply a default validator function based on the
-      attribute's data type.
+      If ``on_serialize`` is left as :class:`None <python:None>`, then
+      **SQLAthanor** will apply a default ``on_serialize`` function
+      based on the attribute's data type.
+
+  * ``on_deserialize`` indicates the function or functions that are used to validate
+    or pre-process an attribute when de-serializing. This can either be a single
+    function (that applies to all formats) or a :ref:`dict <python>` where each key corresponds
+    to a format and its value is the function to use when de-serializing from that format.
+
+    .. tip::
+
+      If ``on_deserialize`` is left as :class:`None <python:None>`, then
+      **SQLAthanor** will apply a default ``on_deserialize`` function
+      based on the attribute's data type.
 
 3. Serialize Your Model Instance
 ==================================
