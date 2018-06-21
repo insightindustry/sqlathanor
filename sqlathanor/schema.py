@@ -6,11 +6,16 @@
 # there as needed.
 
 import functools
+import operator
 
 from sqlalchemy import Column as SA_Column
+from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.relationships import RelationshipProperty as SA_RelationshipProperty
 from sqlalchemy.util.langhelpers import public_factory
 from sqlalchemy.ext.hybrid import hybrid_property as SA_hybrid_property
+
+from sqlalchemy import exc, orm, util, inspect
+
 
 from validator_collection import checkers
 
@@ -242,6 +247,8 @@ class RelationshipProperty(SA_RelationshipProperty):
                  supports_json = False,
                  supports_yaml = False,
                  supports_dict = False,
+                 on_serialize = None,
+                 on_deserialize = None,
                  **kwargs):
         """Provide a relationship between two mapped classes.
 
@@ -255,7 +262,7 @@ class RelationshipProperty(SA_RelationshipProperty):
 
         .. caution::
 
-          Unlike columns, hybrid properties, or association proxies, relationships
+          Unlike columns, properties, or hybrid properties, relationships
           cannot be serialized to CSV. This is because a serialized relationship
           is essentially a "nested" object within another object.
 
@@ -321,6 +328,64 @@ class RelationshipProperty(SA_RelationshipProperty):
           form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
 
         """
+        if on_serialize is not None and not isinstance(on_serialize, dict):
+            on_serialize = {
+                'csv': on_serialize,
+                'json': on_serialize,
+                'yaml': on_serialize,
+                'dict': on_serialize
+            }
+        elif on_serialize is not None:
+            if 'csv' not in on_serialize:
+                on_serialize['csv'] = None
+            if 'json' not in on_serialize:
+                on_serialize['json'] = None
+            if 'yaml' not in on_serialize:
+                on_serialize['yaml'] = None
+            if 'dict' not in on_serialize:
+                on_serialize['dict'] = None
+        else:
+            on_serialize = {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+
+        for key in on_serialize:
+            item = on_serialize[key]
+            if item is not None and not checkers.is_callable(item):
+                raise SQLAthanorError('on_serialize for %s must be callable' % key)
+
+        if on_deserialize is not None and not isinstance(on_deserialize, dict):
+            on_deserialize = {
+                'csv': on_deserialize,
+                'json': on_deserialize,
+                'yaml': on_deserialize,
+                'dict': on_deserialize
+            }
+        elif on_deserialize is not None:
+            if 'csv' not in on_deserialize:
+                on_deserialize['csv'] = None
+            if 'json' not in on_deserialize:
+                on_deserialize['json'] = None
+            if 'yaml' not in on_deserialize:
+                on_deserialize['yaml'] = None
+            if 'dict' not in on_deserialize:
+                on_deserialize['dict'] = None
+        else:
+            on_deserialize = {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+
+        for key in on_deserialize:
+            item = on_deserialize[key]
+            if item is not None and not checkers.is_callable(item):
+                raise SQLAthanorError('on_deserialize for %s must be callable' % key)
+
         if supports_json is True:
             supports_json = (True, True)
         elif not supports_json:
@@ -341,6 +406,8 @@ class RelationshipProperty(SA_RelationshipProperty):
         self.supports_json = supports_json
         self.supports_yaml = supports_yaml
         self.supports_dict = supports_dict
+        self.on_serialize = on_serialize
+        self.on_deserialize = on_deserialize
 
         comparator_factory = kwargs.pop('comparator_factory', RelationshipProperty.Comparator)
 

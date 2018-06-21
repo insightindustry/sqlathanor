@@ -15,8 +15,10 @@ from sqlathanor import BaseModel as Base
 from sqlathanor import Column, relationship, hybrid_property
 
 from sqlalchemy import Integer, String, ForeignKey, create_engine, MetaData
-from sqlalchemy.orm import clear_mappers, Session
+from sqlalchemy.orm import clear_mappers, Session, backref
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.associationproxy import association_proxy
+
 
 from validator_collection import validators
 
@@ -75,6 +77,8 @@ def tables(request, db_engine):
         @hybrid_differentiated.setter
         def hybrid_differentiated(self, value):
             self._hybrid = value
+
+        keywords_basic = association_proxy('keywords_basic', 'keyword')
 
     class Address(BaseModel):
         """Mocked class with a single primary key."""
@@ -190,6 +194,70 @@ def tables(request, db_engine):
         @hybrid_differentiated.setter
         def hybrid_differentiated(self, value):
             self._hybrid = value
+
+        keywords_basic = association_proxy('keywords_basic',
+                                           'keyword')
+
+    class UserKeyword(BaseModel):
+        __tablename__ = 'user_keywords'
+
+        user_id = Column('user_id',
+                         Integer,
+                         ForeignKey('users.id'),
+                         primary_key = True)
+        keyword_id = Column('keyword_id',
+                            Integer,
+                            ForeignKey('keywords.id'),
+                            primary_key = True)
+        special_key = Column('special_key', String(50))
+
+        user = relationship(User,
+                            backref = backref('keywords_basic',
+                                              cascade = 'all, delete-orphan'))
+
+        keyword = relationship('Keyword')
+
+        def __init__(self, keyword = None, user = None, special_key = None):
+            self.user = user
+            self.keyword = keyword
+            self.special_key = special_key
+
+    class UserKeyword_Complex(BaseModel):
+        __tablename__ = 'user_keywords_complex'
+
+        user_id = Column('user_id',
+                         Integer,
+                         ForeignKey('users_complex.id'),
+                         primary_key = True)
+        keyword_id = Column('keyword_id',
+                            Integer,
+                            ForeignKey('keywords.id'),
+                            primary_key = True)
+        special_key = Column('special_key', String(50))
+
+        user = relationship(User_Complex,
+                            backref = backref('keywords_basic',
+                                              cascade = 'all, delete-orphan'))
+        keyword = relationship('Keyword')
+
+        def __init__(self, keyword = None, user = None, special_key = None):
+            self.user = user
+            self.keyword = keyword
+            self.special_key = special_key
+
+    class Keyword(BaseModel):
+        __tablename__ = 'keywords'
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+        keyword = Column('keyword',
+                         String(50),
+                         supports_csv = True)
+
+        def __init__(self, id, keyword):
+            self.id = id
+            self.keyword = keyword
 
 
     class Address_Complex(BaseModel):

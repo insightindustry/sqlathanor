@@ -23,5 +23,5 @@ __all__ = [
     'BaseModel',
     'Column',
     'relationship',
-    'hybrid_property'
+    'hybrid_property',
 ]
