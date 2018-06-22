@@ -35,12 +35,6 @@ from tests.fixtures import db_engine, tables, base_model, db_session, \
     (1, False, 'user_id', (False, False)),
     (1, True, 'user_id', (False, False)),
 
-    (0, False, 'hybrid', (False, False)),
-    (0, True, 'hybrid', (True, True)),
-
-    (0, False, 'hybrid_differentiated', (False, False)),
-    (0, True, 'hybrid_differentiated', (False, True)),
-
 ])
 def test_model_supports_csv(request,
                             model_single_pk,
@@ -75,12 +69,6 @@ def test_model_supports_csv(request,
     (1, True, 'email', (True, True)),
     (1, False, 'user_id', (False, False)),
     (1, True, 'user_id', (False, False)),
-
-    (0, False, 'hybrid', (False, False)),
-    (0, True, 'hybrid', (True, True)),
-
-    (0, False, 'hybrid_differentiated', (False, False)),
-    (0, True, 'hybrid_differentiated', (False, True)),
 
 ])
 def test_model_supports_json(request,
@@ -117,11 +105,6 @@ def test_model_supports_json(request,
     (1, False, 'user_id', (False, False)),
     (1, True, 'user_id', (False, False)),
 
-    (0, False, 'hybrid', (False, False)),
-    (0, True, 'hybrid', (False, False)),
-
-    (0, False, 'hybrid_differentiated', (False, False)),
-    (0, True, 'hybrid_differentiated', (False, True)),
 ])
 def test_model_supports_yaml(request,
                              model_single_pk,
@@ -157,11 +140,6 @@ def test_model_supports_yaml(request,
     (1, False, 'user_id', (False, False)),
     (1, True, 'user_id', (False, False)),
 
-    (0, False, 'hybrid', (False, False)),
-    (0, True, 'hybrid', (True, True)),
-
-    (0, False, 'hybrid_differentiated', (False, False)),
-    (0, True, 'hybrid_differentiated', (False, True)),
 ])
 def test_model_supports_dict(request,
                              model_single_pk,

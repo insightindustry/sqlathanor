@@ -12,11 +12,12 @@ Fixtures used by the SQLAthanor test suite.
 import pytest
 
 from sqlathanor import BaseModel as Base
-from sqlathanor import Column, relationship, hybrid_property
+from sqlathanor import Column, relationship
 
 from sqlalchemy import Integer, String, ForeignKey, create_engine, MetaData
 from sqlalchemy.orm import clear_mappers, Session, backref
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
 
 
@@ -173,10 +174,7 @@ def tables(request, db_engine):
 
         _hybrid = 1
 
-        @hybrid_property(supports_csv = True,
-                         supports_json = True,
-                         supports_yaml = False,
-                         supports_dict = True)
+        @hybrid_property
         def hybrid(self):
             return self._hybrid
 
@@ -184,10 +182,7 @@ def tables(request, db_engine):
         def hybrid(self, value):
             self._hybrid = value
 
-        @hybrid_property(supports_csv = (False, True),
-                         supports_json = (False, True),
-                         supports_yaml = (False, True),
-                         supports_dict = (False, True))
+        @hybrid_property
         def hybrid_differentiated(self):
             return self._hybrid
 

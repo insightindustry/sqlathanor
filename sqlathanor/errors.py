@@ -7,3 +7,6 @@
 
 class SQLAthanorError(ValueError):
     pass
+
+class SQLAthanorValidationError(SQLAthanorError):
+    pass

@@ -17,11 +17,10 @@ with open(os.path.join(os.path.dirname(__file__), '__version__.py')) as version_
 __version__ = version_dict.get('__version__')
 
 from sqlathanor.declarative import BaseModel
-from sqlathanor.schema import Column, relationship, hybrid_property
+from sqlathanor.schema import Column, relationship
 
 __all__ = [
     'BaseModel',
     'Column',
     'relationship',
-    'hybrid_property',
 ]
