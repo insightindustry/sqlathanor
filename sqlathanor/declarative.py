@@ -13,10 +13,41 @@ from sqlalchemy.util import symbol, OrderedProperties
 
 from validator_collection import checkers
 
+from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config
+from sqlathanor.utilities import bool_to_tuple
+
 # pylint: disable=no-member
 
 class BaseModel(object):
     """Base class that establishes shared methods, attributes,and properties."""
+
+    __csv_support__ = []
+    __json_support__ = []
+    __yaml_support__ = []
+    __dict_support__ = []
+
+    def __init__(self, *args, **kwargs):
+        if self.__csv_support__:
+            self.__csv_support__ = validate_serialization_config(self.__csv_support__)
+        else:
+            self.__csv_support__ = []
+
+        if self.__json_support__:
+            self.__json_support__ = validate_serialization_config(self.__json_support__)
+        else:
+            self.__json_support__ = []
+
+        if self.__yaml_support__:
+            self.__yaml_support__ = validate_serialization_config(self.__yaml_support__)
+        else:
+            self.__yaml_support__ = []
+
+        if self.__dict_support__:
+            self.__dict_support__ = validate_serialization_config(self.__dict_support__)
+        else:
+            self.__dict_support__ = []
+
+        super(BaseModel, self).__init__(*args, **kwargs)
 
     @classmethod
     def get_primary_key_columns(cls):
@@ -103,7 +134,7 @@ class BaseModel(object):
         base_attributes = dir(cls)
         instance_attributes = []
         for key in base_attributes:
-            if key.startswith('_') and not include_private:
+            if key.startswith('_') and not key.startswith('__') and not include_private:
                 continue
 
             item = getattr(cls, key)
@@ -125,14 +156,21 @@ class BaseModel(object):
         return instance_attributes
 
     @classmethod
-    def get_serializable_attributes(cls,
-                                    supports_dict = True,
-                                    supports_json = True,
-                                    supports_csv = True,
-                                    supports_yaml = True,
-                                    exclude_private = True):
+    def _get_declarative_serializable_attributes(cls,
+                                                 supports_dict = True,
+                                                 supports_json = True,
+                                                 supports_csv = True,
+                                                 supports_yaml = True,
+                                                 exclude_private = True):
         """Retrieve a list of model attribute names (Python attributes) whose values
-        can be serialized to a database, to JSON, CSV, etc.
+        can be serialized to a database, to JSON, CSV, etc. based on their attribute
+        declarations.
+
+        .. note::
+
+          This method operates *solely* on attributes that have been delcared,
+          ignoring any configuration provided in the ``__<format>_support__``
+          attribute.
 
         :param supports_dict: If ``True``, includes attribute names that can be
           serialized to a :ref:`dict <python:dict>`. Defaults to ``True``.
@@ -151,7 +189,7 @@ class BaseModel(object):
         :type supports_yaml: :ref:`bool <python:bool>`
 
         :param exclude_private: If ``True``, will exclude private attributes whose
-          names begin with an underscore. Defaults to ``True``.
+          names begin with a single underscore. Defaults to ``True``.
         :type exclude_private: :ref:`bool <python:bool>`
 
         :returns: List of model attribute names that can be serialized.
@@ -164,95 +202,261 @@ class BaseModel(object):
             exclude_methods = True
         )
 
+        if supports_csv is not None:
+            supports_csv = bool_to_tuple(supports_csv)
+        if supports_json is not None:
+            supports_json = bool_to_tuple(supports_json)
+        if supports_yaml is not None:
+            supports_yaml = bool_to_tuple(supports_yaml)
+        if supports_dict is not None:
+            supports_dict = bool_to_tuple(supports_dict)
+
         attributes = []
         for key in instance_attributes:
             value = getattr(cls, key)
-
-            if supports_dict and getattr(value, 'supports_dict', None):
-                attributes.append(key)
+            config = AttributeConfiguration(attribute = value)
+            config.name = key
+            if supports_csv is not None and config.supports_csv == supports_csv:
+                attributes.append(config)
                 continue
 
-            if supports_json and getattr(value, 'supports_json', None):
-                attributes.append(key)
+            if supports_json is not None and config.supports_json == supports_json:
+                attributes.append(config)
                 continue
 
-            if supports_csv and getattr(value, 'supports_csv', None):
-                attributes.append(key)
+            if supports_yaml is not None and config.supports_yaml == supports_yaml:
+                attributes.append(config)
                 continue
 
-            if supports_yaml and getattr(value, 'supports_yaml', None):
-                attributes.append(key)
+            if supports_dict is not None and config.supports_dict == supports_dict:
+                attributes.append(config)
                 continue
 
         return attributes
 
     @classmethod
-    def get_csv_column_names(cls):
+    def _get_meta_serializable_attributes(cls,
+                                          supports_dict = None,
+                                          supports_json = None,
+                                          supports_csv = None,
+                                          supports_yaml = None):
+        """Retrieve a list of model attribute names (Python attributes) whose values
+        can be serialized to a database, to JSON, CSV, etc. based on the contents
+        of the meta declaration in ``__<format>_support__``.
+
+        .. note::
+
+          This method operates *solely* on attributes that have been provided in
+          the ``__<format>_support__`` meta attribute.
+
+        :param supports_dict: If ``True``, includes attribute names that can be
+          serialized to a :ref:`dict <python:dict>`. Defaults to :class:`None`
+        :type supports_dict: :ref:`bool <python:bool>` / 2-member
+          :ref:`tuple <python:tuple>` of form (:ref:`bool <python:bool>`,
+          :ref:`bool <python:bool>`) / :class:`None`
+
+        :param supports_json: If ``True``, includes attribute names that can be
+          serialized to :term:`JSON`. Defaults to ``True``.
+        :type supports_json: :ref:`bool <python:bool>`
+
+        :param supports_csv: If ``True``, includes attribute names that can be
+          serialized to :term:`CSV`. Defaults to ``True``.
+        :type supports_csv: :ref:`bool <python:bool>`
+
+        :param supports_yaml: If ``True``, includes attribute names that can be
+          serialized to :term:`YAML`. Defaults to ``True``.
+        :type supports_yaml: :ref:`bool <python:bool>`
+
+        :returns: List of model attribute names that can be serialized.
+        :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
+        """
+        if supports_csv is not None:
+            supports_csv = bool_to_tuple(supports_csv)
+        if supports_json is not None:
+            supports_json = bool_to_tuple(supports_json)
+        if supports_yaml is not None:
+            supports_yaml = bool_to_tuple(supports_yaml)
+        if supports_dict is not None:
+            supports_dict = bool_to_tuple(supports_dict)
+
+        attributes = []
+        if supports_csv is not None:
+            attributes.extend([x for x in cls.__csv_support__
+                               if x.supports_csv == supports_csv
+                              ])
+        if supports_json is not None:
+            attributes.extend([x for x in cls.__json_support__
+                               if x.supports_json == supports_json
+                              ])
+        if supports_yaml is not None:
+            attributes.extend([x for x in cls.__yaml_support__
+                               if x.supports_yaml == supports_yaml
+                              ])
+        if supports_dict is not None:
+            attributes.extend([x for x in cls.__dict_support__
+                               if x.supports_dict == supports_dict
+                              ])
+
+        return attributes
+
+    @classmethod
+    def get_serialization_config(cls,
+                                 supports_csv = True,
+                                 supports_json = True,
+                                 supports_yaml = True,
+                                 supports_dict = True,
+                                 exclude_private = True):
+        """Retrieve attributes for a given serialization/de-serialization configuration.
+
+        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration` objects
+
+        """
+        declarative_attributes = cls._get_declarative_serializable_attributes(
+            supports_csv = supports_csv,
+            supports_json = supports_json,
+            supports_yaml = supports_yaml,
+            supports_dict = supports_dict,
+            exclude_private = exclude_private
+        )
+        meta_attributes = cls._get_meta_serializable_attributes(
+            supports_csv = supports_csv,
+            supports_json = supports_json,
+            supports_yaml = supports_yaml,
+            supports_dict = supports_dict
+        )
+        attributes = [x for x in declarative_attributes]
+        attributes.extend([x for x in meta_attributes
+                           if x not in attributes])
+
+        return attributes
+
+    @classmethod
+    def get_csv_serialization_config(cls, deserialize = True, serialize = True):
         """Retrieve the CSV column names that apply for this object.
 
         :returns: Ordered list of CSV column names that apply for this object.
         :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
         """
-        csv_attributes = cls.get_serializable_attributes(supports_dict = None,
-                                                         supports_json = None,
-                                                         supports_csv = True,
-                                                         supports_yaml = None)
-        csv_sequences = []
-        for key in csv_attributes:
-            item = getattr(cls, key, None)
-
-            csv_sequences.append(getattr(item,
-                                         'csv_sequence',
-                                         len(csv_attributes)))
-
-        csv_attributes_sequenced = zip(csv_attributes, csv_sequences)
-
-        csv_keys = [x[0] for x in sorted(csv_attributes_sequenced,
-                                         key = lambda x: x[1])]
-
-        return csv_keys
+        supports_csv = bool_to_tuple((deserialize, serialize))
+        return sorted([x
+                       for x in cls.get_serialization_config(supports_csv = supports_csv,
+                                                             supports_json = None,
+                                                             supports_yaml = None,
+                                                             supports_dict = None)],
+                      key = lambda x: x.csv_sequence)
 
     @classmethod
-    def get_dict_attribute_names(cls):
-        """Retrieve the :ref:`dict <python:dict>` attribute names that apply for this object.
+    def get_json_serialization_config(cls, deserialize = True, serialize = True):
+        """Retrieve the JSON serialization configurations that apply for this object.
 
-        :returns: Ordered list of attribute names that apply for this object.
+        :returns: Ordered list of JSON keys that apply for this object.
+        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
+        """
+        supports_json = bool_to_tuple((deserialize, serialize))
+        return [x for x in cls.get_serialization_config(supports_csv = None,
+                                                        supports_json = supports_json,
+                                                        supports_yaml = None,
+                                                        supports_dict = None)]
+
+    @classmethod
+    def get_yaml_serialization_config(cls, deserialize = True, serialize = True):
+        """Retrieve the JSON serialization configurations that apply for this object.
+
+        :returns: Ordered list of YAML keys that apply for this object.
+        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
+        """
+        supports_yaml = bool_to_tuple((deserialize, serialize))
+        return [x for x in cls.get_serialization_config(supports_csv = None,
+                                                        supports_json = None,
+                                                        supports_yaml = supports_yaml,
+                                                        supports_dict = None)]
+
+    @classmethod
+    def get_dict_serialization_config(cls, deserialize = True, serialize = True):
+        """Retrieve the :ref:`dict <python:dict>` serialization configurations that
+        apply for this object.
+
+        :returns: Ordered list of :ref:`dict <python:dict>` keys that apply for
+          this object.
+        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
+        """
+        supports_dict = bool_to_tuple((deserialize, serialize))
+        return [x for x in cls.get_serialization_config(supports_csv = None,
+                                                        supports_json = None,
+                                                        supports_yaml = None,
+                                                        supports_dict = supports_dict)]
+
+    @classmethod
+    def attribute_serialization_config(cls,
+                                       attribute,
+                                       supports_csv = None,
+                                       supports_json = None,
+                                       supports_yaml = None,
+                                       supports_dict = None):
+        """Retrieve the :class:`AttributeConfiguration` for ``attribute``.
+
+        :param attribute: The attribute/column name whose serialization
+          configuration should be returned.
+        :type attribute: :ref:`str <python:str>`
+
+        """
+        config = cls.get_serialization_config(supports_csv = supports_csv,
+                                              supports_json = supports_json,
+                                              supports_yaml = supports_yaml,
+                                              supports_dict = supports_dict)
+        for item in config:
+            if item.name == attribute:
+                return item
+
+        return None
+
+    @classmethod
+    def does_support_serialization(cls,
+                                   attribute,
+                                   supports_csv = None,
+                                   supports_json = None,
+                                   supports_yaml = None,
+                                   supports_dict = None):
+        """Indicate whether ``attribute`` supports serialization/deserializtion.
+
+        :returns: ``True`` if the serialization support matches. ``False`` if not.
+        :rtype: :ref:`bool <python:bool>`
+        """
+        config = cls.attribute_serialization_config(attribute,
+                                                    supports_csv = supports_csv,
+                                                    supports_json = supports_json,
+                                                    supports_yaml = supports_yaml,
+                                                    supports_dict = supports_dict)
+        return config is not None
+
+    @classmethod
+    def get_csv_column_names(cls, deserialize = True, serialize = True):
+        """Retrieve a list of CSV column names.
+
+        :param deserialize: If ``True``, returns columns that support
+          :term:`deserialization`. If ``False``, returns columns that do *not*
+          support deserialization. If :class:`None`, does not take
+          deserialization into account. Defaults to ``True``.
+        :type deserialize: :ref:`bool <python:bool>`
+
+        :param serialize: If ``True``, returns columns that support
+          :term:`serialization`. If ``False``, returns columns that do *not*
+          support serialization. If :class:`None`, does not take
+          serialization into account. Defaults to ``True``.
+        :type serialize: :ref:`bool <python:bool>`
+
+        :returns: List of CSV column names, sorted according to their configuration.
         :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
         """
-        attributes = cls.get_serializable_attributes(supports_dict = True,
-                                                     supports_json = None,
-                                                     supports_csv = None,
-                                                     supports_yaml = None)
-        return attributes
+        config = cls.get_csv_serialization_config(deserialize = deserialize,
+                                                  serialize = serialize)
+        return [x.name for x in config]
 
     @classmethod
-    def get_json_attribute_names(cls):
-        """Retrieve the JSON attribute names that apply for this object.
-
-        :returns: Ordered list of JSON attribute names that apply for this object.
-        :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
-        """
-        attributes = cls.get_serializable_attributes(supports_dict = None,
-                                                     supports_json = True,
-                                                     supports_csv = None,
-                                                     supports_yaml = None)
-        return attributes
-
-    @classmethod
-    def get_yaml_attribute_names(cls):
-        """Retrieve the YAML attribute names that apply for this object.
-
-        :returns: Ordered list of YAML attribute names that apply for this object.
-        :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
-        """
-        attributes = cls.get_serializable_attributes(supports_dict = None,
-                                                     supports_json = None,
-                                                     supports_csv = None,
-                                                     supports_yaml = True)
-        return attributes
-
-    @classmethod
-    def get_csv_header(cls, delimiter = '|'):
+    def get_csv_header(cls,
+                       deserialize = True,
+                       serialize = True,
+                       delimiter = '|'):
         """Retrieve a header string for a CSV representation of the model.
 
         :param delimiter: The character(s) to utilize between columns. Defaults to
@@ -263,7 +467,8 @@ class BaseModel(object):
           listed, separated by the ``delimiter``.
         :rtype: :ref:`str <python:str>`
         """
-        column_names = cls.get_csv_column_names()
+        column_names = cls.get_csv_column_names(deserialize = deserialize,
+                                                serialize = serialize)
         header_string = delimiter.join(column_names) + '\n'
 
         return header_string
@@ -303,7 +508,8 @@ class BaseModel(object):
         if not wrapper_character:
             wrapper_character = '\''
 
-        csv_column_names = self.get_csv_column_names()
+        csv_column_names = self.get_csv_column_names(deserialize = None,
+                                                     serialize = True)
 
         data = [getattr(self, x, '') for x in csv_column_names if hasattr(self, x)]
 
