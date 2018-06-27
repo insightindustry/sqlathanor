@@ -7,7 +7,7 @@
 SQLAthanor
 ####################################################
 
-**Drop-in serialization extension for the SQLAlchemy Declarative ORM**
+**Easy serialization / de-serialization for SQLAlchemy Declarative Models**
 
 .. |strong| raw:: html
 
@@ -109,7 +109,7 @@ To start using it, all you need to do is import it in place of your standard SQL
       # The following are optional, depending on how your data model is designed:
       from sqlathanor import relationship
       from sqlathanor import hybrid_property
-      from sqlathanor import association_proxy
+      from sqlalchemy.ext.associationproxy import association_proxy
 
     .. tip::
 

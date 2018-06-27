@@ -18,9 +18,11 @@ __version__ = version_dict.get('__version__')
 
 from sqlathanor.declarative import BaseModel
 from sqlathanor.schema import Column, relationship
+from sqlathanor.attributes import AttributeConfiguration
 
 __all__ = [
     'BaseModel',
     'Column',
     'relationship',
+    'AttributeConfiguration',
 ]

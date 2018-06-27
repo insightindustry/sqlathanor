@@ -171,7 +171,10 @@ class AttributeConfiguration(SerializationMixin):
         super(AttributeConfiguration, self).__init__(*args, **kwargs)
 
         if attribute is not None:
-            self.name = attribute.__name__
+            try:
+                self.name = attribute.__name__
+            except AttributeError:
+                self.name = None
             try:
                 self.supports_csv = attribute.supports_csv
                 self.csv_sequence = attribute.csv_sequence

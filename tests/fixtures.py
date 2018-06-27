@@ -12,7 +12,7 @@ Fixtures used by the SQLAthanor test suite.
 import pytest
 
 from sqlathanor import BaseModel as Base
-from sqlathanor import Column, relationship
+from sqlathanor import Column, relationship, AttributeConfiguration
 
 from sqlalchemy import Integer, String, ForeignKey, create_engine, MetaData
 from sqlalchemy.orm import clear_mappers, Session, backref
@@ -254,7 +254,6 @@ def tables(request, db_engine):
             self.id = id
             self.keyword = keyword
 
-
     class Address_Complex(BaseModel):
         """Mocked class with a single primary key."""
 
@@ -275,6 +274,96 @@ def tables(request, db_engine):
                          Integer,
                          ForeignKey('users_complex.id'))
 
+    class User_Complex_Meta(BaseModel):
+        """Mocked class with a single primary key."""
+
+        __tablename__ = 'users_complex_meta'
+
+        __serialization__ = [
+            AttributeConfiguration(name = 'id',
+                                   supports_csv = True,
+                                   csv_sequence = 1,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True),
+            AttributeConfiguration(name = 'name',
+                                   supports_csv = True,
+                                   csv_sequence = 2,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True,
+                                   on_serialize = None,
+                                   on_deserialize = None),
+            AttributeConfiguration(name = 'addresses',
+                                   supports_json = True,
+                                   supports_yaml = (True, True),
+                                   supports_dict = (True, False)),
+            AttributeConfiguration(name = 'hybrid',
+                                   supports_csv = True,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True),
+            AttributeConfiguration(name = 'password',
+                                   supports_csv = (True, False),
+                                   csv_sequence = 3,
+                                   supports_json = (True, False),
+                                   supports_yaml = (True, False),
+                                   supports_dict = (True, False))
+        ]
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+        name = Column('username',
+                      String(50))
+        addresses = relationship('Address_Complex_Meta', backref = 'user')
+
+        password = Column('password',
+                          String(50))
+        hidden = Column('hidden_column',
+                        String(50))
+
+        _hybrid = 1
+
+        @hybrid_property
+        def hybrid(self):
+            return self._hybrid
+
+        @hybrid.setter
+        def hybrid(self, value):
+            self._hybrid = value
+
+        @hybrid_property
+        def hybrid_differentiated(self):
+            return self._hybrid
+
+        @hybrid_differentiated.setter
+        def hybrid_differentiated(self, value):
+            self._hybrid = value
+
+        keywords_basic = association_proxy('keywords_basic', 'keyword')
+
+    class Address_Complex_Meta(BaseModel):
+        """Mocked class with a single primary key."""
+
+        __tablename__ = 'addresses_complex_meta'
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+        email = Column('email_address',
+                       String(50),
+                       supports_csv = True,
+                       supports_json = True,
+                       supports_yaml = True,
+                       supports_dict = True,
+                       on_serialize = validators.email,
+                       on_deserialize = validators.email)
+        user_id = Column('user_id',
+                         Integer,
+                         ForeignKey('users_complex_meta.id'))
+
+
 
     BaseModel.metadata.create_all(db_engine)
 
@@ -282,7 +371,8 @@ def tables(request, db_engine):
         'base_model': BaseModel,
         'model_single_pk': (User, Address),
         'model_composite_pk': (User2, Address2),
-        'model_complex': (User_Complex, Address_Complex)
+        'model_complex': (User_Complex, Address_Complex),
+        'model_complex_meta': (User_Complex_Meta, Address_Complex_Meta)
     }
 
     clear_mappers()
@@ -359,6 +449,12 @@ def model_complex(request, tables):
 
     return (User, Address)
 
+@pytest.fixture(scope = 'session')
+def model_complex_meta(request, tables):
+    User = tables['model_complex_meta'][0]
+    Address = tables['model_complex_meta'][1]
+
+    return (User, Address)
 
 @pytest.fixture
 def instance_complex(request, model_complex):
@@ -375,6 +471,31 @@ def instance_complex(request, model_complex):
     }
     user = model_complex[0]
     address = model_complex[1]
+
+    user_instance = user(**user_instance_values)
+    address_instance = address(**address_instance_values)
+
+    instances = (user_instance, address_instance)
+    instance_values = (user_instance_values, address_instance_values)
+
+    return (instances, instance_values)
+
+
+@pytest.fixture
+def instance_complex_meta(request, model_complex_meta):
+    user_instance_values = {
+        'id': 1,
+        'name': 'test_username',
+        'password': 'test_password',
+        'hidden': 'hidden value'
+    }
+    address_instance_values = {
+        'id': 1,
+        'email': 'test@domain.com',
+        'user_id': 1
+    }
+    user = model_complex_meta[0]
+    address = model_complex_meta[1]
 
     user_instance = user(**user_instance_values)
     address_instance = address(**address_instance_values)
