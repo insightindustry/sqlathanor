@@ -19,9 +19,10 @@ from validator_collection import checkers, validators
 
 from sqlathanor._compat import StringIO
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config
-from sqlathanor.utilities import format_to_tuple
+from sqlathanor.utilities import format_to_tuple, is_model_instance
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
-    UnsupportedSerializationError, UnsupportedDeserializationError, DeserializationError
+    UnsupportedSerializationError, UnsupportedDeserializationError, DeserializationError,\
+    CSVColumnError
 from sqlathanor.default_serializers import get_default_serializer
 from sqlathanor.default_deserializers import get_default_deserializer
 
@@ -39,6 +40,9 @@ class BaseModel(object):
             self.__serialization__ = []
 
         super(BaseModel, self).__init__(*args, **kwargs)
+
+    def _check_is_model_instance(self):
+        return True
 
     @classmethod
     def get_primary_key_columns(cls):
@@ -612,14 +616,18 @@ class BaseModel(object):
           arguments supplied.
         :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
         """
-        attributes = [x
+        attributes = [x.copy()
                       for x in cls.get_serialization_config(from_csv = deserialize,
                                                             to_csv = serialize)]
         for config in attributes:
+            if config.name == 'hybrid':
+                print(config.csv_sequence)
+            if config.name == 'smallint_column':
+                print('smallint: %s' % config.csv_sequence)
             if config.csv_sequence is None:
-                config.csv_sequence = len(attributes)
+                config.csv_sequence = len(attributes) + 1
 
-        return sorted(attributes, key = lambda x: x.csv_sequence)
+        return sorted(attributes, key = lambda x: (x.csv_sequence, x.name))
 
     @classmethod
     def get_json_serialization_config(cls, deserialize = True, serialize = True):
@@ -717,7 +725,7 @@ class BaseModel(object):
 
         for config in attributes:
             if config.name == attribute:
-                return config
+                return config.copy()
 
         return None
 
@@ -931,7 +939,8 @@ class BaseModel(object):
 
         return return_value
 
-    def _get_deserialized_value(self,
+    @classmethod
+    def _get_deserialized_value(cls,
                                 value,
                                 format,
                                 attribute):
@@ -961,27 +970,34 @@ class BaseModel(object):
         from_csv, from_json, from_yaml, from_dict = format_to_tuple(format)
 
         try:
-            supports_deserialization = self.does_support_serialization(attribute,
-                                                                       from_csv = from_csv,
-                                                                       from_json = from_json,
-                                                                       from_yaml = from_yaml,
-                                                                       from_dict = from_dict)
+            supports_deserialization = cls.does_support_serialization(attribute,
+                                                                      from_csv = from_csv,
+                                                                      from_json = from_json,
+                                                                      from_yaml = from_yaml,
+                                                                      from_dict = from_dict)
         except UnsupportedSerializationError:
             supports_deserialization = False
+
+        if inspect_.isclass(cls):
+            class_name = str(cls)
+            class_obj = cls
+        else:
+            class_name = str(type(cls))
+            class_obj = cls.__class__
 
         if not supports_deserialization:
             raise UnsupportedDeserializationError(
                 "%s attribute '%s' does not support de-serialization from '%s'" % \
-                (self.__class__,
+                (class_name,
                  attribute,
                  format)
             )
 
-        config = self.get_attribute_serialization_config(attribute)
+        config = cls.get_attribute_serialization_config(attribute)
 
         on_deserialize = config.on_deserialize[format]
         if on_deserialize is None:
-            on_deserialize = get_default_deserializer(getattr(self.__class__,
+            on_deserialize = get_default_deserializer(getattr(class_obj,
                                                               attribute),
                                                       format = format)
 
@@ -1268,12 +1284,16 @@ class BaseModel(object):
                                  line_terminator = line_terminator)
 
     @classmethod
-    def from_csv(cls,
-                 csv_data,
-                 delimiter = '|',
-                 wrapper_character = "'",
-                 null_text = 'None'):
-        """Create an instance of the model from CSV data.
+    def _parse_csv(cls,
+                   csv_data,
+                   delimiter = '|',
+                   wrap_all_strings = False,
+                   null_text = 'None',
+                   wrapper_character = "'",
+                   double_wrapper_character_when_nested = False,
+                   escape_character = "\\",
+                   line_terminator = '\r\n'):
+        """Generate a :ref:`dict <python:dict>` from a CSV record.
 
         .. tip::
 
@@ -1295,8 +1315,8 @@ class BaseModel(object):
           values are wrapped. Defaults to `None`.
         :type null_text: :ref:`str <python:str>`
 
-        :returns: A new instance created from CSV data.
-        :rtype: model instance
+        :returns: A :ref:`dict <python:dict>` representation of the CSV record.
+        :rtype: :ref:`dict <python:dict>`
 
         :raises DeserializationError: if ``csv_data`` is not a valid
           :ref:`str <python:str>`
@@ -1309,18 +1329,246 @@ class BaseModel(object):
         """
         try:
             csv_data = validators.string(csv_data, allow_empty = False)
-        except ValueError:
+        except (ValueError, TypeError):
             raise DeserializationError("csv_data expects a 'str', received '%s'" \
                                        % type(csv_data))
 
-        csv_data = csv_data.strip()
+        if not wrapper_character:
+            wrapper_character = '\''
 
-        column_names = cls.get_csv_column_names(deserialize = True,
-                                                serialize = None)
-        column_values = []
-        start_position = 0
+        if wrap_all_strings:
+            quoting = csv.QUOTE_NONNUMERIC
+        else:
+            quoting = csv.QUOTE_MINIMAL
 
+        if 'sqlathanor' in csv.list_dialects():
+            csv.unregister_dialect('sqlathanor')
 
+        csv.register_dialect('sqlathanor',
+                             delimiter = delimiter,
+                             doublequote = double_wrapper_character_when_nested,
+                             escapechar = escape_character,
+                             quotechar = wrapper_character,
+                             quoting = quoting,
+                             lineterminator = line_terminator)
+
+        csv_column_names = [x
+                            for x in cls.get_csv_column_names(deserialize = True,
+                                                              serialize = None)
+                            if hasattr(cls, x)]
+        print(csv_column_names)
+
+        csv_reader = csv.DictReader([csv_data],
+                                    fieldnames = csv_column_names,
+                                    dialect = 'sqlathanor',
+                                    restkey = None,
+                                    restval = None)
+
+        rows = [x for x in csv_reader]
+
+        # print(csv_column_names)
+
+        if len(rows) > 1:
+            raise CSVColumnError('expected 1 row of data, received %s' % len(csv_reader))
+        elif len(rows) == 0:
+            data = {}
+            for column_name in csv_column_names:
+                data[column_name] = None
+        else:
+            data = rows[0]
+
+        if data.get(None, None) is not None:
+            raise CSVColumnError('expected %s fields, found %s' % (len(csv_column_names),
+                                                                   len(data.keys())))
+        for key in data:
+            if data[key] == null_text:
+                data[key] = None
+                continue
+
+            deserialized_value = cls._get_deserialized_value(data[key],
+                                                             'csv',
+                                                             key)
+
+            data[key] = deserialized_value
+
+        csv.unregister_dialect('sqlathanor')
+
+        return data
+
+    def update_from_csv(self,
+                        csv_data,
+                        delimiter = '|',
+                        wrap_all_strings = False,
+                        null_text = 'None',
+                        wrapper_character = "'",
+                        double_wrapper_character_when_nested = False,
+                        escape_character = "\\",
+                        line_terminator = '\r\n'):
+        """Update a new model instance from a CSV record.
+
+        .. tip::
+
+          Unwrapped empty column values are automatically interpreted as null
+          (:class:`None`).
+
+        :param csv_data: The CSV record. Should be a single row and should **not**
+          include column headers.
+        :type csv_data: :ref:`str <python:str>`
+
+        :param delimiter: The delimiter used between columns. Defaults to ``|``.
+        :type delimiter: :ref:`str <python:str>`
+
+        :param wrapper_character: The string used to wrap string values when
+          wrapping is applied. Defaults to ``'``.
+        :type wrapper_character: :ref:`str <python:str>`
+
+        :param null_text: The string used to indicate an empty value if empty
+          values are wrapped. Defaults to `None`.
+        :type null_text: :ref:`str <python:str>`
+
+        :returns: A :term:`model instance` created from the record.
+        :rtype: model instance
+
+        :raises DeserializationError: if ``csv_data`` is not a valid
+          :ref:`str <python:str>`
+        :raises CSVColumnError: if the columns in ``csv_data`` do not match
+          the expected columns returned by
+          :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
+        :raises ValueDeserializationError: if a value extracted from the CSV
+          failed when executing its :term:`de-serialization function`.
+
+        """
+        data = self._parse_csv(csv_data,
+                               delimiter = delimiter,
+                               wrap_all_strings = wrap_all_strings,
+                               null_text = null_text,
+                               wrapper_character = wrapper_character,
+                               double_wrapper_character_when_nested = double_wrapper_character_when_nested,
+                               escape_character = escape_character,
+                               line_terminator = line_terminator)
+
+        print(data)
+
+        for key in data:
+            setattr(self, key, data[key])
+
+    @classmethod
+    def new_from_csv(cls,
+                     csv_data,
+                     delimiter = '|',
+                     wrap_all_strings = False,
+                     null_text = 'None',
+                     wrapper_character = "'",
+                     double_wrapper_character_when_nested = False,
+                     escape_character = "\\",
+                     line_terminator = '\r\n'):
+        """Create a new model instance from a CSV record.
+
+        .. tip::
+
+          Unwrapped empty column values are automatically interpreted as null
+          (:class:`None`).
+
+        :param csv_data: The CSV record. Should be a single row and should **not**
+          include column headers.
+        :type csv_data: :ref:`str <python:str>`
+
+        :param delimiter: The delimiter used between columns. Defaults to ``|``.
+        :type delimiter: :ref:`str <python:str>`
+
+        :param wrapper_character: The string used to wrap string values when
+          wrapping is applied. Defaults to ``'``.
+        :type wrapper_character: :ref:`str <python:str>`
+
+        :param null_text: The string used to indicate an empty value if empty
+          values are wrapped. Defaults to `None`.
+        :type null_text: :ref:`str <python:str>`
+
+        :returns: A :term:`model instance` created from the record.
+        :rtype: model instance
+
+        :raises DeserializationError: if ``csv_data`` is not a valid
+          :ref:`str <python:str>`
+        :raises CSVColumnError: if the columns in ``csv_data`` do not match
+          the expected columns returned by
+          :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
+        :raises ValueDeserializationError: if a value extracted from the CSV
+          failed when executing its :term:`de-serialization function`.
+
+        """
+        data = cls._parse_csv(csv_data,
+                              delimiter = delimiter,
+                              wrap_all_strings = wrap_all_strings,
+                              null_text = null_text,
+                              wrapper_character = wrapper_character,
+                              double_wrapper_character_when_nested = double_wrapper_character_when_nested,
+                              escape_character = escape_character,
+                              line_terminator = line_terminator)
+
+        return cls(**data)
+
+    @classmethod
+    def from_csv(cls,
+                 csv_data,
+                 delimiter = '|',
+                 wrap_all_strings = False,
+                 null_text = 'None',
+                 wrapper_character = "'",
+                 double_wrapper_character_when_nested = False,
+                 escape_character = "\\",
+                 line_terminator = '\r\n'):
+        """Create a new model instance from a CSV record.
+
+        .. tip::
+
+          Unwrapped empty column values are automatically interpreted as null
+          (:class:`None`).
+
+        :param csv_data: The CSV record. Should be a single row and should **not**
+          include column headers.
+        :type csv_data: :ref:`str <python:str>`
+
+        :param delimiter: The delimiter used between columns. Defaults to ``|``.
+        :type delimiter: :ref:`str <python:str>`
+
+        :param wrapper_character: The string used to wrap string values when
+          wrapping is applied. Defaults to ``'``.
+        :type wrapper_character: :ref:`str <python:str>`
+
+        :param null_text: The string used to indicate an empty value if empty
+          values are wrapped. Defaults to `None`.
+        :type null_text: :ref:`str <python:str>`
+
+        :returns: A :term:`model instance` created from the record.
+        :rtype: model instance
+
+        :raises DeserializationError: if ``csv_data`` is not a valid
+          :ref:`str <python:str>`
+        :raises CSVColumnError: if the columns in ``csv_data`` do not match
+          the expected columns returned by
+          :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
+        :raises ValueDeserializationError: if a value extracted from the CSV
+          failed when executing its :term:`de-serialization function`.
+
+        """
+        try:
+            return cls._update_from_csv(csv_data,
+                                        delimiter = delimiter,
+                                        wrap_all_strings = wrap_all_strings,
+                                        null_text = null_text,
+                                        wrapper_character = wrapper_character,
+                                        double_wrapper_character_when_nested = double_wrapper_character_when_nested,
+                                        escape_character = escape_character,
+                                        line_terminator = line_terminator)
+        except TypeError:
+            return cls._new_from_csv(csv_data,
+                                     delimiter = delimiter,
+                                     wrap_all_strings = wrap_all_strings,
+                                     null_text = null_text,
+                                     wrapper_character = wrapper_character,
+                                     double_wrapper_character_when_nested = double_wrapper_character_when_nested,
+                                     escape_character = escape_character,
+                                     line_terminator = line_terminator)
 
     def to_dict(self,
                 max_nesting = 0,

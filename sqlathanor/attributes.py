@@ -377,6 +377,19 @@ class AttributeConfiguration(SerializationMixin):
         """
         return cls(attribute = attribute)
 
+    def copy(self):
+        new_instance = self.__class__()
+        new_instance.name = self.name
+        new_instance.supports_csv = self.supports_csv
+        new_instance.csv_sequence = self.csv_sequence
+        new_instance.supports_json = self.supports_json
+        new_instance.supports_yaml = self.supports_yaml
+        new_instance.supports_dict = self.supports_dict
+        new_instance.on_serialize = self.on_serialize
+        new_instance.on_deserialize = self.on_deserialize
+
+        return new_instance
+
 
 def validate_serialization_config(config):
     """Validate that ``config`` contains :class:`AttributeConfiguration` objects.

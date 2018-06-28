@@ -40,3 +40,8 @@ class UnsupportedDeserializationError(DeserializationError):
     """Error raised when attempting to de-serialize an attribute that does not support
     de-serialization."""
     pass
+
+class CSVColumnError(DeserializationError):
+    """Error raised when there is a mismatch between expected columns and found columns
+    in CSV data."""
+    pass
