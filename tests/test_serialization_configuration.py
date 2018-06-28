@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-***********************************
+******************************************
 tests.test_serialization_configuration
-***********************************
+******************************************
 
 Tests for declarative :class:`BaseModel` and the ability to retireve serialization
 configuration data.
@@ -13,6 +13,7 @@ configuration data.
 import pytest
 
 from sqlathanor import Column
+from sqlathanor.errors import UnsupportedSerializationError
 
 from tests.fixtures import db_engine, tables, base_model, db_session, \
     model_single_pk, model_composite_pk, instance_single_pk, instance_composite_pk, \
@@ -591,7 +592,7 @@ def test_model_does_support_serialization(request,
 
         assert result is returns_value
     else:
-        with pytest.raises(AttributeError):
+        with pytest.raises(UnsupportedSerializationError):
             result = target.does_support_serialization(attribute,
                                                        **format_support)
 
@@ -1146,6 +1147,6 @@ def test_instance_does_support_serialization(request,
 
         assert result is returns_value
     else:
-        with pytest.raises(AttributeError):
+        with pytest.raises(UnsupportedSerializationError):
             result = target.does_support_serialization(attribute,
                                                        **format_support)

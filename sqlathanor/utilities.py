@@ -11,7 +11,8 @@ This module defines a variety of utility functions which are used throughout
 """
 from validator_collection import validators
 
-from sqlathanor.errors import InvalidFormatError
+from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
+    UnsupportedDeserializationError
 
 def bool_to_tuple(input):
     """Converts a single :ref:`bool <python:bool>` value to a
@@ -119,3 +120,55 @@ def format_to_tuple(format):
         raise InvalidFormatError('%s is not a valid format string' % format)
 
     return csv, json, yaml, dict
+
+
+def get_class_type_key(class_attribute, value = None):
+    """Retrieve the class type for ``class_attribute.
+
+    .. note::
+
+      If ``class_attribute`` does not have a SQLAlchemy data type, then
+      determines the data type based on ``value``.
+
+    :param class_attribute: The class attribute whose default serializer will be
+      returned. Defaults to :class:`None`.
+
+    :param format: The format to which the value should be serialized. Accepts
+      either: ``csv``, ``json``, ``yaml``, or ``dict``. Defaults to :class:`None`.
+    :type format: :ref:`str <python:str>`
+
+    :param value: The class attribute's value.
+
+    :returns: The key to use to find a default serializer or de-serializer.
+    :rtype: :ref:`str <python:str>`
+
+    """
+    if class_attribute is not None:
+        try:
+            class_type = class_attribute.type
+        except AttributeError:
+            if value is not None:
+                class_type = type(value)
+            else:
+                class_type = None
+    elif value is not None:
+        class_type = type(value)
+    else:
+        class_type = None
+
+    if class_type is not None:
+        try:
+            class_type_key = class_type.__name__
+        except AttributeError:
+            class_type_key = str(class_type)
+    else:
+        class_type_key = 'NONE'
+
+    return class_type_key
+
+
+def raise_UnsupportedSerializationError(value):
+    raise UnsupportedSerializationError("value '%s' cannot be serialized" % value)
+
+def raise_UnsupportedDeserializationError(value):
+    raise UnsupportedDeserializationError("value '%s' cannot be de-serialized" % value)

@@ -5,6 +5,8 @@
 # extension, and its member function documentation is automatically incorporated
 # there as needed.
 
+import inspect as inspect_
+
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.state import InstanceState
@@ -18,8 +20,8 @@ from sqlathanor.attributes import AttributeConfiguration, validate_serialization
 from sqlathanor.utilities import format_to_tuple
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
     UnsupportedSerializationError, UnsupportedDeserializationError
-from sqlathanor.default_serializers import get_default_serializer, \
-    get_default_deserializer
+from sqlathanor.default_serializers import get_default_serializer
+from sqlathanor.default_deserializers import get_default_deserializer
 
 # pylint: disable=no-member
 
@@ -809,13 +811,15 @@ class BaseModel(object):
 
         config = cls.get_attribute_serialization_config(attribute)
         if config is None:
-            if inspect.isclass(cls):
+            if inspect_.isclass(cls):
                 class_name = cls.__name__
             else:
                 class_name = type(cls).__name__
 
-            raise AttributeError("'%s' has no attribute '%s'" % (class_name,
-                                                                 attribute))
+            raise UnsupportedSerializationError(
+                "'%s' has no serializable attribute '%s'" % (class_name,
+                                                             attribute)
+            )
 
         csv_check = False
         json_check = False
@@ -977,11 +981,15 @@ class BaseModel(object):
 
         from_csv, from_json, from_yaml, from_dict = format_to_tuple(format)
 
-        supports_deserialization = self.does_support_serialization(attribute,
-                                                                   from_csv = from_csv,
-                                                                   from_json = from_json,
-                                                                   from_yaml = from_yaml,
-                                                                   from_dict = from_dict)
+        try:
+            supports_deserialization = self.does_support_serialization(attribute,
+                                                                       from_csv = from_csv,
+                                                                       from_json = from_json,
+                                                                       from_yaml = from_yaml,
+                                                                       from_dict = from_dict)
+        except UnsupportedSerializationError:
+            supports_deserialization = False
+
         if not supports_deserialization:
             raise UnsupportedDeserializationError(
                 "%s attribute '%s' does not support de-serialization from '%s'" % \

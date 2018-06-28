@@ -19,6 +19,7 @@ from sqlalchemy.orm import clear_mappers, Session, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.dialects import sqlite
 
 
 from validator_collection import validators
@@ -28,6 +29,12 @@ class State(object):
     # pylint: disable=too-few-public-methods
     pass
 
+
+def return_serialized(value):
+    return "serialized"
+
+def return_deserialized(value):
+    return "deserialized"
 
 
 @pytest.fixture
@@ -364,6 +371,101 @@ def tables(request, db_engine):
                          ForeignKey('users_complex_meta.id'))
 
 
+    class User_Complex_PostgreSQL(BaseModel):
+        """Mocked class with a single primary key."""
+
+        __tablename__ = 'users_complex_postgresql'
+
+        __serialization__ = [
+            AttributeConfiguration(name = 'id',
+                                   supports_csv = True,
+                                   csv_sequence = 1,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True),
+            AttributeConfiguration(name = 'name',
+                                   supports_csv = True,
+                                   csv_sequence = 2,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True,
+                                   on_serialize = return_serialized,
+                                   on_deserialize = return_deserialized),
+            AttributeConfiguration(name = 'addresses',
+                                   supports_json = True,
+                                   supports_yaml = (True, True),
+                                   supports_dict = (True, False)),
+            AttributeConfiguration(name = 'hybrid',
+                                   supports_csv = True,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True),
+            AttributeConfiguration(name = 'password',
+                                   supports_csv = (True, False),
+                                   csv_sequence = 3,
+                                   supports_json = (True, False),
+                                   supports_yaml = (True, False),
+                                   supports_dict = (True, False))
+        ]
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+        name = Column('username',
+                      String(50))
+        addresses = relationship('Address_Complex_PostgreSQL', backref = 'user')
+
+        password = Column('password',
+                          String(50))
+        hidden = Column('hidden_column',
+                        String(50))
+
+        smallint_column = Column('smallint_column',
+                                 sqlite.SMALLINT,
+                                 supports_csv = True,
+                                 csv_sequence = 4)
+
+        _hybrid = 1
+
+        @hybrid_property
+        def hybrid(self):
+            return self._hybrid
+
+        @hybrid.setter
+        def hybrid(self, value):
+            self._hybrid = value
+
+        @hybrid_property
+        def hybrid_differentiated(self):
+            return self._hybrid
+
+        @hybrid_differentiated.setter
+        def hybrid_differentiated(self, value):
+            self._hybrid = value
+
+        keywords_basic = association_proxy('keywords_basic', 'keyword')
+
+    class Address_Complex_PostgreSQL(BaseModel):
+        """Mocked class with a single primary key."""
+
+        __tablename__ = 'addresses_complex_postgresql'
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+        email = Column('email_address',
+                       String(50),
+                       supports_csv = True,
+                       supports_json = True,
+                       supports_yaml = True,
+                       supports_dict = True,
+                       on_serialize = validators.email,
+                       on_deserialize = validators.email)
+        user_id = Column('user_id',
+                         Integer,
+                         ForeignKey('users_complex_postgresql.id'))
+
+
 
     BaseModel.metadata.create_all(db_engine)
 
@@ -372,7 +474,8 @@ def tables(request, db_engine):
         'model_single_pk': (User, Address),
         'model_composite_pk': (User2, Address2),
         'model_complex': (User_Complex, Address_Complex),
-        'model_complex_meta': (User_Complex_Meta, Address_Complex_Meta)
+        'model_complex_meta': (User_Complex_Meta, Address_Complex_Meta),
+        'model_complex_postgresql': (User_Complex_PostgreSQL, Address_Complex_PostgreSQL)
     }
 
     clear_mappers()
@@ -456,6 +559,15 @@ def model_complex_meta(request, tables):
 
     return (User, Address)
 
+
+@pytest.fixture(scope = 'session')
+def model_complex_postgresql(request, tables):
+    User2 = tables['model_complex_postgresql'][0]
+    Address2 = tables['model_complex_postgresql'][1]
+
+    return (User2, Address2)
+
+
 @pytest.fixture
 def instance_complex(request, model_complex):
     user_instance_values = {
@@ -496,6 +608,32 @@ def instance_complex_meta(request, model_complex_meta):
     }
     user = model_complex_meta[0]
     address = model_complex_meta[1]
+
+    user_instance = user(**user_instance_values)
+    address_instance = address(**address_instance_values)
+
+    instances = (user_instance, address_instance)
+    instance_values = (user_instance_values, address_instance_values)
+
+    return (instances, instance_values)
+
+
+@pytest.fixture
+def instance_postgresql(request, model_complex_postgresql):
+    user_instance_values = {
+        'id': 1,
+        'name': 'test_username',
+        'password': 'test_password',
+        'hidden': 'hidden value',
+        'smallint_column': 2
+    }
+    address_instance_values = {
+        'id': 1,
+        'email': 'test@domain.com',
+        'user_id': 1
+    }
+    user = model_complex_postgresql[0]
+    address = model_complex_postgresql[1]
 
     user_instance = user(**user_instance_values)
     address_instance = address(**address_instance_values)
