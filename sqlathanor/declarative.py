@@ -5,6 +5,7 @@
 # extension, and its member function documentation is automatically incorporated
 # there as needed.
 
+import csv
 import inspect as inspect_
 
 from sqlalchemy.ext.declarative import declarative_base
@@ -16,10 +17,11 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from validator_collection import checkers, validators
 
+from sqlathanor._compat import StringIO
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config
 from sqlathanor.utilities import format_to_tuple
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
-    UnsupportedSerializationError, UnsupportedDeserializationError
+    UnsupportedSerializationError, UnsupportedDeserializationError, DeserializationError
 from sqlathanor.default_serializers import get_default_serializer
 from sqlathanor.default_deserializers import get_default_deserializer
 
@@ -1023,82 +1025,178 @@ class BaseModel(object):
     def get_csv_header(cls,
                        deserialize = None,
                        serialize = True,
-                       delimiter = '|'):
+                       delimiter = '|',
+                       wrap_all_strings = False,
+                       null_text = 'None',
+                       wrapper_character = "'",
+                       double_wrapper_character_when_nested = False,
+                       escape_character = "\\",
+                       line_terminator = '\r\n'):
         """Retrieve a header string for a CSV representation of the model.
 
         :param delimiter: The character(s) to utilize between columns. Defaults to
           a pipe (``|``).
         :type delimiter: :ref:`str <python:str>`
 
+        :param wrap_all_strings: If ``True``, wraps any string data in the
+          ``wrapper_character``. If ``None``, only wraps string data if it contains
+          the ``delimiter``. Defaults to ``False``.
+        :type wrap_all_strings: :ref:`bool <python:bool>`
+
+        :param null_text: The text value to use in place of empty values. Only
+          applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
+        :type null_text: :ref:`str <python:str>`
+
+        :param wrapper_character: The string used to wrap string values when
+          wrapping is necessary. Defaults to ``'``.
+        :type wrapper_character: :ref:`str <python:str>`
+
+        :param double_wrapper_character_when_nested: If ``True``, will double the
+          ``wrapper_character`` when it is found inside a column value. If ``False``,
+          will precede the ``wrapper_character`` by the ``escape_character`` when
+          it is found inside a column value. Defaults to ``False``.
+        :type :ref:`bool <python:bool>`
+
+        :param escape_character: The character to use when escaping nested wrapper
+          characters. Defaults to ``\``.
+        :type escape_character: :ref:`str <python:str>`
+
+        :param line_terminator: The character used to mark the end of a line.
+          Defaults to ``\r\n``.
+        :type line_terminator: :ref:`str <python:str>`
+
         :returns: A string ending in ``\n`` with the model's CSV column names
           listed, separated by the ``delimiter``.
         :rtype: :ref:`str <python:str>`
         """
+        if not wrapper_character:
+            wrapper_character = '\''
+
+        if wrap_all_strings:
+            quoting = csv.QUOTE_NONNUMERIC
+        else:
+            quoting = csv.QUOTE_MINIMAL
+
         column_names = cls.get_csv_column_names(deserialize = deserialize,
                                                 serialize = serialize)
-        header_string = delimiter.join(column_names) + '\n'
+        if 'sqlathanor' in csv.list_dialects():
+            csv.unregister_dialect('sqlathanor')
+
+        csv.register_dialect('sqlathanor',
+                             delimiter = delimiter,
+                             doublequote = double_wrapper_character_when_nested,
+                             escapechar = escape_character,
+                             quotechar = wrapper_character,
+                             quoting = quoting,
+                             lineterminator = line_terminator)
+
+        output = StringIO()
+        csv_writer = csv.DictWriter(output,
+                                    fieldnames = column_names,
+                                    dialect = 'sqlathanor')
+
+        csv_writer.writeheader()
+
+        header_string = output.getvalue()
+        output.close()
+
+        csv.unregister_dialect('sqlathanor')
 
         return header_string
 
     def get_csv_data(self,
                      delimiter = '|',
                      wrap_all_strings = False,
-                     wrap_empty_values = True,
-                     wrapper_character = "'"):
+                     null_text = 'None',
+                     wrapper_character = "'",
+                     double_wrapper_character_when_nested = False,
+                     escape_character = "\\",
+                     line_terminator = '\r\n'):
         """Return the CSV representation of the model instance (record).
 
-        :param delimiter: The character(s) to place between columns. Defaults to
-          a pipe ('|').
+        :param delimiter: The delimiter used between columns. Defaults to ``|``.
         :type delimiter: :ref:`str <python:str>`
 
-        :param wrap_all_strings: If ``True``, will wrap all string values in the
-          ``wrapper_character``. Defaults to ``False``.
+        :param wrap_all_strings: If ``True``, wraps any string data in the
+          ``wrapper_character``. If ``None``, only wraps string data if it contains
+          the ``delimiter``. Defaults to ``False``.
         :type wrap_all_strings: :ref:`bool <python:bool>`
 
-        :param wrap_empty_values: If ``True``, will wrap empty values with the
-          ``wrapper_character``. Defaults to ``True``.
+        :param null_text: The text value to use in place of empty values. Only
+          applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
+        :type null_text: :ref:`str <python:str>`
 
-          .. note::
-
-            This solves an issue in Microsoft Excel where an empty value in the
-            last column of a CSV record will now be recognized as a valid value.
-
-        :type wrap_empty_values: :ref:`bool <python:bool>`
-
-        :param wrapper_character: The character to use as a wrapper if a column
-          value needs to be wrapped. Defaults to a single quote (``'``).
+        :param wrapper_character: The string used to wrap string values when
+          wrapping is necessary. Defaults to ``'``.
         :type wrapper_character: :ref:`str <python:str>`
 
-        :returns: The CSV representation of the model instance (record).
+        :param double_wrapper_character_when_nested: If ``True``, will double the
+          ``wrapper_character`` when it is found inside a column value. If ``False``,
+          will precede the ``wrapper_character`` by the ``escape_character`` when
+          it is found inside a column value. Defaults to ``False``.
+        :type :ref:`bool <python:bool>`
+
+        :param escape_character: The character to use when escaping nested wrapper
+          characters. Defaults to ``\``.
+        :type escape_character: :ref:`str <python:str>`
+
+        :param line_terminator: The character used to mark the end of a line.
+          Defaults to ``\r\n``.
+        :type line_terminator: :ref:`str <python:str>`
+
+        :returns: Data from the object in CSV format ending in ``line_terminator``.
         :rtype: :ref:`str <python: str>`
         """
         if not wrapper_character:
             wrapper_character = '\''
 
-        csv_column_names = self.get_csv_column_names(deserialize = None,
-                                                     serialize = True)
+        csv_column_names = [x
+                            for x in self.get_csv_column_names(deserialize = None,
+                                                               serialize = True)
+                            if hasattr(self, x)]
+
+        if wrap_all_strings:
+            quoting = csv.QUOTE_NONNUMERIC
+        else:
+            quoting = csv.QUOTE_MINIMAL
+
+        if 'sqlathanor' in csv.list_dialects():
+            csv.unregister_dialect('sqlathanor')
+
+        csv.register_dialect('sqlathanor',
+                             delimiter = delimiter,
+                             doublequote = double_wrapper_character_when_nested,
+                             escapechar = escape_character,
+                             quotechar = wrapper_character,
+                             quoting = quoting,
+                             lineterminator = line_terminator)
 
         data = [self._get_serialized_value(format = 'csv',
                                            attribute = x)
-                for x in csv_column_names if hasattr(self, x)]
+                for x in csv_column_names]
 
         for index, item in enumerate(data):
-            if item == '' and wrap_empty_values:
-                item = None
-            if item == 'None' or item is None:
-                if wrap_empty_values:
-                    data[index] = wrapper_character + str(item) + wrapper_character
-                else:
-                    data[index] = ''
-            elif checkers.is_string(item) and wrap_all_strings:
-                data[index] = wrapper_character + item + wrapper_character
-            elif not checkers.is_string(item):
+            if item == '' or item is None or item == 'None':
+                data[index] = null_text
+            elif not checkers.is_string(item) and not checkers.is_numeric(item):
                 data[index] = str(item)
 
-            if delimiter in data[index]:
-                data[index] = wrapper_character + data[index] + wrapper_character
+        data_dict = {}
+        for index, column_name in enumerate(csv_column_names):
+            data_dict[column_name] = data[index]
 
-        data_row = delimiter.join(data) + '\n'
+        output = StringIO()
+        csv_writer = csv.DictWriter(output,
+                                    fieldnames = csv_column_names,
+                                    dialect = 'sqlathanor')
+
+
+        csv_writer.writerow(data_dict)
+
+        data_row = output.getvalue()
+        output.close()
+
+        csv.unregister_dialect('sqlathanor')
 
         return data_row
 
@@ -1106,28 +1204,123 @@ class BaseModel(object):
                include_header = False,
                delimiter = '|',
                wrap_all_strings = False,
-               wrap_empty_values = True,
-               wrapper_character = "'"):
-        """Retrieve a CSv string with the object's data.
+               null_text = 'None',
+               wrapper_character = "'",
+               double_wrapper_character_when_nested = False,
+               escape_character = "\\",
+               line_terminator = '\r\n'):
+        """Retrieve a CSV string with the object's data.
 
         :param include_header: If ``True``, will include a header row with column
           labels. If ``False``, will not include a header row. Defaults to ``True``.
         :type include_header: :ref:`bool <python:bool>`
 
-        :returns: Data from the object in CSV (pipe-delimited) format.
+        :param delimiter: The delimiter used between columns. Defaults to ``|``.
+        :type delimiter: :ref:`str <python:str>`
+
+        :param wrap_all_strings: If ``True``, wraps any string data in the
+          ``wrapper_character``. If ``None``, only wraps string data if it contains
+          the ``delimiter``. Defaults to ``False``.
+        :type wrap_all_strings: :ref:`bool <python:bool>`
+
+        :param null_text: The text value to use in place of empty values. Only
+          applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
+        :type null_text: :ref:`str <python:str>`
+
+        :param wrapper_character: The string used to wrap string values when
+          wrapping is necessary. Defaults to ``'``.
+        :type wrapper_character: :ref:`str <python:str>`
+
+        :param double_wrapper_character_when_nested: If ``True``, will double the
+          ``wrapper_character`` when it is found inside a column value. If ``False``,
+          will precede the ``wrapper_character`` by the ``escape_character`` when
+          it is found inside a column value. Defaults to ``False``.
+        :type :ref:`bool <python:bool>`
+
+        :param escape_character: The character to use when escaping nested wrapper
+          characters. Defaults to ``\``.
+        :type escape_character: :ref:`str <python:str>`
+
+        :param line_terminator: The character used to mark the end of a line.
+          Defaults to ``\r\n``.
+        :type line_terminator: :ref:`str <python:str>`
+
+        :returns: Data from the object in CSV format ending in a newline (``\n``).
         :rtype: :ref:`str <python:str>`
         """
         if include_header:
             return self.get_csv_header(delimiter = delimiter) + \
                    self.get_csv_data(delimiter = delimiter,
                                      wrap_all_strings = wrap_all_strings,
-                                     wrap_empty_values = wrap_empty_values,
-                                     wrapper_character = wrapper_character)
+                                     null_text = null_text,
+                                     wrapper_character = wrapper_character,
+                                     double_wrapper_character_when_nested = double_wrapper_character_when_nested,     # pylint: disable=line-too-long
+                                     escape_character = escape_character,
+                                     line_terminator = line_terminator)
+
 
         return self.get_csv_data(delimiter = delimiter,
                                  wrap_all_strings = wrap_all_strings,
-                                 wrap_empty_values = wrap_empty_values,
-                                 wrapper_character = wrapper_character)
+                                 null_text = null_text,
+                                 wrapper_character = wrapper_character,
+                                 double_wrapper_character_when_nested = double_wrapper_character_when_nested,     # pylint: disable=line-too-long
+                                 escape_character = escape_character,
+                                 line_terminator = line_terminator)
+
+    @classmethod
+    def from_csv(cls,
+                 csv_data,
+                 delimiter = '|',
+                 wrapper_character = "'",
+                 null_text = 'None'):
+        """Create an instance of the model from CSV data.
+
+        .. tip::
+
+          Unwrapped empty column values are automatically interpreted as null
+          (:class:`None`).
+
+        :param csv_data: The CSV record. Should be a single row and should **not**
+          include column headers.
+        :type csv_data: :ref:`str <python:str>`
+
+        :param delimiter: The delimiter used between columns. Defaults to ``|``.
+        :type delimiter: :ref:`str <python:str>`
+
+        :param wrapper_character: The string used to wrap string values when
+          wrapping is applied. Defaults to ``'``.
+        :type wrapper_character: :ref:`str <python:str>`
+
+        :param null_text: The string used to indicate an empty value if empty
+          values are wrapped. Defaults to `None`.
+        :type null_text: :ref:`str <python:str>`
+
+        :returns: A new instance created from CSV data.
+        :rtype: model instance
+
+        :raises DeserializationError: if ``csv_data`` is not a valid
+          :ref:`str <python:str>`
+        :raises CSVColumnError: if the columns in ``csv_data`` do not match
+          the expected columns returned by
+          :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
+        :raises ValueDeserializationError: if a value extracted from the CSV
+          failed when executing its :term:`de-serialization function`.
+
+        """
+        try:
+            csv_data = validators.string(csv_data, allow_empty = False)
+        except ValueError:
+            raise DeserializationError("csv_data expects a 'str', received '%s'" \
+                                       % type(csv_data))
+
+        csv_data = csv_data.strip()
+
+        column_names = cls.get_csv_column_names(deserialize = True,
+                                                serialize = None)
+        column_values = []
+        start_position = 0
+
+
 
     def to_dict(self,
                 max_nesting = 0,

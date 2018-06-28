@@ -11,11 +11,19 @@ class SQLAthanorError(ValueError):
 class SQLAthanorValidationError(SQLAthanorError):
     pass
 
-class ValueSerializationError(SQLAthanorError):
+class SerializationError(SQLAthanorError):
+    """Error raised when something went wrong during serialization."""
+    pass
+
+class DeserializationError(SQLAthanorError):
+    """Error raised when something went wrong during de-serialization."""
+    pass
+
+class ValueSerializationError(SerializationError):
     """Error raised when an attribute value fails the serialization process."""
     pass
 
-class ValueDeserializationError(SQLAthanorError):
+class ValueDeserializationError(DeserializationError):
     """Error raised when an attribute value fails the de-serialization process."""
     pass
 
@@ -23,12 +31,12 @@ class InvalidFormatError(SQLAthanorError):
     """Error raised when supplying a format that is not recognized by **SQLAthanor**."""
     pass
 
-class UnsupportedSerializationError(SQLAthanorError):
+class UnsupportedSerializationError(SerializationError):
     """Error raised when attempting to serialize an attribute that does not support
     serialization."""
     pass
 
-class UnsupportedDeserializationError(SQLAthanorError):
+class UnsupportedDeserializationError(DeserializationError):
     """Error raised when attempting to de-serialize an attribute that does not support
     de-serialization."""
     pass

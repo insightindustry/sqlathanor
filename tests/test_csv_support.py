@@ -47,13 +47,13 @@ def test_get_csv_column_names(request,
 
 
 @pytest.mark.parametrize('deserialize, serialize, delimiter, expected_result', [
-    (None, True, '|', 'id|name|hybrid|smallint_column\n'),
-    (None, True, ',', 'id,name,hybrid,smallint_column\n'),
-    (None, True, None, 'id|name|hybrid|smallint_column\n'),
-    (True, None, '|', 'id|name|password|hybrid|smallint_column\n'),
-    (True, None, ',', 'id,name,password,hybrid,smallint_column\n'),
-    (True, None, None, 'id|name|password|hybrid|smallint_column\n'),
-    (None, None, None, '\n'),
+    (None, True, '|', 'id|name|hybrid|smallint_column\r\n'),
+    (None, True, ',', 'id,name,hybrid,smallint_column\r\n'),
+    (None, True, None, 'id|name|hybrid|smallint_column\r\n'),
+    (True, None, '|', 'id|name|password|hybrid|smallint_column\r\n'),
+    (True, None, ',', 'id,name,password,hybrid,smallint_column\r\n'),
+    (True, None, None, 'id|name|password|hybrid|smallint_column\r\n'),
+    (None, None, None, '\r\n'),
 ])
 def test_get_csv_header(request,
                         instance_postgresql,
@@ -74,19 +74,18 @@ def test_get_csv_header(request,
     assert result == expected_result
 
 
-@pytest.mark.parametrize('delimiter, wrap_all_strings, wrap_empty_values, wrapper_character, hybrid_value, expected_result', [
-    ('|', False, False, "'", 1, '1|serialized|1|2\n'),
-    ('|', True, False, "'", 1, "1|'serialized'|1|2\n"),
-    ('|', False, True, "'", None, "1|serialized|'None'|2\n"),
-    ('|', True, True, None, None, "1|'serialized'|'None'|2\n"),
-    ('|', True, True, '!!', None, "1|!!serialized!!|!!None!!|2\n"),
-    ('|', False, True, "'", 'test|value', "1|serialized|'test|value'|2\n"),
+@pytest.mark.parametrize('delimiter, wrap_all_strings, wrapper_character, hybrid_value, expected_result', [
+    ('|', False, "'", 1, '1|serialized|1|2\r\n'),
+    ('|', True, "'", 1, "1|'serialized'|1|2\r\n"),
+    ('|', False, "'", None, "1|serialized|None|2\r\n"),
+    ('|', True, None, None, "1|'serialized'|'None'|2\r\n"),
+    ('|', True, '!', None, "1|!serialized!|!None!|2\r\n"),
+    ('|', False, "'", 'test|value', "1|serialized|'test|value'|2\r\n"),
 ])
 def test_get_csv_data(request,
                       instance_postgresql,
                       delimiter,
                       wrap_all_strings,
-                      wrap_empty_values,
                       wrapper_character,
                       hybrid_value,
                       expected_result):
@@ -96,26 +95,25 @@ def test_get_csv_data(request,
 
     result = target.get_csv_data(delimiter = delimiter,
                                  wrap_all_strings = wrap_all_strings,
-                                 wrap_empty_values = wrap_empty_values,
                                  wrapper_character = wrapper_character)
 
     assert result == expected_result
 
 
-@pytest.mark.parametrize('include_header, delimiter, wrap_all_strings, wrap_empty_values, wrapper_character, hybrid_value, expected_result', [
-    (False, '|', False, False, "'", 1, '1|serialized|1|2\n'),
-    (False, '|', True, False, "'", 1, "1|'serialized'|1|2\n"),
-    (False, '|', False, True, "'", None, "1|serialized|'None'|2\n"),
-    (False, '|', True, True, None, None, "1|'serialized'|'None'|2\n"),
-    (False, '|', True, True, '!!', None, "1|!!serialized!!|!!None!!|2\n"),
-    (False, '|', False, True, "'", 'test|value', "1|serialized|'test|value'|2\n"),
+@pytest.mark.parametrize('include_header, delimiter, wrap_all_strings, wrapper_character, hybrid_value, expected_result', [
+    (False, '|', False, "'", 1, '1|serialized|1|2\r\n'),
+    (False, '|', True, "'", 1, "1|'serialized'|1|2\r\n"),
+    (False, '|', False, "'", None, "1|serialized|None|2\r\n"),
+    (False, '|', True, None, None, "1|'serialized'|'None'|2\r\n"),
+    (False, '|', True, '!', None, "1|!serialized!|!None!|2\r\n"),
+    (False, '|', False, "'", 'test|value', "1|serialized|'test|value'|2\r\n"),
 
-    (True, '|', False, False, "'", 1, 'id|name|hybrid|smallint_column\n1|serialized|1|2\n'),
-    (True, '|', True, False, "'", 1, "id|name|hybrid|smallint_column\n1|'serialized'|1|2\n"),
-    (True, '|', False, True, "'", None, "id|name|hybrid|smallint_column\n1|serialized|'None'|2\n"),
-    (True, '|', True, True, None, None, "id|name|hybrid|smallint_column\n1|'serialized'|'None'|2\n"),
-    (True, '|', True, True, '!!', None, "id|name|hybrid|smallint_column\n1|!!serialized!!|!!None!!|2\n"),
-    (True, '|', False, True, "'", 'test|value', "id|name|hybrid|smallint_column\n1|serialized|'test|value'|2\n"),
+    (True, '|', False, "'", 1, 'id|name|hybrid|smallint_column\r\n1|serialized|1|2\r\n'),
+    (True, '|', True, "'", 1, "id|name|hybrid|smallint_column\r\n1|'serialized'|1|2\r\n"),
+    (True, '|', False, "'", None, "id|name|hybrid|smallint_column\r\n1|serialized|None|2\r\n"),
+    (True, '|', True, None, None, "id|name|hybrid|smallint_column\r\n1|'serialized'|'None'|2\r\n"),
+    (True, '|', True, '!', None, "id|name|hybrid|smallint_column\r\n1|!serialized!|!None!|2\r\n"),
+    (True, '|', False, "'", 'test|value', "id|name|hybrid|smallint_column\r\n1|serialized|'test|value'|2\r\n"),
 
 ])
 def test_to_csv(request,
@@ -123,7 +121,6 @@ def test_to_csv(request,
                 include_header,
                 delimiter,
                 wrap_all_strings,
-                wrap_empty_values,
                 wrapper_character,
                 hybrid_value,
                 expected_result):
@@ -134,7 +131,6 @@ def test_to_csv(request,
     result = target.to_csv(include_header = include_header,
                            delimiter = delimiter,
                            wrap_all_strings = wrap_all_strings,
-                           wrap_empty_values = wrap_empty_values,
                            wrapper_character = wrapper_character)
 
     assert result == expected_result

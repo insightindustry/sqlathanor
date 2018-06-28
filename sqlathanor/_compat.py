@@ -43,6 +43,8 @@ if uses_float_infinity:
 
 if is_py2:
     import regex
+    import cStringIO
+    StringIO = cStringIO.StringIO
     re = regex
     builtin_str = str
     bytes = str
@@ -109,6 +111,8 @@ if is_py2:
 
 elif is_py3:
     import re
+    import io
+    StringIO = io.StringIO
     builtin_str = str
     str = str
     bytes = bytes
