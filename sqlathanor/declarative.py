@@ -864,29 +864,6 @@ class BaseModel(object):
 
         return csv_check and json_check and yaml_check and dict_check
 
-    @classmethod
-    def get_csv_column_names(cls, deserialize = True, serialize = True):
-        """Retrieve a list of CSV column names.
-
-        :param deserialize: If ``True``, returns columns that support
-          :term:`deserialization`. If ``False``, returns columns that do *not*
-          support deserialization. If :class:`None`, does not take
-          deserialization into account. Defaults to ``True``.
-        :type deserialize: :ref:`bool <python:bool>`
-
-        :param serialize: If ``True``, returns columns that support
-          :term:`serialization`. If ``False``, returns columns that do *not*
-          support serialization. If :class:`None`, does not take
-          serialization into account. Defaults to ``True``.
-        :type serialize: :ref:`bool <python:bool>`
-
-        :returns: List of CSV column names, sorted according to their configuration.
-        :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
-        """
-        config = cls.get_csv_serialization_config(deserialize = deserialize,
-                                                  serialize = serialize)
-        return [x.name for x in config]
-
     def _get_serialized_value(self,
                               format,
                               attribute):
@@ -1019,6 +996,28 @@ class BaseModel(object):
 
         return return_value
 
+    @classmethod
+    def get_csv_column_names(cls, deserialize = True, serialize = True):
+        """Retrieve a list of CSV column names.
+
+        :param deserialize: If ``True``, returns columns that support
+          :term:`deserialization`. If ``False``, returns columns that do *not*
+          support deserialization. If :class:`None`, does not take
+          deserialization into account. Defaults to ``True``.
+        :type deserialize: :ref:`bool <python:bool>`
+
+        :param serialize: If ``True``, returns columns that support
+          :term:`serialization`. If ``False``, returns columns that do *not*
+          support serialization. If :class:`None`, does not take
+          serialization into account. Defaults to ``True``.
+        :type serialize: :ref:`bool <python:bool>`
+
+        :returns: List of CSV column names, sorted according to their configuration.
+        :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
+        """
+        config = cls.get_csv_serialization_config(deserialize = deserialize,
+                                                  serialize = serialize)
+        return [x.name for x in config]
 
     @classmethod
     def get_csv_header(cls,
@@ -1084,6 +1083,8 @@ class BaseModel(object):
                 for x in csv_column_names if hasattr(self, x)]
 
         for index, item in enumerate(data):
+            if item == '' and wrap_empty_values:
+                item = None
             if item == 'None' or item is None:
                 if wrap_empty_values:
                     data[index] = wrapper_character + str(item) + wrapper_character
@@ -1091,6 +1092,11 @@ class BaseModel(object):
                     data[index] = ''
             elif checkers.is_string(item) and wrap_all_strings:
                 data[index] = wrapper_character + item + wrapper_character
+            elif not checkers.is_string(item):
+                data[index] = str(item)
+
+            if delimiter in data[index]:
+                data[index] = wrapper_character + data[index] + wrapper_character
 
         data_row = delimiter.join(data) + '\n'
 
