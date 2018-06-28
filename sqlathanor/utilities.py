@@ -9,9 +9,6 @@ This module defines a variety of utility functions which are used throughout
 **SQLAthanor**.
 
 """
-from sqlalchemy.inspection import inspect
-from sqlalchemy.orm.state import InstanceState
-
 from validator_collection import validators
 
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
@@ -175,18 +172,3 @@ def raise_UnsupportedSerializationError(value):
 
 def raise_UnsupportedDeserializationError(value):
     raise UnsupportedDeserializationError("value '%s' cannot be de-serialized" % value)
-
-def is_model_instance(obj):
-    """Indicate whether ``obj`` is a :term:`model instance`.
-
-    :returns: ``True`` if ``obj`` is a model instance. ``False`` if not.
-    :rtype: :ref:`bool <python:bool>`
-    """
-    try:
-        property_type = type(obj.__is_model_instance)
-    except AttributeError:
-        return False
-
-    print(property_type)
-
-    return property_type == bool
