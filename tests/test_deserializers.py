@@ -15,7 +15,7 @@ import pytest
 from tests.fixtures import db_engine, tables, base_model, db_session, \
     model_complex_postgresql, instance_postgresql
 
-from sqlathanor.errors import InvalidFormatError, ValueSerializationError, \
+from sqlathanor.errors import InvalidFormatError, ValueDeserializationError, \
     UnsupportedDeserializationError
 
 
@@ -28,6 +28,7 @@ from sqlathanor.errors import InvalidFormatError, ValueSerializationError, \
     ('name', 'invalid', None, None, InvalidFormatError),
     ('missing', 'csv', None, None, UnsupportedDeserializationError),
     ('hidden', 'csv', None, None, UnsupportedDeserializationError),
+    ('id', 'csv', 'invalid', None, ValueDeserializationError),
 
 ])
 def test__get_serialized_value(request,

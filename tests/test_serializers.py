@@ -2,11 +2,10 @@
 
 """
 ******************************************
-tests.test_serialization_configuration
+tests.test_serializers
 ******************************************
 
-Tests for declarative :class:`BaseModel` and the ability to retireve serialization
-configuration data.
+Tests for :term:`serializer functions <serializer function>`.
 
 """
 
