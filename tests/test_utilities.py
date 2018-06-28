@@ -11,7 +11,8 @@ Tests for the schema extensions written in :ref:`sqlathanor.utilities`.
 
 import pytest
 
-from sqlathanor.utilities import bool_to_tuple, callable_to_dict
+from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple
+from sqlathanor.errors import InvalidFormatError
 
 
 def sample_callable():
@@ -70,3 +71,21 @@ def test_callable_to_dict(value):
     else:
         for key in result:
             assert result[key] == value
+
+
+@pytest.mark.parametrize('value, expected_result, fails', [
+    ('csv', (True, None, None, None), False),
+    ('json', (None, True, None, None), False),
+    ('yaml', (None, None, True, None), False),
+    ('dict', (None, None, None, True), False),
+    ('invalid', None, True)
+])
+def test_format_to_tuple(value,
+                         expected_result,
+                         fails):
+    if not fails:
+        result = format_to_tuple(value)
+        assert result == expected_result
+    else:
+        with pytest.raises(InvalidFormatError):
+            result = format_to_tuple(value)

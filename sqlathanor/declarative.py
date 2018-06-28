@@ -12,10 +12,14 @@ from sqlalchemy.orm.relationships import RelationshipProperty
 from sqlalchemy.util import symbol, OrderedProperties
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from validator_collection import checkers
+from validator_collection import checkers, validators
 
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config
-from sqlathanor.utilities import bool_to_tuple
+from sqlathanor.utilities import format_to_tuple
+from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
+    UnsupportedSerializationError, UnsupportedDeserializationError
+from sqlathanor.default_serializers import get_default_serializer, \
+    get_default_deserializer
 
 # pylint: disable=no-member
 
@@ -879,9 +883,138 @@ class BaseModel(object):
                                                   serialize = serialize)
         return [x.name for x in config]
 
+    def _get_serialized_value(self,
+                              format,
+                              attribute):
+        """Retrieve the value of ``attribute`` after applying the attribute's
+        ``on_serialize`` function for the format indicated by ``format``.
+
+        :param format: The format to which the value should be serialized. Accepts
+          either: ``csv``, ``json``, ``yaml``, or ``dict``.
+        :type format: :ref:`str <python:str>`
+
+        :param attribute: The name of the attribute that whose serialized value
+          should be returned.
+        :type attribute: :ref:`str <python:str>`
+
+        :returns: The value returned by the attribute's ``on_serialize`` function
+          for the indicated ``format``.
+
+        :raises InvalidFormatError: if ``format`` is not ``csv``, ``json``, ``yaml``,
+          or ``dict``.
+        :raises ValueSerializationError: if the ``on_serialize`` function raises
+          an exception
+        """
+        # pylint: disable=line-too-long
+
+        to_csv, to_json, to_yaml, to_dict = format_to_tuple(format)
+
+        supports_serialization = self.does_support_serialization(attribute,
+                                                                 to_csv = to_csv,
+                                                                 to_json = to_json,
+                                                                 to_yaml = to_yaml,
+                                                                 to_dict = to_dict)
+        if not supports_serialization:
+            raise UnsupportedSerializationError(
+                "%s attribute '%s' does not support serialization to '%s'" % (self.__class__,
+                                                                              attribute,
+                                                                              format)
+            )
+
+        config = self.get_attribute_serialization_config(attribute)
+
+        on_serialize = config.on_serialize[format]
+        if on_serialize is None:
+            on_serialize = get_default_serializer(getattr(self.__class__,
+                                                          attribute),
+                                                  format = format,
+                                                  value = getattr(self,
+                                                                  attribute,
+                                                                  None))
+
+        if on_serialize is None:
+            if format == 'csv':
+                return getattr(self, attribute, '')
+            else:
+                return getattr(self, attribute, None)
+
+        try:
+            return_value = on_serialize(getattr(self, attribute, None))
+        except Exception:
+            raise ValueSerializationError(
+                "attribute '%s' failed serialization to format '%s'" % (attribute,
+                                                                        format)
+            )
+
+        return return_value
+
+    def _get_deserialized_value(self,
+                                value,
+                                format,
+                                attribute):
+        """Retrieve the value of ``attribute`` after applying the attribute's
+        ``on_deserialize`` function for the format indicated by ``format``.
+
+        :param value: The input value that was received when de-serializing.
+
+        :param format: The format to which the value should be serialized. Accepts
+          either: ``csv``, ``json``, ``yaml``, or ``dict``.
+        :type format: :ref:`str <python:str>`
+
+        :param attribute: The name of the attribute that whose serialized value
+          should be returned.
+        :type attribute: :ref:`str <python:str>`
+
+        :returns: The value returned by the attribute's ``on_serialize`` function
+          for the indicated ``format``.
+
+        :raises InvalidFormatError: if ``format`` is not ``csv``, ``json``, ``yaml``,
+          or ``dict``.
+        :raises ValueDeserializationError: if the ``on_deserialize`` function raises
+          an exception
+        """
+        # pylint: disable=line-too-long
+
+        from_csv, from_json, from_yaml, from_dict = format_to_tuple(format)
+
+        supports_deserialization = self.does_support_serialization(attribute,
+                                                                   from_csv = from_csv,
+                                                                   from_json = from_json,
+                                                                   from_yaml = from_yaml,
+                                                                   from_dict = from_dict)
+        if not supports_deserialization:
+            raise UnsupportedDeserializationError(
+                "%s attribute '%s' does not support de-serialization from '%s'" % \
+                (self.__class__,
+                 attribute,
+                 format)
+            )
+
+        config = self.get_attribute_serialization_config(attribute)
+
+        on_deserialize = config.on_deserialize[format]
+        if on_deserialize is None:
+            on_deserialize = get_default_deserializer(getattr(self.__class__,
+                                                              attribute),
+                                                      format = format)
+
+        if on_deserialize is None:
+            return value
+
+        try:
+            return_value = on_deserialize(value)
+        except Exception:
+            raise ValueDeserializationError(
+                "attribute '%s' failed de-serialization to format '%s'" % (attribute,
+                                                                           format)
+            )
+
+        return return_value
+
+
     @classmethod
     def get_csv_header(cls,
-                       deserialize = True,
+                       deserialize = None,
                        serialize = True,
                        delimiter = '|'):
         """Retrieve a header string for a CSV representation of the model.
@@ -938,7 +1071,9 @@ class BaseModel(object):
         csv_column_names = self.get_csv_column_names(deserialize = None,
                                                      serialize = True)
 
-        data = [getattr(self, x, '') for x in csv_column_names if hasattr(self, x)]
+        data = [self._get_serialized_value(format = 'csv',
+                                           attribute = x)
+                for x in csv_column_names if hasattr(self, x)]
 
         for index, item in enumerate(data):
             if item == 'None' or item is None:
@@ -968,7 +1103,7 @@ class BaseModel(object):
         :returns: Data from the object in CSV (pipe-delimited) format.
         :rtype: :ref:`str <python:str>`
         """
-        if include_header is True:
+        if include_header:
             return self.get_csv_header(delimiter = delimiter) + \
                    self.get_csv_data(delimiter = delimiter,
                                      wrap_all_strings = wrap_all_strings,
