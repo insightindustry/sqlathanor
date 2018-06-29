@@ -1581,7 +1581,6 @@ class BaseModel(object):
                                           max_nesting = max_nesting,
                                           current_nesting = next_nesting)
                 except MaximumNestingExceededError:
-                    print('skipping %s' % attribute.name)
                     warnings.warn(
                         "skipping key '%s' because maximum nesting has been exceeded" \
                             % attribute.name,
@@ -1595,7 +1594,6 @@ class BaseModel(object):
                                               max_nesting = max_nesting,
                                               current_nesting = next_nesting)
                 except MaximumNestingExceededError:
-                    print('skipping 2: %s' % attribute.name)
                     warnings.warn(
                         "skipping key '%s' because maximum nesting has been exceeded" \
                             % attribute.name,
@@ -1603,11 +1601,9 @@ class BaseModel(object):
                     )
                     continue
                 except NotAnIterableError:
-                    print('item (%s) raising NotAnIterableError' % attribute.name)
                     value = self._get_serialized_value(format,
                                                        attribute.name)
 
-            print('attribute (%s) value %s' % (attribute.name, value))
             dict_object[attribute.name] = value
 
         return dict_object

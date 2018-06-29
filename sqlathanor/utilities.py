@@ -288,7 +288,6 @@ def are_equivalent(*args, **kwargs):
     for item in args[1:]:
         if not all(isinstance(x, (list, InstrumentedList)) for x in args) and \
            type(item) != type(first_item):                                      # pylint: disable=C0123
-            print('types do not match!')
             return False
 
         if isinstance(item, dict):
@@ -321,44 +320,31 @@ def are_dicts_equivalent(*args, **kwargs):
     """
     # pylint: disable=too-many-return-statements
     if not args:
-        print('not args!')
         return False
 
     if len(args) == 1:
         return True
 
     if not all(checkers.is_dict(x) for x in args):
-        print('not all dicts')
         return False
 
     first_item = args[0]
     for item in args[1:]:
         if len(item) != len(first_item):
-            print('different lengths: %s and %s' % (len(first_item), len(item)))
             return False
 
         for key in item:
             if key not in first_item:
-                print("key '%s' not found in first dict" % key)
                 return False
 
             if not are_equivalent(item[key], first_item[key]):
-                print("key '%s' different in first and second item: %s and %s" % (key,
-                                                                                  first_item[key],
-                                                                                  item[key]))
-                print(type(first_item[key]))
-                print(type(item[key]))
                 return False
 
         for key in first_item:
             if key not in item:
-                print("key '%s' not found in second dict" % key)
                 return False
 
             if not are_equivalent(first_item[key], item[key]):
-                print("key '%s' different in first and second item: %s and %s" % (key,
-                                                                                  first_item[key],
-                                                                                  item[key]))
                 return False
 
     return True
