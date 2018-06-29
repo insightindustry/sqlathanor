@@ -9,10 +9,16 @@ This module defines a variety of utility functions which are used throughout
 **SQLAthanor**.
 
 """
-from validator_collection import validators
+import warnings
+
+from sqlalchemy.orm.collections import InstrumentedList
+
+from validator_collection import validators, checkers
+from validator_collection.errors import NotAnIterableError
 
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
-    UnsupportedDeserializationError
+    UnsupportedDeserializationError, MaximumNestingExceededError, \
+    MaximumNestingExceededWarning
 
 def bool_to_tuple(input):
     """Converts a single :ref:`bool <python:bool>` value to a
@@ -123,7 +129,7 @@ def format_to_tuple(format):
 
 
 def get_class_type_key(class_attribute, value = None):
-    """Retrieve the class type for ``class_attribute.
+    """Retrieve the class type for ``class_attribute``.
 
     .. note::
 
@@ -167,8 +173,192 @@ def get_class_type_key(class_attribute, value = None):
     return class_type_key
 
 
+def iterable__to_dict(iterable,
+                      format,
+                      max_nesting = 0,
+                      current_nesting = 0):
+    """Given an iterable, traverse it and execute ``_to_dict()`` if present.
+
+    :param iterable: An iterable to traverse.
+    :type iterable: iterable
+
+    :param format: The format to which the :ref:`dict <python:dict>` will
+      ultimately be serialized. Accepts: ``'csv'``, ``'json'``, ``'yaml'``, and
+      ``'dict'``.
+    :type format: :ref:`str <python:str>`
+
+
+    :param max_nesting: The maximum number of levels that the resulting
+      :ref:`dict <python:dict>` object can be nested. If set to ``0``, will
+      not nest other serializable objects. Defaults to ``0``.
+    :type max_nesting: :ref:`int <python:int>`
+
+    :param current_nesting: The current nesting level at which the
+      :ref:`dict <python:dict>` representation will reside. Defaults to ``0``.
+    :type current_nesting: :ref:`int <python:int>`
+
+    :returns: Collection of values, possibly converted to :ref:`dict <python:dict>`
+      objects.
+    :rtype: :ref:`list <python:list>` of objects
+
+    :raises InvalidFormatError: if ``format`` is not an acceptable value
+    :raises ValueError: if ``iterable`` is not an iterable
+
+    """
+    next_nesting = current_nesting + 1
+
+    if format not in ['csv', 'json', 'yaml', 'dict']:
+        raise InvalidFormatError("format '%s' not supported" % format)
+
+    iterable = validators.iterable(iterable,
+                                   allow_empty = True,
+                                   forbid_literals = (str, bytes, dict))
+
+    if iterable is None:
+        return []
+
+    if current_nesting > max_nesting:
+        raise MaximumNestingExceededError(
+            'current nesting level (%s) exceeds maximum %s' % (current_nesting,
+                                                               max_nesting)
+        )
+
+    items = []
+
+    for item in iterable:
+        try:
+            new_item = item._to_dict(format,
+                                     max_nesting = max_nesting,
+                                     current_nesting = next_nesting)
+        except AttributeError:
+            try:
+                new_item = iterable__to_dict(item,
+                                             format,
+                                             max_nesting = max_nesting,
+                                             current_nesting = next_nesting)
+            except NotAnIterableError:
+                new_item = item
+
+        items.append(new_item)
+
+    return items
+
 def raise_UnsupportedSerializationError(value):
     raise UnsupportedSerializationError("value '%s' cannot be serialized" % value)
 
 def raise_UnsupportedDeserializationError(value):
     raise UnsupportedDeserializationError("value '%s' cannot be de-serialized" % value)
+
+
+def are_equivalent(*args, **kwargs):
+    """Indicate if arguments passed to this function are equivalent.
+
+    .. hint::
+
+      This checker operates recursively on the members contained within iterables
+      and :class:`dict <python:dict>` objects.
+
+    .. caution::
+
+      If you only pass one argument to this checker - even if it is an iterable -
+      the checker will *always* return ``True``.
+
+      To evaluate members of an iterable for equivalence, you should instead
+      unpack the iterable into the function like so:
+
+      .. code-block:: python
+
+        obj = [1, 1, 1, 2]
+
+        result = are_equivalent(*obj)
+        # Will return ``False`` by unpacking and evaluating the iterable's members
+
+        result = are_equivalent(obj)
+        # Will always return True
+
+    :param args: One or more values, passed as positional arguments.
+
+    :returns: ``True`` if ``args`` are equivalent, and ``False`` if not.
+    :rtype: :class:`bool <python:bool>`
+    """
+    if len(args) == 1:
+        return True
+
+    first_item = args[0]
+    for item in args[1:]:
+        if not all(isinstance(x, (list, InstrumentedList)) for x in args) and \
+           type(item) != type(first_item):                                      # pylint: disable=C0123
+            print('types do not match!')
+            return False
+
+        if isinstance(item, dict):
+            if not are_dicts_equivalent(item, first_item):
+                return False
+        elif hasattr(item, '__iter__') and not isinstance(item, (str, bytes, dict)):
+            if len(item) != len(first_item):
+                return False
+            for value in item:
+                if value not in first_item:
+                    return False
+            for value in first_item:
+                if value not in item:
+                    return False
+        else:
+            if item != first_item:
+                return False
+
+    return True
+
+
+def are_dicts_equivalent(*args, **kwargs):
+    """Indicate if :ref:`dicts <python:dict>` passed to this function have identical
+    keys and values.
+
+    :param args: One or more values, passed as positional arguments.
+
+    :returns: ``True`` if ``args`` have identical keys/values, and ``False`` if not.
+    :rtype: :class:`bool <python:bool>`
+    """
+    # pylint: disable=too-many-return-statements
+    if not args:
+        print('not args!')
+        return False
+
+    if len(args) == 1:
+        return True
+
+    if not all(checkers.is_dict(x) for x in args):
+        print('not all dicts')
+        return False
+
+    first_item = args[0]
+    for item in args[1:]:
+        if len(item) != len(first_item):
+            print('different lengths: %s and %s' % (len(first_item), len(item)))
+            return False
+
+        for key in item:
+            if key not in first_item:
+                print("key '%s' not found in first dict" % key)
+                return False
+
+            if not are_equivalent(item[key], first_item[key]):
+                print("key '%s' different in first and second item: %s and %s" % (key,
+                                                                                  first_item[key],
+                                                                                  item[key]))
+                print(type(first_item[key]))
+                print(type(item[key]))
+                return False
+
+        for key in first_item:
+            if key not in item:
+                print("key '%s' not found in second dict" % key)
+                return False
+
+            if not are_equivalent(first_item[key], item[key]):
+                print("key '%s' different in first and second item: %s and %s" % (key,
+                                                                                  first_item[key],
+                                                                                  item[key]))
+                return False
+
+    return True

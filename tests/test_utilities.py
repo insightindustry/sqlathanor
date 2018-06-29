@@ -11,8 +11,19 @@ Tests for the schema extensions written in :ref:`sqlathanor.utilities`.
 
 import pytest
 
-from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple
-from sqlathanor.errors import InvalidFormatError
+from validator_collection import checkers
+from validator_collection.errors import NotAnIterableError
+
+from tests.fixtures import db_engine, tables, base_model, db_session, \
+    model_complex_postgresql, instance_postgresql
+
+from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple, \
+    get_class_type_key, raise_UnsupportedSerializationError, \
+    raise_UnsupportedDeserializationError, iterable__to_dict
+from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
+    UnsupportedDeserializationError, MaximumNestingExceededError, \
+    MaximumNestingExceededWarning
+
 
 
 def sample_callable():
@@ -89,3 +100,106 @@ def test_format_to_tuple(value,
     else:
         with pytest.raises(InvalidFormatError):
             result = format_to_tuple(value)
+
+
+@pytest.mark.parametrize('attribute, value, expected_result', [
+    (None, None, 'NONE'),
+    (None, 1, 'int'),
+    (None, 'string', 'str'),
+
+    ('id', 1, 'INTEGER'),
+    ('smallint_column', 2, 'SMALLINT'),
+
+])
+def test_get_class_type_key(request,
+                            model_complex_postgresql,
+                            attribute,
+                            value,
+                            expected_result):
+    target = model_complex_postgresql[0]
+    if attribute is not None:
+        attribute = getattr(target, attribute)
+
+    result = get_class_type_key(attribute, value = value)
+
+    assert result == expected_result
+
+
+def test_raise_UnsupportedSerializationError():
+    with pytest.raises(UnsupportedSerializationError):
+        raise_UnsupportedSerializationError('test')
+
+
+def test_raise_UnsupportedDeserializationError():
+    with pytest.raises(UnsupportedDeserializationError):
+        raise_UnsupportedDeserializationError('test')
+
+
+class DummyClass(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def _to_dict(self, format, max_nesting = 0, current_nesting = 0):
+        if format not in ['csv', 'json', 'yaml', 'dict']:
+            raise InvalidFormatError()
+
+        if current_nesting > max_nesting:
+            raise MaximumNestingExceededError()
+
+        return {
+            'test': 'nested-one',
+            'test2': 'nested-two'
+        }
+
+
+@pytest.mark.parametrize('input_value, format, max_nesting, current_nesting, expected_result, warning, error', [
+    ([], 'invalid-format', 0, 0, None, None, InvalidFormatError),
+    (123, 'dict', 0, 0, None, None, NotAnIterableError),
+    ([1, 2, 3], 'dict', 0, 3, None, None, MaximumNestingExceededError),
+
+    ([1, 2, 3], 'dict', 0, 0, [1, 2, 3], None, None),
+    ([1, 2, 3], 'json', 0, 0, [1, 2, 3], None, None),
+    ([1, 2, 3], 'yaml', 0, 0, [1, 2, 3], None, None),
+    ([1, 2, 3], 'csv', 0, 0, [1, 2, 3], None, None),
+
+    ([{
+        'test': 'one',
+        'test2': 'two'
+    }, 2], 'dict', 0, 0, [{
+        'test': 'one',
+        'test2': 'two'
+    }, 2], None, None),
+
+    ([DummyClass()], 'dict', 1, 0, [{
+        'test': 'nested-one',
+        'test2': 'nested-two'
+    }], None, None),
+    ([DummyClass()], 'dict', 0, 0, [{
+        'test': 'nested-one',
+        'test2': 'nested-two'
+    }], None, MaximumNestingExceededError),
+
+])
+def test_iterable__to_dict(input_value,
+                           format,
+                           max_nesting,
+                           current_nesting,
+                           expected_result,
+                           warning,
+                           error):
+    if not error:
+        result = iterable__to_dict(input_value,
+                                   format,
+                                   max_nesting = max_nesting,
+                                   current_nesting = current_nesting)
+
+        if isinstance(result, dict):
+            assert checkers.are_dicts_equivalent(result, expected_result)
+        else:
+            assert result == expected_result
+    else:
+        with pytest.raises(error):
+            result = iterable__to_dict(input_value,
+                                       format,
+                                       max_nesting = max_nesting,
+                                       current_nesting = current_nesting)

@@ -7,6 +7,7 @@
 
 import csv
 import inspect as inspect_
+import warnings
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.inspection import inspect
@@ -16,13 +17,15 @@ from sqlalchemy.util import symbol, OrderedProperties
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from validator_collection import checkers, validators
+from validator_collection.errors import NotAnIterableError
 
 from sqlathanor._compat import StringIO
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config
-from sqlathanor.utilities import format_to_tuple, is_model_instance
+from sqlathanor.utilities import format_to_tuple, iterable__to_dict
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
     UnsupportedSerializationError, UnsupportedDeserializationError, DeserializationError,\
-    CSVColumnError
+    CSVColumnError, MaximumNestingExceededError, MaximumNestingExceededWarning, \
+    SerializableAttributeError, InvalidFormatError
 from sqlathanor.default_serializers import get_default_serializer
 from sqlathanor.default_deserializers import get_default_deserializer
 
@@ -620,10 +623,6 @@ class BaseModel(object):
                       for x in cls.get_serialization_config(from_csv = deserialize,
                                                             to_csv = serialize)]
         for config in attributes:
-            if config.name == 'hybrid':
-                print(config.csv_sequence)
-            if config.name == 'smallint_column':
-                print('smallint: %s' % config.csv_sequence)
             if config.csv_sequence is None:
                 config.csv_sequence = len(attributes) + 1
 
@@ -1171,6 +1170,9 @@ class BaseModel(object):
                                                                serialize = True)
                             if hasattr(self, x)]
 
+        if not csv_column_names:
+            raise SerializableAttributeError("no 'csv' serializable attributes found")
+
         if wrap_all_strings:
             quoting = csv.QUOTE_NONNUMERIC
         else:
@@ -1356,7 +1358,6 @@ class BaseModel(object):
                             for x in cls.get_csv_column_names(deserialize = True,
                                                               serialize = None)
                             if hasattr(cls, x)]
-        print(csv_column_names)
 
         csv_reader = csv.DictReader([csv_data],
                                     fieldnames = csv_column_names,
@@ -1365,8 +1366,6 @@ class BaseModel(object):
                                     restval = None)
 
         rows = [x for x in csv_reader]
-
-        # print(csv_column_names)
 
         if len(rows) > 1:
             raise CSVColumnError('expected 1 row of data, received %s' % len(csv_reader))
@@ -1447,8 +1446,6 @@ class BaseModel(object):
                                escape_character = escape_character,
                                line_terminator = line_terminator)
 
-        print(data)
-
         for key in data:
             setattr(self, key, data[key])
 
@@ -1507,68 +1504,113 @@ class BaseModel(object):
 
         return cls(**data)
 
-    @classmethod
-    def from_csv(cls,
-                 csv_data,
-                 delimiter = '|',
-                 wrap_all_strings = False,
-                 null_text = 'None',
-                 wrapper_character = "'",
-                 double_wrapper_character_when_nested = False,
-                 escape_character = "\\",
-                 line_terminator = '\r\n'):
-        """Create a new model instance from a CSV record.
+    def _to_dict(self,
+                 format,
+                 max_nesting = 0,
+                 current_nesting = 0):
+        """Return a :ref:`dict <python:dict>` representation of the object.
 
-        .. tip::
+        .. warning::
 
-          Unwrapped empty column values are automatically interpreted as null
-          (:class:`None`).
+          This method is an **intermediate** step that is used to produce the
+          contents for certain public JSON, YAML, and :ref:`dict <python:dict>`
+          serialization methods. It should not be called directly.
 
-        :param csv_data: The CSV record. Should be a single row and should **not**
-          include column headers.
-        :type csv_data: :ref:`str <python:str>`
+        :param format: The format to which the :ref:`dict <python:dict>` will
+          ultimately be serialized. Accepts: ``'csv'``, ``'json'``, ``'yaml'``, and
+          ``'dict'``.
+        :type format: :ref:`str <python:str>`
 
-        :param delimiter: The delimiter used between columns. Defaults to ``|``.
-        :type delimiter: :ref:`str <python:str>`
+        :param max_nesting: The maximum number of levels that the resulting
+          :ref:`dict <python:dict>` object can be nested. If set to ``0``, will
+          not nest other serializable objects. Defaults to ``0``.
+        :type max_nesting: :ref:`int <python:int>`
 
-        :param wrapper_character: The string used to wrap string values when
-          wrapping is applied. Defaults to ``'``.
-        :type wrapper_character: :ref:`str <python:str>`
+        :param current_nesting: The current nesting level at which the
+          :ref:`dict <python:dict>` representation will reside. Defaults to ``0``.
+        :type current_nesting: :ref:`int <python:int>`
 
-        :param null_text: The string used to indicate an empty value if empty
-          values are wrapped. Defaults to `None`.
-        :type null_text: :ref:`str <python:str>`
+        :returns: A :ref:`dict <python:dict>` representation of the object.
+        :rtype: :ref:`dict <python:dict>`
 
-        :returns: A :term:`model instance` created from the record.
-        :rtype: model instance
-
-        :raises DeserializationError: if ``csv_data`` is not a valid
-          :ref:`str <python:str>`
-        :raises CSVColumnError: if the columns in ``csv_data`` do not match
-          the expected columns returned by
-          :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
-        :raises ValueDeserializationError: if a value extracted from the CSV
-          failed when executing its :term:`de-serialization function`.
-
+        :raises InvalidFormatError: if ``format`` is not recognized
+        :raises SerializableAttributeError: if attributes is empty
+        :raises MaximumNestingExceededError: if ``current_nesting`` is greater
+          than ``max_nesting``
+        :raises MaximumNestingExceededWarning: if an attribute requires nesting
+          beyond ``max_nesting``
         """
-        try:
-            return cls._update_from_csv(csv_data,
-                                        delimiter = delimiter,
-                                        wrap_all_strings = wrap_all_strings,
-                                        null_text = null_text,
-                                        wrapper_character = wrapper_character,
-                                        double_wrapper_character_when_nested = double_wrapper_character_when_nested,
-                                        escape_character = escape_character,
-                                        line_terminator = line_terminator)
-        except TypeError:
-            return cls._new_from_csv(csv_data,
-                                     delimiter = delimiter,
-                                     wrap_all_strings = wrap_all_strings,
-                                     null_text = null_text,
-                                     wrapper_character = wrapper_character,
-                                     double_wrapper_character_when_nested = double_wrapper_character_when_nested,
-                                     escape_character = escape_character,
-                                     line_terminator = line_terminator)
+        next_nesting = current_nesting + 1
+
+        if format not in ['csv', 'json', 'yaml', 'dict']:
+            raise InvalidFormatError("format '%s' not supported" % format)
+
+        if current_nesting > max_nesting:
+            raise MaximumNestingExceededError(
+                'current nesting level (%s) exceeds maximum %s' % (current_nesting,
+                                                                   max_nesting)
+            )
+
+        dict_object = {}
+
+        if format == 'csv':
+            attribute_getter = self.get_csv_serialization_config
+        elif format == 'json':
+            attribute_getter = self.get_json_serialization_config
+        elif format == 'yaml':
+            attribute_getter = self.get_yaml_serialization_config
+        elif format == 'dict':
+            attribute_getter = self.get_dict_serialization_config
+
+        attributes = [x
+                      for x in attribute_getter(deserialize = None,
+                                                serialize = True)
+                      if hasattr(self, x.name)]
+
+        if not attributes:
+            raise SerializableAttributeError(
+                "'%s' has no '%s' serializable attributes" % (type(self.__class__),
+                                                              format)
+            )
+
+        for attribute in attributes:
+            item = getattr(self, attribute.name, None)
+            try:
+                try:
+                    value = item._to_dict(format,
+                                          max_nesting = max_nesting,
+                                          current_nesting = next_nesting)
+                except MaximumNestingExceededError:
+                    print('skipping %s' % attribute.name)
+                    warnings.warn(
+                        "skipping key '%s' because maximum nesting has been exceeded" \
+                            % attribute.name,
+                        MaximumNestingExceededWarning
+                    )
+                    continue
+            except AttributeError:
+                try:
+                    value = iterable__to_dict(item,
+                                              format,
+                                              max_nesting = max_nesting,
+                                              current_nesting = next_nesting)
+                except MaximumNestingExceededError:
+                    print('skipping 2: %s' % attribute.name)
+                    warnings.warn(
+                        "skipping key '%s' because maximum nesting has been exceeded" \
+                            % attribute.name,
+                        MaximumNestingExceededWarning
+                    )
+                    continue
+                except NotAnIterableError:
+                    print('item (%s) raising NotAnIterableError' % attribute.name)
+                    value = self._get_serialized_value(format,
+                                                       attribute.name)
+
+            print('attribute (%s) value %s' % (attribute.name, value))
+            dict_object[attribute.name] = value
+
+        return dict_object
 
     def to_dict(self,
                 max_nesting = 0,
@@ -1586,26 +1628,17 @@ class BaseModel(object):
 
         :returns: A :ref:`dict <python:dict>` representation of the object.
         :rtype: :ref:`dict <python:dict>`
+
+        :raises SerializableAttributeError: if attributes is empty
+        :raises MaximumNestingExceededError: if ``current_nesting`` is greater
+          than ``max_nesting``
+        :raises MaximumNestingExceededWarning: if an attribute requires nesting
+          beyond ``max_nesting``
+
         """
-        dict_object = {}
+        return self._to_dict('dict',
+                             max_nesting = max_nesting,
+                             current_nesting = current_nesting)
 
-        dict_attributes = self.get_dict_attribute_names()
-
-        for key in dict_attributes:
-            item = getattr(self, key, None)
-
-            try:
-                getattr(item, 'to_dict')
-                has_attribute = True
-            except AttributeError:
-                has_attribute = False
-
-            if has_attribute and current_nesting < max_nesting:
-                item = item.to_dict(max_nesting = max_nesting,
-                                    current_nesting = current_nesting + 1)
-
-            dict_object[key] = item
-
-        return dict_object
 
 BaseModel = declarative_base(cls = BaseModel)
