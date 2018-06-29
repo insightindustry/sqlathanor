@@ -56,7 +56,7 @@ setup(
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary
-    description=('Useful methods for SQLAlchemy models'),  # Required
+    description=('Add serialization/de-serialization to the SQLAlchemy Declarative ORM'),  # Required
 
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.
@@ -127,7 +127,7 @@ setup(
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    keywords='sqlalchemy model extension',  # Optional
+    keywords='sqlalchemy model extension serialization JSON YAML dict deserialization',  # Optional
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -148,7 +148,9 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'sqlalchemy',
-        'validator-collection'
+        'validator-collection',
+        'simplejson',
+        'PyYAML',
     ],
 
     # List additional groups of dependencies here (e.g. development

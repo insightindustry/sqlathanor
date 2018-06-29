@@ -16,6 +16,8 @@ from sqlalchemy.orm.relationships import RelationshipProperty
 from sqlalchemy.util import symbol, OrderedProperties
 from sqlalchemy.ext.hybrid import hybrid_property
 
+import yaml
+
 from validator_collection import checkers, validators
 from validator_collection.errors import NotAnIterableError
 
@@ -1671,6 +1673,71 @@ class BaseModel(object):
         as_json = serialize_function(as_dict, **kwargs)
 
         return as_json
+
+    def to_yaml(self,
+                max_nesting = 0,
+                current_nesting = 0,
+                serialize_function = None,
+                **kwargs):
+        """Return a YAML representation of the object.
+
+        :param max_nesting: The maximum number of levels that the resulting
+          object can be nested. If set to ``0``, will not nest other serializable
+          objects. Defaults to ``0``.
+        :type max_nesting: :ref:`int <python:int>`
+
+        :param current_nesting: The current nesting level at which the
+          representation will reside. Defaults to ``0``.
+        :type current_nesting: :ref:`int <python:int>`
+
+        :param serialize_function: Optionally override the default YAML serializer.
+          Defaults to :class:`None`, which calls the default ``yaml.dump()``
+          function from the `PyYAML <https://github.com/yaml/pyyaml>`_ library.
+
+          .. note::
+
+            Use the ``serialize_function`` parameter to override the default
+            YAML serializer. A valid ``serialize_function`` is expected to
+            accept a single :ref:`dict <python:dict>` and return a
+            :ref:`str <python:str>`, similar to
+            ``yaml.dump()``.
+
+            If you wish to pass additional arguments to your ``serialize_function``
+            pass them as keyword arguments (in ``kwargs``).
+
+        :type serialize_function: callable / :class:`None`
+
+        :param **kwargs: Optional keyword parameters that are passed to the
+          YAML serializer function. By default, these are options which are passed
+          to ``yaml.dump()``.
+        :type **kwargs: keyword arguments
+
+        :returns: A :ref:`str <python:str>` with the JSON representation of the
+          object.
+        :rtype: :ref:`str <python:str>`
+
+        :raises SerializableAttributeError: if attributes is empty
+        :raises MaximumNestingExceededError: if ``current_nesting`` is greater
+          than ``max_nesting``
+        :raises MaximumNestingExceededWarning: if an attribute requires nesting
+          beyond ``max_nesting``
+
+        """
+        if serialize_function is None:
+            serialize_function = yaml.dump
+        else:
+            if checkers.is_callable(serialize_function) is False:
+                raise ValueError(
+                    'serialize_function (%s) is not callable' % serialize_function
+                )
+
+        as_dict = self._to_dict('yaml',
+                                max_nesting = max_nesting,
+                                current_nesting = current_nesting)
+
+        as_yaml = serialize_function(as_dict, **kwargs)
+
+        return as_yaml
 
     def to_dict(self,
                 max_nesting = 0,
