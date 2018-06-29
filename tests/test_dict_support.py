@@ -107,3 +107,70 @@ def test__to_dict(request,
             assert key in result
             assert result[key] == expected_result[key]
         assert are_dicts_equivalent(result, expected_result) is True
+
+
+@pytest.mark.parametrize('supports_serialization, hybrid_value, max_nesting, current_nesting, expected_result, warning, error', [
+    (False, None, 0, 0, None, None, SerializableAttributeError),
+
+    (False, None, 0, 3, None, None, MaximumNestingExceededError),
+
+    (True, 'test value', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': 'test value' }, None, None),
+
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, None),
+
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, { 'id': 1, 'name': 'serialized', 'hybrid': [{ 'nested_key': 'test', 'nested_key2': 'test2' }] }, None, None),
+
+    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' } }, None, None),
+    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' } }, None, None),
+
+])
+def test_to_dict(request,
+                 instance_single_pk,
+                 instance_postgresql,
+                 supports_serialization,
+                 hybrid_value,
+                 max_nesting,
+                 current_nesting,
+                 expected_result,
+                 warning,
+                 error):
+    if supports_serialization:
+        target = instance_postgresql[0][0]
+    else:
+        target = instance_single_pk[0]
+
+    target.hybrid = hybrid_value
+
+    if not error and not warning:
+        result = target.to_dict(max_nesting = max_nesting,
+                                current_nesting = current_nesting)
+
+        assert isinstance(result, dict)
+        print('RESULT:')
+        print(result)
+        print('\nEXPECTED:')
+        print(expected_result)
+        for key in result:
+            assert key in expected_result
+            assert expected_result[key] == result[key]
+        for key in expected_result:
+            assert key in result
+            assert result[key] == expected_result[key]
+        assert are_dicts_equivalent(result, expected_result) is True
+    elif not warning:
+        with pytest.raises(error):
+            result = target.to_dict(max_nesting = max_nesting,
+                                    current_nesting = current_nesting)
+    elif not error:
+        with pytest.warns(warning):
+            result = target.to_dict(max_nesting = max_nesting,
+                                    current_nesting = current_nesting)
+
+        assert isinstance(result, dict)
+        for key in result:
+            assert key in expected_result
+            assert expected_result[key] == result[key]
+        for key in expected_result:
+            assert key in result
+            assert result[key] == expected_result[key]
+        assert are_dicts_equivalent(result, expected_result) is True
