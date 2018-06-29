@@ -25,7 +25,7 @@ class SerializationError(SQLAthanorError):
     """Error raised when something went wrong during serialization."""
     pass
 
-class SerializableAttributeError(SQLAthanorError):
+class SerializableAttributeError(SerializationError):
     """Error raised when there are no serializable attributes on a model instance."""
     pass
 
@@ -35,6 +35,11 @@ class DeserializationError(SQLAthanorError):
 
 class ValueSerializationError(SerializationError):
     """Error raised when an attribute value fails the serialization process."""
+    pass
+
+class DeserializableAttributeError(DeserializationError):
+    """Error raised when there are no de-serializable attributes on a model instance
+    or an inbound data source is empty."""
     pass
 
 class MaximumNestingExceededError(ValueSerializationError):
@@ -68,4 +73,9 @@ class UnsupportedDeserializationError(DeserializationError):
 class CSVColumnError(DeserializationError):
     """Error raised when there is a mismatch between expected columns and found columns
     in CSV data."""
+    pass
+
+class ExtraKeyError(DeserializationError):
+    """Error raised when an inbound object being de-serialized has extra (unrecognized)
+    keys."""
     pass

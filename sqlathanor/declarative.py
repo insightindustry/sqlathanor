@@ -27,7 +27,8 @@ from sqlathanor.utilities import format_to_tuple, iterable__to_dict
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
     UnsupportedSerializationError, UnsupportedDeserializationError, DeserializationError,\
     CSVColumnError, MaximumNestingExceededError, MaximumNestingExceededWarning, \
-    SerializableAttributeError, InvalidFormatError
+    SerializableAttributeError, InvalidFormatError, DeserializableAttributeError, \
+    ExtraKeyError
 from sqlathanor.default_serializers import get_default_serializer
 from sqlathanor.default_deserializers import get_default_deserializer
 
@@ -1767,5 +1768,103 @@ class BaseModel(object):
                              max_nesting = max_nesting,
                              current_nesting = current_nesting)
 
+    @classmethod
+    def _parse_dict(cls,
+                    input_data,
+                    format,
+                    error_on_extra_keys = True,
+                    drop_extra_keys = False):
+        """Generate a processed :ref:`dict <python:dict>` object from
+        in-bound :ref:`dict <python:dict>` data.
+
+        :param input_data: An inbound :ref:`dict <python:dict>` object which
+          can be processed for de-serialization.
+        :type input_data: :ref:`dict <python:dict>`
+
+        :param format: The format from which ``input_data`` was received. Accepts:
+          ``'csv'``, ``'json'``, ``'yaml'``, and ``'dict'``.
+        :type format: :ref:`str <python:str>`
+
+        :param error_on_extra_keys: If ``True``, will raise an error if an
+          unrecognized key is found in ``dict_data``. If ``False``, will
+          either drop or include the extra key in the result, as configured in
+          the ``drop_extra_keys`` parameter. Defaults to ``True``.
+        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+        :param drop_extra_keys: If ``True``, will omit unrecognized top-level keys
+          from the resulting :ref:`dict <python:dict>`. If ``False``, will
+          include unrecognized keys or raise an error based on the configuration of
+          the ``error_on_extra_keys`` parameter. Defaults to ``False``.
+        :type drop_extra_keys: :ref:`bool <python:bool>`
+
+        :returns: A processed :ref:`dict <python:dict>` object that has had
+          :term:`deserializer functions` applied to it.
+        :rtype: :ref:`dict <python:dict>`
+
+        :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
+          ``dict_data`` contains top-level keys that are not recognized as
+          attributes for the instance model.
+        :raises validator_collection.errors.NotADictError: if ``dict_data`` is
+          not a :ref:`dict <python:dict>` or JSON object serializable to a
+          :ref:`dict <python:dict>`
+        :raises InvalidFormatError: if ``format`` is not a supported value
+        """
+        if format not in ['csv', 'json', 'yaml', 'dict']:
+            raise InvalidFormatError("format '%s' not supported" % format)
+
+
+        input_data = validators.dict(input_data,
+                                     allow_empty = True,
+                                     json_serializer = json)
+
+        if not input_data or len(input_data.keys()) == 0:
+            raise DeserializationError("input_data is empty")
+
+        dict_object = {}
+
+        if format == 'csv':
+            attribute_getter = cls.get_csv_serialization_config
+        elif format == 'json':
+            attribute_getter = cls.get_json_serialization_config
+        elif format == 'yaml':
+            attribute_getter = cls.get_yaml_serialization_config
+        elif format == 'dict':
+            attribute_getter = cls.get_dict_serialization_config
+
+        attributes = [x
+                      for x in attribute_getter(deserialize = True,
+                                                serialize = None)
+                      if hasattr(cls, x.name)]
+
+        if not attributes:
+            raise DeserializableAttributeError(
+                "'%s' has no '%s' de-serializable attributes" % (type(cls.__name__),
+                                                                 format)
+            )
+
+        attribute_names = [x.name for x in attributes]
+        extra_keys = [x for x in input_data.keys()
+                      if x not in attribute_names]
+        if extra_keys and error_on_extra_keys:
+            raise ExtraKeyError("input data had extra keys: %s" % extra_keys)
+
+        for attribute in attributes:
+            key = attribute.name
+            try:
+                value = input_data.pop(key)
+            except KeyError:
+                continue
+
+            value = cls._get_deserialized_value(value,
+                                                format,
+                                                attribute.name)
+
+            dict_object[key] = value
+
+        if input_data and not drop_extra_keys:
+            for key in input_data:
+                dict_object[key] = input_data[key]
+
+        return dict_object
 
 BaseModel = declarative_base(cls = BaseModel)
