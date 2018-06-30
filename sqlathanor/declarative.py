@@ -69,7 +69,7 @@ class BaseModel(object):
 
         :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
         """
-        return [x.name for x in cls.get_primary_key_columns()]
+        return [str(x.name) for x in cls.get_primary_key_columns()]
 
     @property
     def primary_key_value(self):

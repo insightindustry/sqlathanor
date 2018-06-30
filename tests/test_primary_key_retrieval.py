@@ -154,5 +154,5 @@ def test_primary_key_value(request,
         id_values = [instance_values[key] for key in instance_values
                      if 'id' in key]
 
-        for index, value in enumerate(pk_values):
-            assert pk_values[index] == id_values[index]
+        for value in pk_values:
+            assert value in id_values
