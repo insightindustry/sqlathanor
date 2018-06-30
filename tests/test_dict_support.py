@@ -376,6 +376,7 @@ def test_instance__parse_dict(request,
 
         assert are_dicts_equivalent(result, expected_result) is True
 
+
 @pytest.mark.parametrize('supports_serialization, hybrid_value, max_nesting, current_nesting, expected_result, warning, error', [
     (False, None, 0, 0, None, None, SerializableAttributeError),
 
@@ -441,3 +442,107 @@ def test_to_dict(request,
             assert key in result
             assert result[key] == expected_result[key]
         assert are_dicts_equivalent(result, expected_result) is True
+
+
+@pytest.mark.parametrize('hybrid_value, expected_name, extra_keys, error_on_extra_keys, drop_extra_keys, error', [
+    ('test value', 'deserialized', None, True, False, None),
+    (123, 'deserialized', None, True, False, None),
+
+    ('test value', 'deserialized', { 'extra': 'test'}, True, False, ExtraKeyError),
+    ('test value', 'deserialized', { 'extra': 'test'}, False, False, None),
+    ('test value', 'deserialized', { 'extra': 'test'}, False, True, None),
+
+])
+def test_update_from_dict(request,
+                          model_complex_postgresql,
+                          instance_postgresql,
+                          hybrid_value,
+                          expected_name,
+                          extra_keys,
+                          error_on_extra_keys,
+                          drop_extra_keys,
+                          error):
+    model = model_complex_postgresql[0]
+    target = instance_postgresql[0][0]
+
+    input_data = target.to_dict(max_nesting = 5,
+                                current_nesting = 0)
+
+    input_data['hybrid'] = hybrid_value
+
+    if extra_keys:
+        for key in extra_keys:
+            input_data[key] = extra_keys[key]
+
+    if not error:
+        target.update_from_dict(input_data,
+                                error_on_extra_keys = error_on_extra_keys,
+                                drop_extra_keys = drop_extra_keys)
+
+        assert isinstance(target, model)
+        assert getattr(target, 'name') == expected_name
+        assert getattr(target, 'hybrid') == hybrid_value
+        assert getattr(target, 'id') == target.id
+
+        if extra_keys and not error_on_extra_keys and not drop_extra_keys:
+            for key in extra_keys:
+                assert hasattr(target, key) is True
+                assert getattr(target, key) == extra_keys[key]
+
+    else:
+        with pytest.raises(error):
+            target.update_from_dict(input_data,
+                                    error_on_extra_keys = error_on_extra_keys,
+                                    drop_extra_keys = drop_extra_keys)
+
+
+@pytest.mark.parametrize('hybrid_value, expected_name, extra_keys, error_on_extra_keys, drop_extra_keys, error', [
+    ('test value', 'deserialized', None, True, False, None),
+    (123, 'deserialized', None, True, False, None),
+
+    ('test value', 'deserialized', { 'extra': 'test'}, True, False, ExtraKeyError),
+    ('test value', 'deserialized', { 'extra': 'test'}, False, False, TypeError),
+    ('test value', 'deserialized', { 'extra': 'test'}, False, True, None),
+
+])
+def test_new_from_dict(request,
+                       model_complex_postgresql,
+                       instance_postgresql,
+                       hybrid_value,
+                       expected_name,
+                       extra_keys,
+                       error_on_extra_keys,
+                       drop_extra_keys,
+                       error):
+    target = model_complex_postgresql[0]
+    source = instance_postgresql[0][0]
+
+    input_data = source.to_dict(max_nesting = 5,
+                                current_nesting = 0)
+
+    input_data['hybrid'] = hybrid_value
+
+    if extra_keys:
+        for key in extra_keys:
+            input_data[key] = extra_keys[key]
+
+    if not error:
+        result = target.new_from_dict(input_data,
+                                      error_on_extra_keys = error_on_extra_keys,
+                                      drop_extra_keys = drop_extra_keys)
+
+        assert isinstance(result, target)
+        assert getattr(result, 'name') == expected_name
+        assert getattr(result, 'hybrid') == hybrid_value
+        assert getattr(result, 'id') == source.id
+
+        if extra_keys and not error_on_extra_keys and not drop_extra_keys:
+            for key in extra_keys:
+                assert hasattr(result, key) is True
+                assert getattr(result, key) == extra_keys[key]
+
+    else:
+        with pytest.raises(error):
+            result = target.new_from_dict(input_data,
+                                          error_on_extra_keys = error_on_extra_keys,
+                                          drop_extra_keys = drop_extra_keys)

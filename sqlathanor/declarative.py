@@ -1406,7 +1406,7 @@ class BaseModel(object):
                         double_wrapper_character_when_nested = False,
                         escape_character = "\\",
                         line_terminator = '\r\n'):
-        """Update a new model instance from a CSV record.
+        """Update the model instance from a CSV record.
 
         .. tip::
 
@@ -1427,9 +1427,6 @@ class BaseModel(object):
         :param null_text: The string used to indicate an empty value if empty
           values are wrapped. Defaults to `None`.
         :type null_text: :ref:`str <python:str>`
-
-        :returns: A :term:`model instance` created from the record.
-        :rtype: model instance
 
         :raises DeserializationError: if ``csv_data`` is not a valid
           :ref:`str <python:str>`
@@ -1580,7 +1577,7 @@ class BaseModel(object):
             item = getattr(self, attribute.name, None)
             try:
                 try:
-                    value = item._to_dict(format,
+                    value = item._to_dict(format,                               # pylint: disable=protected-access
                                           max_nesting = max_nesting,
                                           current_nesting = next_nesting)
                 except MaximumNestingExceededError:
@@ -1802,20 +1799,22 @@ class BaseModel(object):
         :rtype: :ref:`dict <python:dict>`
 
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
-          ``dict_data`` contains top-level keys that are not recognized as
+          ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
-        :raises validator_collection.errors.NotADictError: if ``dict_data`` is
+        :raises DeserializationError: if ``input_data`` is
           not a :ref:`dict <python:dict>` or JSON object serializable to a
-          :ref:`dict <python:dict>`
+          :ref:`dict <python:dict>` or if ``input_data`` is empty.
         :raises InvalidFormatError: if ``format`` is not a supported value
         """
         if format not in ['csv', 'json', 'yaml', 'dict']:
             raise InvalidFormatError("format '%s' not supported" % format)
 
-
-        input_data = validators.dict(input_data,
-                                     allow_empty = True,
-                                     json_serializer = json)
+        try:
+            input_data = validators.dict(input_data,
+                                         allow_empty = True,
+                                         json_serializer = json)
+        except ValueError:
+            raise DeserializationError('input_data is not a dict')
 
         if not input_data or len(input_data.keys()) == 0:
             raise DeserializationError("input_data is empty")
@@ -1866,5 +1865,102 @@ class BaseModel(object):
                 dict_object[key] = input_data[key]
 
         return dict_object
+
+    def update_from_dict(self,
+                         input_data,
+                         error_on_extra_keys = True,
+                         drop_extra_keys = False):
+        """Update the model instance from data in a :ref:`dict <python:dict>` object.
+
+        .. warning::
+
+          Be careful setting ``error_on_extra_keys`` to ``False``.
+
+          This method's last step attempts to set an attribute on the model
+          instance for every top-level key in the parsed/processed input data.
+
+          If there is an extra key that cannot be set as an attribute on your
+          model instance, it *will* raise :ref:`AttributeError <python:AttributeError>`.
+
+        :param input_data: The input :ref:`dict <python:dict>`
+        :type input_data: :ref:`dict <python:dict>`
+
+        :param error_on_extra_keys: If ``True``, will raise an error if an
+          unrecognized key is found in ``input_data``. If ``False``, will
+          either drop or include the extra key in the result, as configured in
+          the ``drop_extra_keys`` parameter. Defaults to ``True``.
+        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+        :param drop_extra_keys: If ``True``, will omit unrecognized top-level keys
+          from the resulting :ref:`dict <python:dict>`. If ``False``, will
+          include unrecognized keys or raise an error based on the configuration of
+          the ``error_on_extra_keys`` parameter. Defaults to ``False``.
+        :type drop_extra_keys: :ref:`bool <python:bool>`
+
+        :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
+          ``input_data`` contains top-level keys that are not recognized as
+          attributes for the instance model.
+        :raises DeserializationError: if ``input_data`` is
+          not a :ref:`dict <python:dict>` or JSON object serializable to a
+          :ref:`dict <python:dict>` or if ``input_data`` is empty.
+        :raises InvalidFormatError: if ``format`` is not a supported value
+
+        """
+        data = self._parse_dict(input_data,
+                                'dict',
+                                error_on_extra_keys = error_on_extra_keys,
+                                drop_extra_keys = drop_extra_keys)
+
+        for key in data:
+            setattr(self, key, data[key])
+
+    @classmethod
+    def new_from_dict(cls,
+                      input_data,
+                      error_on_extra_keys = True,
+                      drop_extra_keys = False):
+        """Update the model instance from data in a :ref:`dict <python:dict>` object.
+
+        .. warning::
+
+          Be careful setting ``error_on_extra_keys`` to ``False``.
+
+          This method's last step passes the keys/values of the processed input
+          data to your model's ``__init__()`` method.
+
+          If your instance's ``__init__()`` method does not support your extra keys,
+          it will likely raise a :ref:`TypeError <python:TypeError>`.
+
+        :param input_data: The input :ref:`dict <python:dict>`
+        :type input_data: :ref:`dict <python:dict>`
+
+        :param error_on_extra_keys: If ``True``, will raise an error if an
+          unrecognized key is found in ``input_data``. If ``False``, will
+          either drop or include the extra key in the result, as configured in
+          the ``drop_extra_keys`` parameter. Defaults to ``True``.
+        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+        :param drop_extra_keys: If ``True``, will omit unrecognized top-level keys
+          from the resulting :ref:`dict <python:dict>`. If ``False``, will
+          include unrecognized keys or raise an error based on the configuration of
+          the ``error_on_extra_keys`` parameter. Defaults to ``False``.
+        :type drop_extra_keys: :ref:`bool <python:bool>`
+
+        :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
+          ``input_data`` contains top-level keys that are not recognized as
+          attributes for the instance model.
+        :raises DeserializationError: if ``input_data`` is
+          not a :ref:`dict <python:dict>` or JSON object serializable to a
+          :ref:`dict <python:dict>` or if ``input_data`` is empty.
+        :raises InvalidFormatError: if ``format`` is not a supported value
+
+        """
+        data = cls._parse_dict(input_data,
+                               'dict',
+                               error_on_extra_keys = error_on_extra_keys,
+                               drop_extra_keys = drop_extra_keys)
+
+        return cls(**data)
+
 
 BaseModel = declarative_base(cls = BaseModel)

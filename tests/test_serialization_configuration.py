@@ -48,8 +48,8 @@ def test_instance__serialization__(request,
 @pytest.mark.parametrize('test_index, include_private, exclude_methods, expected_length', [
     (0, False, True, 10),
     (0, True, True, 13),
-    (0, False, False, 28),
-    (0, False, False, 28),
+    (0, False, False, 30),
+    (0, False, False, 30),
 ])
 def test_model__get_instance_attributes(request,
                                         model_complex_meta,
@@ -603,8 +603,8 @@ def test_model_does_support_serialization(request,
 @pytest.mark.parametrize('test_index, include_private, exclude_methods, expected_length', [
     (0, False, True, 10),
     (0, True, True, 13),
-    (0, False, False, 28),
-    (0, False, False, 28),
+    (0, False, False, 30),
+    (0, False, False, 30),
 ])
 def test_instance__get_instance_attributes(request,
                                            instance_complex_meta,
