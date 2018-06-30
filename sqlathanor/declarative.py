@@ -23,12 +23,13 @@ from validator_collection.errors import NotAnIterableError
 
 from sqlathanor._compat import StringIO, json
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config
-from sqlathanor.utilities import format_to_tuple, iterable__to_dict
+from sqlathanor.utilities import format_to_tuple, iterable__to_dict, parse_yaml, \
+    parse_json
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
     UnsupportedSerializationError, UnsupportedDeserializationError, DeserializationError,\
     CSVColumnError, MaximumNestingExceededError, MaximumNestingExceededWarning, \
     SerializableAttributeError, InvalidFormatError, DeserializableAttributeError, \
-    ExtraKeyError
+    ExtraKeyError, YAMLParseError, JSONParseError
 from sqlathanor.default_serializers import get_default_serializer
 from sqlathanor.default_deserializers import get_default_deserializer
 
@@ -1957,6 +1958,150 @@ class BaseModel(object):
         """
         data = cls._parse_dict(input_data,
                                'dict',
+                               error_on_extra_keys = error_on_extra_keys,
+                               drop_extra_keys = drop_extra_keys)
+
+        return cls(**data)
+
+    def update_from_yaml(self,
+                         input_data,
+                         deserialize_function = None,
+                         error_on_extra_keys = True,
+                         drop_extra_keys = False,
+                         **kwargs):
+        """Update the model instance from data in a YAML string.
+
+        .. warning::
+
+          Be careful setting ``error_on_extra_keys`` to ``False``.
+
+          This method's last step attempts to set an attribute on the model
+          instance for every top-level key in the parsed/processed input data.
+
+          If there is an extra key that cannot be set as an attribute on your
+          model instance, it *will* raise :ref:`AttributeError <python:AttributeError>`.
+
+        :param input_data: The YAML data to de-serialize.
+        :type input_data: :ref:`str <python:str>`
+
+        :param deserialize_function: Optionally override the default YAML deserializer.
+          Defaults to :class:`None`, which calls the default ``yaml.safe_load()``
+          function from the `PyYAML <https://github.com/yaml/pyyaml>`_ library.
+
+          .. note::
+
+            Use the ``deserialize_function`` parameter to override the default
+            YAML deserializer. A valid ``deserialize_function`` is expected to
+            accept a single :ref:`str <python:str>` and return a
+            :ref:`dict <python:dict>`, similar to ``yaml.safe_load()``.
+
+            If you wish to pass additional arguments to your ``deserialize_function``
+            pass them as keyword arguments (in ``kwargs``).
+
+        :type deserialize_function: callable / :class:`None`
+
+        :param error_on_extra_keys: If ``True``, will raise an error if an
+          unrecognized key is found in ``input_data``. If ``False``, will
+          either drop or include the extra key in the result, as configured in
+          the ``drop_extra_keys`` parameter. Defaults to ``True``.
+        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+        :param drop_extra_keys: If ``True``, will ignore unrecognized keys in the
+          input data. If ``False``, will include unrecognized keys or raise an
+          error based on the configuration of the ``error_on_extra_keys`` parameter.
+          Defaults to ``False``.
+        :type drop_extra_keys: :ref:`bool <python:bool>`
+
+        :param **kwargs: Optional keyword parameters that are passed to the
+          YAML deserializer function. By default, these are options which are passed
+          to ``yaml.safe_load()``.
+        :type **kwargs: keyword arguments
+
+        :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
+          ``input_data`` contains top-level keys that are not recognized as
+          attributes for the instance model.
+        :raises DeserializationError: if ``input_data`` is
+          not a :ref:`str <python:str>` YAML de-serializable object to a
+          :ref:`dict <python:dict>` or if ``input_data`` is empty.
+
+        """
+        from_yaml = parse_yaml(input_data,
+                               deserialize_function = deserialize_function,
+                               **kwargs)
+
+        data = self._parse_dict(from_yaml,
+                                'yaml',
+                                error_on_extra_keys = error_on_extra_keys,
+                                drop_extra_keys = drop_extra_keys)
+
+        for key in data:
+            setattr(self, key, data[key])
+
+    @classmethod
+    def new_from_yaml(cls,
+                      input_data,
+                      deserialize_function = None,
+                      error_on_extra_keys = True,
+                      drop_extra_keys = False,
+                      **kwargs):
+        """Create a new model instance from data in YAML.
+
+        .. warning::
+
+          Be careful setting ``error_on_extra_keys`` to ``False``.
+
+          This method's last step passes the keys/values of the processed input
+          data to your model's ``__init__()`` method.
+
+          If your instance's ``__init__()`` method does not support your extra keys,
+          it will likely raise a :ref:`TypeError <python:TypeError>`.
+
+        :param input_data: The input YAML data.
+        :type input_data: :ref:`str <python:str>`
+
+        :param deserialize_function: Optionally override the default YAML deserializer.
+          Defaults to :class:`None`, which calls the default ``yaml.safe_load()``
+          function from the `PyYAML <https://github.com/yaml/pyyaml>`_ library.
+
+          .. note::
+
+            Use the ``deserialize_function`` parameter to override the default
+            YAML deserializer. A valid ``deserialize_function`` is expected to
+            accept a single :ref:`str <python:str>` and return a
+            :ref:`dict <python:dict>`, similar to ``yaml.safe_load()``.
+
+            If you wish to pass additional arguments to your ``deserialize_function``
+            pass them as keyword arguments (in ``kwargs``).
+
+        :type deserialize_function: callable / :class:`None`
+
+        :param error_on_extra_keys: If ``True``, will raise an error if an
+          unrecognized key is found in ``input_data``. If ``False``, will
+          either drop or include the extra key in the result, as configured in
+          the ``drop_extra_keys`` parameter. Defaults to ``True``.
+        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+        :param drop_extra_keys: If ``True``, will ignore unrecognized top-level
+          keys in ``input_data``. If ``False``, will include unrecognized keys
+          or raise an error based on the configuration of
+          the ``error_on_extra_keys`` parameter. Defaults to ``False``.
+        :type drop_extra_keys: :ref:`bool <python:bool>`
+
+        :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
+          ``input_data`` contains top-level keys that are not recognized as
+          attributes for the instance model.
+        :raises DeserializationError: if ``input_data`` is
+          not a :ref:`dict <python:dict>` or JSON object serializable to a
+          :ref:`dict <python:dict>` or if ``input_data`` is empty.
+        :raises InvalidFormatError: if ``format`` is not a supported value
+
+        """
+        from_yaml = parse_yaml(input_data,
+                               deserialize_function = deserialize_function,
+                               **kwargs)
+
+        data = cls._parse_dict(from_yaml,
+                               'yaml',
                                error_on_extra_keys = error_on_extra_keys,
                                drop_extra_keys = drop_extra_keys)
 

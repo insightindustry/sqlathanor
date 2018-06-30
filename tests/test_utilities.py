@@ -19,10 +19,10 @@ from tests.fixtures import db_engine, tables, base_model, db_session, \
 
 from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple, \
     get_class_type_key, raise_UnsupportedSerializationError, \
-    raise_UnsupportedDeserializationError, iterable__to_dict
+    raise_UnsupportedDeserializationError, iterable__to_dict, parse_yaml, parse_json
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
-    MaximumNestingExceededWarning
+    MaximumNestingExceededWarning, DeserializationError
 
 
 
@@ -203,3 +203,47 @@ def test_iterable__to_dict(input_value,
                                        format,
                                        max_nesting = max_nesting,
                                        current_nesting = current_nesting)
+
+
+@pytest.mark.parametrize('input_value, deserialize_function, expected_result, error', [
+    ('{"test": 123, "second_test": "this is a test"}', None, { 'test': 123, 'second_test': 'this is a test' }, None),
+
+    (None, None, None, DeserializationError),
+    (None, 'not-callable', None, ValueError),
+
+])
+def test_parse_json(input_value,
+                    deserialize_function,
+                    expected_result,
+                    error):
+    if not error:
+        result = parse_json(input_value,
+                            deserialize_function = deserialize_function)
+
+        assert isinstance(result, dict)
+        assert checkers.are_dicts_equivalent(result, expected_result)
+    else:
+        with pytest.raises(error):
+            result = parse_json(input_value)
+
+
+@pytest.mark.parametrize('input_value, deserialize_function, expected_result, error', [
+    ('{"test": 123, "second_test": "this is a test"}', None, { 'test': 123, 'second_test': 'this is a test' }, None),
+
+    (None, None, None, DeserializationError),
+    (None, 'not-callable', None, ValueError),
+
+])
+def test_parse_yaml(input_value,
+                    deserialize_function,
+                    expected_result,
+                    error):
+    if not error:
+        result = parse_yaml(input_value,
+                            deserialize_function = deserialize_function)
+
+        assert isinstance(result, dict)
+        assert checkers.are_dicts_equivalent(result, expected_result)
+    else:
+        with pytest.raises(error):
+            result = parse_yaml(input_value)

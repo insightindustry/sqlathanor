@@ -33,6 +33,14 @@ class DeserializationError(SQLAthanorError):
     """Error raised when something went wrong during de-serialization."""
     pass
 
+class YAMLParseError(DeserializationError):
+    """Error raised when something went wrong parsing input YAML data."""
+    pass
+
+class JSONParseError(DeserializationError):
+    """Error raised when something went wrong parsing input JSON data."""
+    pass
+
 class ValueSerializationError(SerializationError):
     """Error raised when an attribute value fails the serialization process."""
     pass
