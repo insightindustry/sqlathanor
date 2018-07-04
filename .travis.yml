@@ -2,11 +2,6 @@ language: python
 sudo: false
 dist: trusty
 cache: pip
-python:
-    - "2.7"
-    - "3.4"
-    - "3.5"
-    - "3.6"
 
 env:
   - SQLALCHEMY = "0.8"
@@ -45,6 +40,18 @@ env:
   - SIMPLEJSON = "3.14"
   - SIMPLEJSON = "3.15"
   - SIMPLEJSON = "3.16"
+  - python: '2.7'
+    - TOXENV=.python27
+  - python: '3.4'
+    - TOXENV=.python34
+  - python: '3.5'
+    - TOXENV=.python35
+  - python: '3.6'
+    - TOXENV=.python36
+  - python: '3.6'
+    - TOXENV=docs
+  - python: '3.6'
+    - TOXENV=coverage
 
 install:
   - pip install -U tox-travis codecov
