@@ -39,7 +39,6 @@ env:
     - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson314
     - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson315
     - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson316
-
   - python: '3.4'
     - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson30
     - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson31
