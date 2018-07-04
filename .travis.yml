@@ -4,57 +4,158 @@ dist: trusty
 cache: pip
 
 env:
-  - SQLALCHEMY = "0.8"
-  - SQLALCHEMY = "0.9"
-  - SQLALCHEMY = "1.0"
-  - SQLALCHEMY = "1.1"
-  - SQLALCHEMY = "1.2"
-  - PYYAML = "3.01"
-  - PYYAML = "3.02"
-  - PYYAML = "3.03"
-  - PYYAML = "3.04"
-  - PYYAML = "3.05"
-  - PYYAML = "3.06"
-  - PYYAML = "3.07"
-  - PYYAML = "3.08"
-  - PYYAML = "3.09"
-  - PYYAML = "3.10"
-  - PYYAML = "3.11"
-  - PYYAML = "3.12"
-  - PYYAML = "4.2b1"
-  - PYYAML = "4.2b2"
-  - SIMPLEJSON = "3.0"
-  - SIMPLEJSON = "3.1"
-  - SIMPLEJSON = "3.2"
-  - SIMPLEJSON = "3.3"
-  - SIMPLEJSON = "3.4"
-  - SIMPLEJSON = "3.5"
-  - SIMPLEJSON = "3.6"
-  - SIMPLEJSON = "3.7"
-  - SIMPLEJSON = "3.8"
-  - SIMPLEJSON = "3.9"
-  - SIMPLEJSON = "3.10"
-  - SIMPLEJSON = "3.11"
-  - SIMPLEJSON = "3.12"
-  - SIMPLEJSON = "3.13"
-  - SIMPLEJSON = "3.14"
-  - SIMPLEJSON = "3.15"
-  - SIMPLEJSON = "3.16"
   - python: '2.7'
-    - TOXENV=.python27
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson30
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson31
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson32
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson33
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson34
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson35
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson36
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson37
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson38
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson39
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson310
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson311
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson312
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson313
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson314
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson315
+    - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson316
+
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson30
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson31
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson32
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson33
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson34
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson35
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson36
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson37
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson38
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson39
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson310
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson311
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson312
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson313
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson314
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson315
+    - TOXENV=.python27-sqlalchemy08-pyyaml302-simplejson316
+
   - python: '3.4'
-    - TOXENV=.python34
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson30
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson31
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson32
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson33
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson34
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson35
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson36
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson37
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson38
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson39
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson310
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson311
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson312
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson313
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson314
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson315
+    - TOXENV=.python34-sqlalchemy08-pyyaml301-simplejson316
+
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson30
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson31
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson32
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson33
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson34
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson35
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson36
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson37
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson38
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson39
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson310
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson311
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson312
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson313
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson314
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson315
+    - TOXENV=.python34-sqlalchemy08-pyyaml302-simplejson316
   - python: '3.5'
-    - TOXENV=.python35
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson30
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson31
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson32
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson33
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson34
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson35
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson36
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson37
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson38
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson39
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson310
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson311
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson312
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson313
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson314
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson315
+    - TOXENV=.python35-sqlalchemy08-pyyaml301-simplejson316
+
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson30
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson31
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson32
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson33
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson34
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson35
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson36
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson37
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson38
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson39
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson310
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson311
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson312
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson313
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson314
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson315
+    - TOXENV=.python35-sqlalchemy08-pyyaml302-simplejson316
   - python: '3.6'
-    - TOXENV=.python36
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson30
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson31
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson32
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson33
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson34
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson35
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson36
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson37
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson38
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson39
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson310
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson311
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson312
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson313
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson314
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson315
+    - TOXENV=.python36-sqlalchemy08-pyyaml301-simplejson316
+
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson30
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson31
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson32
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson33
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson34
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson35
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson36
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson37
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson38
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson39
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson310
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson311
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson312
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson313
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson314
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson315
+    - TOXENV=.python36-sqlalchemy08-pyyaml302-simplejson316
   - python: '3.6'
     - TOXENV=docs
   - python: '3.6'
     - TOXENV=coverage
 
 install:
-  - pip install -U tox-travis codecov
+  - pip install -q tox-travis codecov
 
 script:
   - tox
