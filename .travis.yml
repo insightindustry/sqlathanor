@@ -11,55 +11,55 @@ matrix:
   include:
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson30
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson30
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson31
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson31
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson32
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson32
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson33
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson33
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson34
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson34
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson35
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson35
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson36
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson36
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson37
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson37
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson38
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson38
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson39
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson39
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson310
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson310
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson311
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson311
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson312
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson312
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson313
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson313
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson314
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson314
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson315
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson315
     - python: '2.7'
       env:
-        - TOXENV=.python27-sqlalchemy08-pyyaml301-simplejson316
+        - TOXENV=.python27-sqlalchemy08-pyyaml310-simplejson316
     - python: '3.4'
       env:
         - TOXENV=.python34
