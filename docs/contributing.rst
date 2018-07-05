@@ -4,8 +4,8 @@ Contributing to SQLAthanor
 
 .. note::
 
-  As a general rule of thumb, **SQLAthanor** applies
-  :pep:`PEP 8 <8>` styling, with some important differences.
+  As a general rule of thumb, **SQLAthanor** applies :pep:`PEP 8 <8>` styling,
+  with some important differences.
 
 .. include:: _unit_tests_code_coverage.rst
 

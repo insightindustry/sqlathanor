@@ -9,7 +9,7 @@ import csv
 import inspect as inspect_
 import warnings
 
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base as SA_declarative_base
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.state import InstanceState
 from sqlalchemy.orm.relationships import RelationshipProperty
@@ -36,7 +36,71 @@ from sqlathanor.default_deserializers import get_default_deserializer
 # pylint: disable=no-member
 
 class BaseModel(object):
-    """Base class that establishes shared methods, attributes,and properties."""
+    """Base class that establishes shared methods, attributes, and properties.
+
+    When constructing your ORM models, inherit from (or mixin) this class to
+    add support for :term:`serialization` and :term:`de-serialization`.
+
+    .. note::
+
+      It is this class which adds **SQLAthanor**'s methods and properties to your
+      SQLAlchemy model.
+
+      If your SQLAlchemy models do not inherit from this class, then they will
+      not actually support :term:`serialization` or :term:`de-serialization`.
+
+    You can construct your declarative models using three approaches:
+
+    .. tabs::
+
+      .. tab:: Using BaseModel Directly
+
+        By inheriting or mixing in :class:`BaseModel` directly as shown in the
+        examples below.
+
+        .. code-block:: python
+
+          from sqlathanor import BaseModel
+
+          # EXAMPLE 1: As a direct parent class for your model.
+          class MyModel(BaseModel):
+
+              # Standard SQLAlchemy declarative model definition goes here.
+
+          # EXAMPLE 2: As a mixin parent for your model.
+          class MyBaseModel(object):
+
+              # An existing base model that you have developed.
+
+          class MyModel(MyBaseModel, BaseModel):
+
+              # Standard SQLAlchemy declarative model definition goes here.
+
+      .. tab:: Using ``declarative_base()``
+
+        By calling the :func:`declarative_base` function from **SQLAthanor**:
+
+        .. code-block:: python
+
+          from sqlathanor import declarative_base
+
+          MyBaseModel = declarative_base()
+
+      .. tab:: Using ``@as_declarative``
+
+        By decorating your base model class with the
+        :func:`@as_declarative <as_declarative>` decorator:
+
+        .. code-block:: python
+
+          from sqlathanor import as_declarative
+
+          @as_declarative
+          class MyBaseModel(object):
+
+              # Standard SQLAlchemy declarative model definition goes here.
+
+    """
 
     __serialization__ = []
 
@@ -55,10 +119,11 @@ class BaseModel(object):
     def get_primary_key_columns(cls):
         """Retrieve the model's primary key columns.
 
-        :returns: :ref:`list <python:list>` of
-          :ref:`Column <sqlalchemy:sqlalchemy.Column>` objects corresponding to
+        :returns: :class:`list <python:list>` of
+          :class:`Column <sqlalchemy:sqlalchemy.schema.Column>` objects corresponding to
           the table's primary key(s).
-        :rtype: :ref:`list <python:list>` of :ref:`Column <sqlalchemy:sqlalchemy.Column>`
+        :rtype: :class:`list <python:list>` of
+          :class:`Column <sqlalchemy:sqlalchemy.schema.Column>`
 
         """
         return inspect(cls).primary_key
@@ -67,7 +132,7 @@ class BaseModel(object):
     def get_primary_key_column_names(cls):
         """Retrieve the column names for the model's primary key columns.
 
-        :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
+        :rtype: :class:`list <python:list>` of :class:`str <python:str>`
         """
         return [str(x.name) for x in cls.get_primary_key_columns()]
 
@@ -78,20 +143,18 @@ class BaseModel(object):
         .. note::
 
           If not :class:`None`, this value can always be passed to
-          :ref:`Query.get() <sqlalchemy:sqlalchemy.orm.query.Query.get>`.
+          :meth:`Query.get() <sqlalchemy:sqlalchemy.orm.query.Query.get>`.
 
         .. warning::
 
           Returns :class:`None` if the instance is pending, in a transient state, or
           does not have a primary key.
 
-        :returns: scalar or :ref:`tuple <python:tuple>` value representing the
+        :returns: scalar or :class:`tuple <python:tuple>` value representing the
           primary key. For a composite primary key, the order of identifiers
           corresponds to the order with which the model's primary keys were
-          defined.
-
-          If no primary keys are available, will return :class:`None`.
-        :rtype: scalar / :ref:`tuple <python:tuple>` / :class:`None`
+          defined. If no primary keys are available, will return :class:`None`.
+        :rtype: scalar / :class:`tuple <python:tuple>` / :class:`None`
 
         """
         if not inspect(self).has_identity or not inspect(self).identity:
@@ -112,11 +175,11 @@ class BaseModel(object):
 
         :param include_private: If ``True``, includes properties whose names start
           with an underscore. Defaults to ``False``.
-        :type include_private: :ref:`bool <python:bool>`
+        :type include_private: :class:`bool <python:bool>`
 
         :param exclude_methods: If ``True``, excludes attributes that correspond to
           methods (are callable). Defaults to ``True``.
-        :type exclude_methods: :ref:`bool <python:bool>`
+        :type exclude_methods: :class:`bool <python:bool>`
 
         .. note::
 
@@ -124,7 +187,7 @@ class BaseModel(object):
           by the model - whether they map to database columns or not.
 
         :returns: An iterable of attribute names defined for the model.
-        :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
+        :rtype: :class:`list <python:list>` of :class:`str <python:str>`
 
         """
         base_attributes = dir(cls)
@@ -155,8 +218,10 @@ class BaseModel(object):
                                                  from_dict = None,
                                                  to_dict = None,
                                                  exclude_private = True):
-        """Retrieve a list of :class:`AttributeConfiguration` objects corresponding
-        to attributes whose values can be serialized from/to CSV, JSON, YAML, etc.
+        """Retrieve a list of
+        :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+        objects corresponding to attributes whose values can be serialized from/to CSV,
+        JSON, YAML, etc.
 
         .. note::
 
@@ -169,65 +234,66 @@ class BaseModel(object):
           that **cannot** be de-serialized from CSV strings. If :class:`None`,
           will not include attributes based on CSV de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_csv: :ref:`bool <python:bool>` / :class:`None`
+        :type from_csv: :class:`bool <python:bool>` / :class:`None`
 
         :param to_csv: If ``True``, includes attribute names that **can** be
           serialized to CSV strings. If ``False``, includes attribute names
           that **cannot** be serialized to CSV strings. If :class:`None`,
           will not include attributes based on CSV serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_csv: :ref:`bool <python:bool>` / :class:`None`
+        :type to_csv: :class:`bool <python:bool>` / :class:`None`
 
         :param from_json: If ``True``, includes attribute names that **can** be
           de-serialized from JSON strings. If ``False``, includes attribute names
           that **cannot** be de-serialized from JSON strings. If :class:`None`,
           will not include attributes based on JSON de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_json: :ref:`bool <python:bool>` / :class:`None`
+        :type from_json: :class:`bool <python:bool>` / :class:`None`
 
         :param to_json: If ``True``, includes attribute names that **can** be
           serialized to JSON strings. If ``False``, includes attribute names
           that **cannot** be serialized to JSON strings. If :class:`None`,
           will not include attributes based on JSON serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_json: :ref:`bool <python:bool>` / :class:`None`
+        :type to_json: :class:`bool <python:bool>` / :class:`None`
 
         :param from_yaml: If ``True``, includes attribute names that **can** be
           de-serialized from YAML strings. If ``False``, includes attribute names
           that **cannot** be de-serialized from YAML strings. If :class:`None`,
           will not include attributes based on YAML de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_yaml: :ref:`bool <python:bool>` / :class:`None`
+        :type from_yaml: :class:`bool <python:bool>` / :class:`None`
 
         :param to_yaml: If ``True``, includes attribute names that **can** be
           serialized to YAML strings. If ``False``, includes attribute names
           that **cannot** be serialized to YAML strings. If :class:`None`,
           will not include attributes based on YAML serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_yaml: :ref:`bool <python:bool>` / :class:`None`
+        :type to_yaml: :class:`bool <python:bool>` / :class:`None`
 
         :param from_dict: If ``True``, includes attribute names that **can** be
-          de-serialized from :ref:`dict <python:dict>` objects. If ``False``, includes
-          attribute names that **cannot** be de-serialized from :ref:`dict <python:dict>`
+          de-serialized from :class:`dict <python:dict>` objects. If ``False``, includes
+          attribute names that **cannot** be de-serialized from :class:`dict <python:dict>`
           objects. If :class:`None`, will not include attributes based on
-          :ref:`dict <python:dict> de-serialization support (but may include them
+          :class:`dict <python:dict>` de-serialization support (but may include them
           based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :ref:`bool <python:bool>` / :class:`None`
+        :type from_dict: :class:`bool <python:bool>` / :class:`None`
 
         :param to_dict: If ``True``, includes attribute names that **can** be
-          serialized to :ref:`dict <python:dict>` objects. If ``False``, includes
-          attribute names that **cannot** be serialized to :ref:`dict <python:dict>`
+          serialized to :class:`dict <python:dict>` objects. If ``False``, includes
+          attribute names that **cannot** be serialized to :class:`dict <python:dict>`
           objects. If :class:`None`, will not include attributes based on
-          :ref:`dict <python:dict> serialization support (but may include them
+          :class:`dict <python:dict>` serialization support (but may include them
           based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :ref:`bool <python:bool>` / :class:`None`
+        :type from_dict: :class:`bool <python:bool>` / :class:`None`
 
         :param exclude_private: If ``True``, will exclude private attributes whose
           names begin with a single underscore. Defaults to ``True``.
-        :type exclude_private: :ref:`bool <python:bool>`
+        :type exclude_private: :class:`bool <python:bool>`
 
         :returns: List of attribute configurations.
-        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
+        :rtype: :class:`list <python:list>` of
+        :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
 
         """
         # pylint: disable=too-many-branches
@@ -321,7 +387,7 @@ class BaseModel(object):
                                           to_yaml = None,
                                           from_dict = None,
                                           to_dict = None):
-        """Retrieve a list of :class:`AttributeConfiguration` objects corresponding
+        """Retrieve a list of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` objects corresponding
         to attributes whose values can be serialized from/to CSV, JSON, YAML, etc.
 
         .. note::
@@ -334,61 +400,61 @@ class BaseModel(object):
           that **cannot** be de-serialized from CSV strings. If :class:`None`,
           will not include attributes based on CSV de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_csv: :ref:`bool <python:bool>` / :class:`None`
+        :type from_csv: :class:`bool <python:bool>` / :class:`None`
 
         :param to_csv: If ``True``, includes attribute names that **can** be
           serialized to CSV strings. If ``False``, includes attribute names
           that **cannot** be serialized to CSV strings. If :class:`None`,
           will not include attributes based on CSV serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_csv: :ref:`bool <python:bool>` / :class:`None`
+        :type to_csv: :class:`bool <python:bool>` / :class:`None`
 
         :param from_json: If ``True``, includes attribute names that **can** be
           de-serialized from JSON strings. If ``False``, includes attribute names
           that **cannot** be de-serialized from JSON strings. If :class:`None`,
           will not include attributes based on JSON de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_json: :ref:`bool <python:bool>` / :class:`None`
+        :type from_json: :class:`bool <python:bool>` / :class:`None`
 
         :param to_json: If ``True``, includes attribute names that **can** be
           serialized to JSON strings. If ``False``, includes attribute names
           that **cannot** be serialized to JSON strings. If :class:`None`,
           will not include attributes based on JSON serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_json: :ref:`bool <python:bool>` / :class:`None`
+        :type to_json: :class:`bool <python:bool>` / :class:`None`
 
         :param from_yaml: If ``True``, includes attribute names that **can** be
           de-serialized from YAML strings. If ``False``, includes attribute names
           that **cannot** be de-serialized from YAML strings. If :class:`None`,
           will not include attributes based on YAML de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_yaml: :ref:`bool <python:bool>` / :class:`None`
+        :type from_yaml: :class:`bool <python:bool>` / :class:`None`
 
         :param to_yaml: If ``True``, includes attribute names that **can** be
           serialized to YAML strings. If ``False``, includes attribute names
           that **cannot** be serialized to YAML strings. If :class:`None`,
           will not include attributes based on YAML serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_yaml: :ref:`bool <python:bool>` / :class:`None`
+        :type to_yaml: :class:`bool <python:bool>` / :class:`None`
 
         :param from_dict: If ``True``, includes attribute names that **can** be
-          de-serialized from :ref:`dict <python:dict>` objects. If ``False``, includes
-          attribute names that **cannot** be de-serialized from :ref:`dict <python:dict>`
+          de-serialized from :class:`dict <python:dict>` objects. If ``False``, includes
+          attribute names that **cannot** be de-serialized from :class:`dict <python:dict>`
           objects. If :class:`None`, will not include attributes based on
-          :ref:`dict <python:dict> de-serialization support (but may include them
+          :class:`dict <python:dict>` de-serialization support (but may include them
           based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :ref:`bool <python:bool>` / :class:`None`
+        :type from_dict: :class:`bool <python:bool>` / :class:`None`
 
         :param to_dict: If ``True``, includes attribute names that **can** be
-          serialized to :ref:`dict <python:dict>` objects. If ``False``, includes
-          attribute names that **cannot** be serialized to :ref:`dict <python:dict>`
+          serialized to :class:`dict <python:dict>` objects. If ``False``, includes
+          attribute names that **cannot** be serialized to :class:`dict <python:dict>`
           objects. If :class:`None`, will not include attributes based on
-          :ref:`dict <python:dict> serialization support (but may include them
+          :class:`dict <python:dict>` serialization support (but may include them
           based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :ref:`bool <python:bool>` / :class:`None`
+        :type from_dict: :class:`bool <python:bool>` / :class:`None`
 
         :returns: List of attribute configurations.
-        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
+        :rtype: :class:`list <python:list>` of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
 
         """
         attributes = []
@@ -469,7 +535,7 @@ class BaseModel(object):
 
     @classmethod
     def _get_attribute_configurations(cls):
-        """Retrieve a list of :class:`AttributeConfiguration` applied to the class."""
+        """Retrieve a list of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` applied to the class."""
         attributes = [x for x in cls.__serialization__]
         attributes.extend([x
                            for x in cls._get_declarative_serializable_attributes(
@@ -502,7 +568,7 @@ class BaseModel(object):
                                  from_dict = None,
                                  to_dict = None,
                                  exclude_private = True):
-        """Retrieve a list of :class:`AttributeConfiguration` objects corresponding
+        """Retrieve a list of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` objects corresponding
         to attributes whose values can be serialized from/to CSV, JSON, YAML, etc.
 
         :param from_csv: If ``True``, includes attribute names that **can** be
@@ -510,65 +576,65 @@ class BaseModel(object):
           that **cannot** be de-serialized from CSV strings. If :class:`None`,
           will not include attributes based on CSV de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_csv: :ref:`bool <python:bool>` / :class:`None`
+        :type from_csv: :class:`bool <python:bool>` / :class:`None`
 
         :param to_csv: If ``True``, includes attribute names that **can** be
           serialized to CSV strings. If ``False``, includes attribute names
           that **cannot** be serialized to CSV strings. If :class:`None`,
           will not include attributes based on CSV serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_csv: :ref:`bool <python:bool>` / :class:`None`
+        :type to_csv: :class:`bool <python:bool>` / :class:`None`
 
         :param from_json: If ``True``, includes attribute names that **can** be
           de-serialized from JSON strings. If ``False``, includes attribute names
           that **cannot** be de-serialized from JSON strings. If :class:`None`,
           will not include attributes based on JSON de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_json: :ref:`bool <python:bool>` / :class:`None`
+        :type from_json: :class:`bool <python:bool>` / :class:`None`
 
         :param to_json: If ``True``, includes attribute names that **can** be
           serialized to JSON strings. If ``False``, includes attribute names
           that **cannot** be serialized to JSON strings. If :class:`None`,
           will not include attributes based on JSON serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_json: :ref:`bool <python:bool>` / :class:`None`
+        :type to_json: :class:`bool <python:bool>` / :class:`None`
 
         :param from_yaml: If ``True``, includes attribute names that **can** be
           de-serialized from YAML strings. If ``False``, includes attribute names
           that **cannot** be de-serialized from YAML strings. If :class:`None`,
           will not include attributes based on YAML de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_yaml: :ref:`bool <python:bool>` / :class:`None`
+        :type from_yaml: :class:`bool <python:bool>` / :class:`None`
 
         :param to_yaml: If ``True``, includes attribute names that **can** be
           serialized to YAML strings. If ``False``, includes attribute names
           that **cannot** be serialized to YAML strings. If :class:`None`,
           will not include attributes based on YAML serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_yaml: :ref:`bool <python:bool>` / :class:`None`
+        :type to_yaml: :class:`bool <python:bool>` / :class:`None`
 
         :param from_dict: If ``True``, includes attribute names that **can** be
-          de-serialized from :ref:`dict <python:dict>` objects. If ``False``, includes
-          attribute names that **cannot** be de-serialized from :ref:`dict <python:dict>`
+          de-serialized from :class:`dict <python:dict>` objects. If ``False``, includes
+          attribute names that **cannot** be de-serialized from :class:`dict <python:dict>`
           objects. If :class:`None`, will not include attributes based on
-          :ref:`dict <python:dict> de-serialization support (but may include them
+          :class:`dict <python:dict>` de-serialization support (but may include them
           based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :ref:`bool <python:bool>` / :class:`None`
+        :type from_dict: :class:`bool <python:bool>` / :class:`None`
 
         :param to_dict: If ``True``, includes attribute names that **can** be
-          serialized to :ref:`dict <python:dict>` objects. If ``False``, includes
-          attribute names that **cannot** be serialized to :ref:`dict <python:dict>`
+          serialized to :class:`dict <python:dict>` objects. If ``False``, includes
+          attribute names that **cannot** be serialized to :class:`dict <python:dict>`
           objects. If :class:`None`, will not include attributes based on
-          :ref:`dict <python:dict> serialization support (but may include them
+          :class:`dict <python:dict>` serialization support (but may include them
           based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :ref:`bool <python:bool>` / :class:`None`
+        :type from_dict: :class:`bool <python:bool>` / :class:`None`
 
         :param exclude_private: If ``True``, will exclude private attributes whose
           names begin with a single underscore. Defaults to ``True``.
-        :type exclude_private: :ref:`bool <python:bool>`
+        :type exclude_private: :class:`bool <python:bool>`
 
         :returns: List of attribute configurations.
-        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
+        :rtype: :class:`list <python:list>` of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
 
         """
         declarative_attributes = cls._get_declarative_serializable_attributes(
@@ -609,7 +675,7 @@ class BaseModel(object):
           CSV strings. If :class:`None`, ignores de-serialization
           configuration when determining which attribute configurations to return.
           Defaults to :class:`None`.
-        :type deserialize: :ref:`bool <python:bool>` / :class:`None`
+        :type deserialize: :class:`bool <python:bool>` / :class:`None`
 
         :param serialize: If ``True``, returns configurations for attributes that
           **can** be serialized to CSV strings. If ``False``,
@@ -617,11 +683,12 @@ class BaseModel(object):
           CSV strings. If :class:`None`, ignores serialization
           configuration when determining which attribute configurations to return.
           Defaults to :class:`None`.
-        :type serialize: :ref:`bool <python:bool>` / :class:`None`
+        :type serialize: :class:`bool <python:bool>` / :class:`None`
 
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
-        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
+        :rtype: :class:`list <python:list>` of
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         """
         attributes = [x.copy()
                       for x in cls.get_serialization_config(from_csv = deserialize,
@@ -642,7 +709,7 @@ class BaseModel(object):
           JSON strings. If :class:`None`, ignores de-serialization
           configuration when determining which attribute configurations to return.
           Defaults to :class:`None`.
-        :type deserialize: :ref:`bool <python:bool>` / :class:`None`
+        :type deserialize: :class:`bool <python:bool>` / :class:`None`
 
         :param serialize: If ``True``, returns configurations for attributes that
           **can** be serialized to JSON strings. If ``False``,
@@ -650,11 +717,12 @@ class BaseModel(object):
           JSON strings. If :class:`None`, ignores serialization
           configuration when determining which attribute configurations to return.
           Defaults to :class:`None`.
-        :type serialize: :ref:`bool <python:bool>` / :class:`None`
+        :type serialize: :class:`bool <python:bool>` / :class:`None`
 
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
-        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
+        :rtype: :class:`list <python:list>` of
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         """
         return [x for x in cls.get_serialization_config(from_json = deserialize,
                                                         to_json = serialize)]
@@ -669,7 +737,7 @@ class BaseModel(object):
           YAML strings. If :class:`None`, ignores de-serialization
           configuration when determining which attribute configurations to return.
           Defaults to :class:`None`.
-        :type deserialize: :ref:`bool <python:bool>` / :class:`None`
+        :type deserialize: :class:`bool <python:bool>` / :class:`None`
 
         :param serialize: If ``True``, returns configurations for attributes that
           **can** be serialized to YAML strings. If ``False``,
@@ -677,11 +745,12 @@ class BaseModel(object):
           YAML strings. If :class:`None`, ignores serialization
           configuration when determining which attribute configurations to return.
           Defaults to :class:`None`.
-        :type serialize: :ref:`bool <python:bool>` / :class:`None`
+        :type serialize: :class:`bool <python:bool>` / :class:`None`
 
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
-        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
+        :rtype: :class:`list <python:list>` of
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
 
         """
         return [x for x in cls.get_serialization_config(from_yaml = deserialize,
@@ -689,39 +758,47 @@ class BaseModel(object):
 
     @classmethod
     def get_dict_serialization_config(cls, deserialize = True, serialize = True):
-        """Retrieve the :ref:`dict <python:dict>` serialization configurations that
+        """Retrieve the :class:`dict <python:dict>` serialization configurations that
         apply for this object.
 
         :param deserialize: If ``True``, returns configurations for attributes that
-          **can** be de-serialized from :ref:`dict <python:dict>` objects. If ``False``,
+          **can** be de-serialized from :class:`dict <python:dict>` objects. If ``False``,
           returns configurations for attributes that **cannot** be de-serialized from
-          :ref:`dict <python:dict>` objects. If :class:`None`, ignores de-serialization
+          :class:`dict <python:dict>` objects. If :class:`None`, ignores de-serialization
           configuration when determining which attribute configurations to return.
           Defaults to :class:`None`.
-        :type deserialize: :ref:`bool <python:bool>` / :class:`None`
+        :type deserialize: :class:`bool <python:bool>` / :class:`None`
 
         :param serialize: If ``True``, returns configurations for attributes that
-          **can** be serialized to :ref:`dict <python:dict>` objects. If ``False``,
+          **can** be serialized to :class:`dict <python:dict>` objects. If ``False``,
           returns configurations for attributes that **cannot** be serialized to
-          :ref:`dict <python:dict>` objects. If :class:`None`, ignores serialization
+          :class:`dict <python:dict>` objects. If :class:`None`, ignores serialization
           configuration when determining which attribute configurations to return.
           Defaults to :class:`None`.
-        :type serialize: :ref:`bool <python:bool>` / :class:`None`
+        :type serialize: :class:`bool <python:bool>` / :class:`None`
 
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
-        :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration`
+        :rtype: :class:`list <python:list>` of
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         """
         return [x for x in cls.get_serialization_config(from_dict = deserialize,
                                                         to_dict = serialize)]
 
     @classmethod
     def get_attribute_serialization_config(cls, attribute):
-        """Retrieve the :class:`AttributeConfiguration` for ``attribute``.
+        """Retrieve the
+        :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+        for ``attribute``.
 
         :param attribute: The attribute/column name whose serialization
           configuration should be returned.
-        :type attribute: :ref:`str <python:str>`
+        :type attribute: :class:`str <python:str>`
+
+        :returns: The
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+          for ``attribute``.
+        :rtype: :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
 
         """
         attributes = cls._get_attribute_configurations()
@@ -747,70 +824,70 @@ class BaseModel(object):
 
         :param attribute: The name of the attribute whose serialization support
           should be confirmed.
-        :type attribute: :ref:`str <python:str>`
+        :type attribute: :class:`str <python:str>`
 
         :param from_csv: If ``True``, includes attribute names that **can** be
           de-serialized from CSV strings. If ``False``, includes attribute names
           that **cannot** be de-serialized from CSV strings. If :class:`None`,
           will not include attributes based on CSV de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_csv: :ref:`bool <python:bool>` / :class:`None`
+        :type from_csv: :class:`bool <python:bool>` / :class:`None`
 
         :param to_csv: If ``True``, includes attribute names that **can** be
           serialized to CSV strings. If ``False``, includes attribute names
           that **cannot** be serialized to CSV strings. If :class:`None`,
           will not include attributes based on CSV serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_csv: :ref:`bool <python:bool>` / :class:`None`
+        :type to_csv: :class:`bool <python:bool>` / :class:`None`
 
         :param from_json: If ``True``, includes attribute names that **can** be
           de-serialized from JSON strings. If ``False``, includes attribute names
           that **cannot** be de-serialized from JSON strings. If :class:`None`,
           will not include attributes based on JSON de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_json: :ref:`bool <python:bool>` / :class:`None`
+        :type from_json: :class:`bool <python:bool>` / :class:`None`
 
         :param to_json: If ``True``, includes attribute names that **can** be
           serialized to JSON strings. If ``False``, includes attribute names
           that **cannot** be serialized to JSON strings. If :class:`None`,
           will not include attributes based on JSON serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_json: :ref:`bool <python:bool>` / :class:`None`
+        :type to_json: :class:`bool <python:bool>` / :class:`None`
 
         :param from_yaml: If ``True``, includes attribute names that **can** be
           de-serialized from YAML strings. If ``False``, includes attribute names
           that **cannot** be de-serialized from YAML strings. If :class:`None`,
           will not include attributes based on YAML de-serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type from_yaml: :ref:`bool <python:bool>` / :class:`None`
+        :type from_yaml: :class:`bool <python:bool>` / :class:`None`
 
         :param to_yaml: If ``True``, includes attribute names that **can** be
           serialized to YAML strings. If ``False``, includes attribute names
           that **cannot** be serialized to YAML strings. If :class:`None`,
           will not include attributes based on YAML serialization support (but
           may include them based on other parameters). Defaults to :class:`None`.
-        :type to_yaml: :ref:`bool <python:bool>` / :class:`None`
+        :type to_yaml: :class:`bool <python:bool>` / :class:`None`
 
         :param from_dict: If ``True``, includes attribute names that **can** be
-          de-serialized from :ref:`dict <python:dict>` objects. If ``False``, includes
-          attribute names that **cannot** be de-serialized from :ref:`dict <python:dict>`
+          de-serialized from :class:`dict <python:dict>` objects. If ``False``, includes
+          attribute names that **cannot** be de-serialized from :class:`dict <python:dict>`
           objects. If :class:`None`, will not include attributes based on
-          :ref:`dict <python:dict> de-serialization support (but may include them
+          :class:`dict <python:dict>` de-serialization support (but may include them
           based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :ref:`bool <python:bool>` / :class:`None`
+        :type from_dict: :class:`bool <python:bool>` / :class:`None`
 
         :param to_dict: If ``True``, includes attribute names that **can** be
-          serialized to :ref:`dict <python:dict>` objects. If ``False``, includes
-          attribute names that **cannot** be serialized to :ref:`dict <python:dict>`
+          serialized to :class:`dict <python:dict>` objects. If ``False``, includes
+          attribute names that **cannot** be serialized to :class:`dict <python:dict>`
           objects. If :class:`None`, will not include attributes based on
-          :ref:`dict <python:dict> serialization support (but may include them
+          :class:`dict <python:dict>` serialization support (but may include them
           based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :ref:`bool <python:bool>` / :class:`None`
+        :type from_dict: :class:`bool <python:bool>` / :class:`None`
 
         :returns: ``True`` if the attribute's serialization support matches,
           ``False`` if not, and :class:`None` if no serialization support was
           specified.
-        :rtype: :ref:`bool <python:bool>` / :class:`None`
+        :rtype: :class:`bool <python:bool>` / :class:`None`
 
         :raises AttributeError: if ``attribute`` is not present on the object
         """
@@ -885,11 +962,11 @@ class BaseModel(object):
 
         :param format: The format to which the value should be serialized. Accepts
           either: ``csv``, ``json``, ``yaml``, or ``dict``.
-        :type format: :ref:`str <python:str>`
+        :type format: :class:`str <python:str>`
 
         :param attribute: The name of the attribute that whose serialized value
           should be returned.
-        :type attribute: :ref:`str <python:str>`
+        :type attribute: :class:`str <python:str>`
 
         :returns: The value returned by the attribute's ``on_serialize`` function
           for the indicated ``format``.
@@ -954,11 +1031,11 @@ class BaseModel(object):
 
         :param format: The format to which the value should be serialized. Accepts
           either: ``csv``, ``json``, ``yaml``, or ``dict``.
-        :type format: :ref:`str <python:str>`
+        :type format: :class:`str <python:str>`
 
         :param attribute: The name of the attribute that whose serialized value
           should be returned.
-        :type attribute: :ref:`str <python:str>`
+        :type attribute: :class:`str <python:str>`
 
         :returns: The value returned by the attribute's ``on_serialize`` function
           for the indicated ``format``.
@@ -1022,19 +1099,19 @@ class BaseModel(object):
         """Retrieve a list of CSV column names.
 
         :param deserialize: If ``True``, returns columns that support
-          :term:`deserialization`. If ``False``, returns columns that do *not*
+          :term:`de-serialization`. If ``False``, returns columns that do *not*
           support deserialization. If :class:`None`, does not take
           deserialization into account. Defaults to ``True``.
-        :type deserialize: :ref:`bool <python:bool>`
+        :type deserialize: :class:`bool <python:bool>`
 
         :param serialize: If ``True``, returns columns that support
           :term:`serialization`. If ``False``, returns columns that do *not*
           support serialization. If :class:`None`, does not take
           serialization into account. Defaults to ``True``.
-        :type serialize: :ref:`bool <python:bool>`
+        :type serialize: :class:`bool <python:bool>`
 
         :returns: List of CSV column names, sorted according to their configuration.
-        :rtype: :ref:`list <python:list>` of :ref:`str <python:str>`
+        :rtype: :class:`list <python:list>` of :class:`str <python:str>`
         """
         config = cls.get_csv_serialization_config(deserialize = deserialize,
                                                   serialize = serialize)
@@ -1051,42 +1128,42 @@ class BaseModel(object):
                        double_wrapper_character_when_nested = False,
                        escape_character = "\\",
                        line_terminator = '\r\n'):
-        """Retrieve a header string for a CSV representation of the model.
+        r"""Retrieve a header string for a CSV representation of the model.
 
         :param delimiter: The character(s) to utilize between columns. Defaults to
           a pipe (``|``).
-        :type delimiter: :ref:`str <python:str>`
+        :type delimiter: :class:`str <python:str>`
 
         :param wrap_all_strings: If ``True``, wraps any string data in the
           ``wrapper_character``. If ``None``, only wraps string data if it contains
           the ``delimiter``. Defaults to ``False``.
-        :type wrap_all_strings: :ref:`bool <python:bool>`
+        :type wrap_all_strings: :class:`bool <python:bool>`
 
         :param null_text: The text value to use in place of empty values. Only
           applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
-        :type null_text: :ref:`str <python:str>`
+        :type null_text: :class:`str <python:str>`
 
         :param wrapper_character: The string used to wrap string values when
           wrapping is necessary. Defaults to ``'``.
-        :type wrapper_character: :ref:`str <python:str>`
+        :type wrapper_character: :class:`str <python:str>`
 
         :param double_wrapper_character_when_nested: If ``True``, will double the
           ``wrapper_character`` when it is found inside a column value. If ``False``,
           will precede the ``wrapper_character`` by the ``escape_character`` when
           it is found inside a column value. Defaults to ``False``.
-        :type :ref:`bool <python:bool>`
+        :type double_wrapper_character_when_nested: :class:`bool <python:bool>`
 
         :param escape_character: The character to use when escaping nested wrapper
           characters. Defaults to ``\``.
-        :type escape_character: :ref:`str <python:str>`
+        :type escape_character: :class:`str <python:str>`
 
         :param line_terminator: The character used to mark the end of a line.
           Defaults to ``\r\n``.
-        :type line_terminator: :ref:`str <python:str>`
+        :type line_terminator: :class:`str <python:str>`
 
-        :returns: A string ending in ``\n`` with the model's CSV column names
+        :returns: A string ending in ``line_terminator`` with the model's CSV column names
           listed, separated by the ``delimiter``.
-        :rtype: :ref:`str <python:str>`
+        :rtype: :class:`str <python:str>`
         """
         if not wrapper_character:
             wrapper_character = '\''
@@ -1131,40 +1208,40 @@ class BaseModel(object):
                      double_wrapper_character_when_nested = False,
                      escape_character = "\\",
                      line_terminator = '\r\n'):
-        """Return the CSV representation of the model instance (record).
+        r"""Return the CSV representation of the model instance (record).
 
         :param delimiter: The delimiter used between columns. Defaults to ``|``.
-        :type delimiter: :ref:`str <python:str>`
+        :type delimiter: :class:`str <python:str>`
 
         :param wrap_all_strings: If ``True``, wraps any string data in the
           ``wrapper_character``. If ``None``, only wraps string data if it contains
           the ``delimiter``. Defaults to ``False``.
-        :type wrap_all_strings: :ref:`bool <python:bool>`
+        :type wrap_all_strings: :class:`bool <python:bool>`
 
         :param null_text: The text value to use in place of empty values. Only
           applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
-        :type null_text: :ref:`str <python:str>`
+        :type null_text: :class:`str <python:str>`
 
         :param wrapper_character: The string used to wrap string values when
           wrapping is necessary. Defaults to ``'``.
-        :type wrapper_character: :ref:`str <python:str>`
+        :type wrapper_character: :class:`str <python:str>`
 
         :param double_wrapper_character_when_nested: If ``True``, will double the
           ``wrapper_character`` when it is found inside a column value. If ``False``,
           will precede the ``wrapper_character`` by the ``escape_character`` when
           it is found inside a column value. Defaults to ``False``.
-        :type :ref:`bool <python:bool>`
+        :type double_wrapper_character_when_nested: :class:`bool <python:bool>`
 
         :param escape_character: The character to use when escaping nested wrapper
           characters. Defaults to ``\``.
-        :type escape_character: :ref:`str <python:str>`
+        :type escape_character: :class:`str <python:str>`
 
         :param line_terminator: The character used to mark the end of a line.
           Defaults to ``\r\n``.
-        :type line_terminator: :ref:`str <python:str>`
+        :type line_terminator: :class:`str <python:str>`
 
         :returns: Data from the object in CSV format ending in ``line_terminator``.
-        :rtype: :ref:`str <python: str>`
+        :rtype: :class:`str <python:str>`
         """
         if not wrapper_character:
             wrapper_character = '\''
@@ -1231,44 +1308,44 @@ class BaseModel(object):
                double_wrapper_character_when_nested = False,
                escape_character = "\\",
                line_terminator = '\r\n'):
-        """Retrieve a CSV string with the object's data.
+        r"""Retrieve a CSV string with the object's data.
 
         :param include_header: If ``True``, will include a header row with column
           labels. If ``False``, will not include a header row. Defaults to ``True``.
-        :type include_header: :ref:`bool <python:bool>`
+        :type include_header: :class:`bool <python:bool>`
 
         :param delimiter: The delimiter used between columns. Defaults to ``|``.
-        :type delimiter: :ref:`str <python:str>`
+        :type delimiter: :class:`str <python:str>`
 
         :param wrap_all_strings: If ``True``, wraps any string data in the
           ``wrapper_character``. If ``None``, only wraps string data if it contains
           the ``delimiter``. Defaults to ``False``.
-        :type wrap_all_strings: :ref:`bool <python:bool>`
+        :type wrap_all_strings: :class:`bool <python:bool>`
 
         :param null_text: The text value to use in place of empty values. Only
           applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
-        :type null_text: :ref:`str <python:str>`
+        :type null_text: :class:`str <python:str>`
 
         :param wrapper_character: The string used to wrap string values when
           wrapping is necessary. Defaults to ``'``.
-        :type wrapper_character: :ref:`str <python:str>`
+        :type wrapper_character: :class:`str <python:str>`
 
         :param double_wrapper_character_when_nested: If ``True``, will double the
           ``wrapper_character`` when it is found inside a column value. If ``False``,
           will precede the ``wrapper_character`` by the ``escape_character`` when
           it is found inside a column value. Defaults to ``False``.
-        :type :ref:`bool <python:bool>`
+        :type double_wrapper_character_when_nested: :class:`bool <python:bool>`
 
         :param escape_character: The character to use when escaping nested wrapper
           characters. Defaults to ``\``.
-        :type escape_character: :ref:`str <python:str>`
+        :type escape_character: :class:`str <python:str>`
 
         :param line_terminator: The character used to mark the end of a line.
           Defaults to ``\r\n``.
-        :type line_terminator: :ref:`str <python:str>`
+        :type line_terminator: :class:`str <python:str>`
 
         :returns: Data from the object in CSV format ending in a newline (``\n``).
-        :rtype: :ref:`str <python:str>`
+        :rtype: :class:`str <python:str>`
         """
         if include_header:
             return self.get_csv_header(delimiter = delimiter) + \
@@ -1299,7 +1376,7 @@ class BaseModel(object):
                    double_wrapper_character_when_nested = False,
                    escape_character = "\\",
                    line_terminator = '\r\n'):
-        """Generate a :ref:`dict <python:dict>` from a CSV record.
+        """Generate a :class:`dict <python:dict>` from a CSV record.
 
         .. tip::
 
@@ -1308,24 +1385,24 @@ class BaseModel(object):
 
         :param csv_data: The CSV record. Should be a single row and should **not**
           include column headers.
-        :type csv_data: :ref:`str <python:str>`
+        :type csv_data: :class:`str <python:str>`
 
         :param delimiter: The delimiter used between columns. Defaults to ``|``.
-        :type delimiter: :ref:`str <python:str>`
+        :type delimiter: :class:`str <python:str>`
 
         :param wrapper_character: The string used to wrap string values when
           wrapping is applied. Defaults to ``'``.
-        :type wrapper_character: :ref:`str <python:str>`
+        :type wrapper_character: :class:`str <python:str>`
 
         :param null_text: The string used to indicate an empty value if empty
           values are wrapped. Defaults to `None`.
-        :type null_text: :ref:`str <python:str>`
+        :type null_text: :class:`str <python:str>`
 
-        :returns: A :ref:`dict <python:dict>` representation of the CSV record.
-        :rtype: :ref:`dict <python:dict>`
+        :returns: A :class:`dict <python:dict>` representation of the CSV record.
+        :rtype: :class:`dict <python:dict>`
 
         :raises DeserializationError: if ``csv_data`` is not a valid
-          :ref:`str <python:str>`
+          :class:`str <python:str>`
         :raises CSVColumnError: if the columns in ``csv_data`` do not match
           the expected columns returned by
           :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
@@ -1416,21 +1493,21 @@ class BaseModel(object):
 
         :param csv_data: The CSV record. Should be a single row and should **not**
           include column headers.
-        :type csv_data: :ref:`str <python:str>`
+        :type csv_data: :class:`str <python:str>`
 
         :param delimiter: The delimiter used between columns. Defaults to ``|``.
-        :type delimiter: :ref:`str <python:str>`
+        :type delimiter: :class:`str <python:str>`
 
         :param wrapper_character: The string used to wrap string values when
           wrapping is applied. Defaults to ``'``.
-        :type wrapper_character: :ref:`str <python:str>`
+        :type wrapper_character: :class:`str <python:str>`
 
         :param null_text: The string used to indicate an empty value if empty
           values are wrapped. Defaults to `None`.
-        :type null_text: :ref:`str <python:str>`
+        :type null_text: :class:`str <python:str>`
 
         :raises DeserializationError: if ``csv_data`` is not a valid
-          :ref:`str <python:str>`
+          :class:`str <python:str>`
         :raises CSVColumnError: if the columns in ``csv_data`` do not match
           the expected columns returned by
           :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
@@ -1469,24 +1546,24 @@ class BaseModel(object):
 
         :param csv_data: The CSV record. Should be a single row and should **not**
           include column headers.
-        :type csv_data: :ref:`str <python:str>`
+        :type csv_data: :class:`str <python:str>`
 
         :param delimiter: The delimiter used between columns. Defaults to ``|``.
-        :type delimiter: :ref:`str <python:str>`
+        :type delimiter: :class:`str <python:str>`
 
         :param wrapper_character: The string used to wrap string values when
           wrapping is applied. Defaults to ``'``.
-        :type wrapper_character: :ref:`str <python:str>`
+        :type wrapper_character: :class:`str <python:str>`
 
         :param null_text: The string used to indicate an empty value if empty
           values are wrapped. Defaults to `None`.
-        :type null_text: :ref:`str <python:str>`
+        :type null_text: :class:`str <python:str>`
 
         :returns: A :term:`model instance` created from the record.
         :rtype: model instance
 
         :raises DeserializationError: if ``csv_data`` is not a valid
-          :ref:`str <python:str>`
+          :class:`str <python:str>`
         :raises CSVColumnError: if the columns in ``csv_data`` do not match
           the expected columns returned by
           :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
@@ -1509,30 +1586,30 @@ class BaseModel(object):
                  format,
                  max_nesting = 0,
                  current_nesting = 0):
-        """Return a :ref:`dict <python:dict>` representation of the object.
+        """Return a :class:`dict <python:dict>` representation of the object.
 
         .. warning::
 
           This method is an **intermediate** step that is used to produce the
-          contents for certain public JSON, YAML, and :ref:`dict <python:dict>`
+          contents for certain public JSON, YAML, and :class:`dict <python:dict>`
           serialization methods. It should not be called directly.
 
-        :param format: The format to which the :ref:`dict <python:dict>` will
+        :param format: The format to which the :class:`dict <python:dict>` will
           ultimately be serialized. Accepts: ``'csv'``, ``'json'``, ``'yaml'``, and
           ``'dict'``.
-        :type format: :ref:`str <python:str>`
+        :type format: :class:`str <python:str>`
 
         :param max_nesting: The maximum number of levels that the resulting
-          :ref:`dict <python:dict>` object can be nested. If set to ``0``, will
+          :class:`dict <python:dict>` object can be nested. If set to ``0``, will
           not nest other serializable objects. Defaults to ``0``.
-        :type max_nesting: :ref:`int <python:int>`
+        :type max_nesting: :class:`int <python:int>`
 
         :param current_nesting: The current nesting level at which the
-          :ref:`dict <python:dict>` representation will reside. Defaults to ``0``.
-        :type current_nesting: :ref:`int <python:int>`
+          :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
+        :type current_nesting: :class:`int <python:int>`
 
-        :returns: A :ref:`dict <python:dict>` representation of the object.
-        :rtype: :ref:`dict <python:dict>`
+        :returns: A :class:`dict <python:dict>` representation of the object.
+        :rtype: :class:`dict <python:dict>`
 
         :raises InvalidFormatError: if ``format`` is not recognized
         :raises SerializableAttributeError: if attributes is empty
@@ -1619,36 +1696,38 @@ class BaseModel(object):
         :param max_nesting: The maximum number of levels that the resulting
           JSON object can be nested. If set to ``0``, will
           not nest other serializable objects. Defaults to ``0``.
-        :type max_nesting: :ref:`int <python:int>`
+        :type max_nesting: :class:`int <python:int>`
 
         :param current_nesting: The current nesting level at which the
-          :ref:`dict <python:dict>` representation will reside. Defaults to ``0``.
-        :type current_nesting: :ref:`int <python:int>`
+          :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
+        :type current_nesting: :class:`int <python:int>`
 
         :param serialize_function: Optionally override the default JSON serializer.
-          Defaults to :class:`None`, which applies the default :ref:`simplejson`
-          JSON serializer.
+          Defaults to :class:`None`, which applies the default
+          :doc:`simplejson <simplejson:index>` JSON serializer.
 
           .. note::
 
             Use the ``serialize_function`` parameter to override the default
-            JSON serializer. A valid ``serialize_function`` is expected to
-            accept a single :ref:`dict <python:dict>` and return a
-            :ref:`str <python:str>`, similar to
-            :ref:`simplejson.dumps() <simplejson:simplejson.dumps>`.
+            JSON serializer.
+
+            A valid ``serialize_function`` is expected to accept a single
+            :class:`dict <python:dict>` and return a :class:`str <python:str>`,
+            similar to :func:`simplejson.dumps() <simplejson:simplejson.dumps>`.
 
             If you wish to pass additional arguments to your ``serialize_function``
             pass them as keyword arguments (in ``kwargs``).
+
         :type serialize_function: callable / :class:`None`
 
-        :param **kwargs: Optional keyword parameters that are passed to the
+        :param kwargs: Optional keyword parameters that are passed to the
           JSON serializer function. By default, these are options which are passed
-          to :ref:`simplejson.dumps() <simplejson:simplejson.dumps>`.
-        :type **kwargs: keyword arguments
+          to :func:`simplejson.dumps() <simplejson:simplejson.dumps>`.
+        :type kwargs: keyword arguments
 
-        :returns: A :ref:`str <python:str>` with the JSON representation of the
+        :returns: A :class:`str <python:str>` with the JSON representation of the
           object.
-        :rtype: :ref:`str <python:str>`
+        :rtype: :class:`str <python:str>`
 
         :raises SerializableAttributeError: if attributes is empty
         :raises MaximumNestingExceededError: if ``current_nesting`` is greater
@@ -1683,11 +1762,11 @@ class BaseModel(object):
         :param max_nesting: The maximum number of levels that the resulting
           object can be nested. If set to ``0``, will not nest other serializable
           objects. Defaults to ``0``.
-        :type max_nesting: :ref:`int <python:int>`
+        :type max_nesting: :class:`int <python:int>`
 
         :param current_nesting: The current nesting level at which the
           representation will reside. Defaults to ``0``.
-        :type current_nesting: :ref:`int <python:int>`
+        :type current_nesting: :class:`int <python:int>`
 
         :param serialize_function: Optionally override the default YAML serializer.
           Defaults to :class:`None`, which calls the default ``yaml.dump()``
@@ -1696,24 +1775,25 @@ class BaseModel(object):
           .. note::
 
             Use the ``serialize_function`` parameter to override the default
-            YAML serializer. A valid ``serialize_function`` is expected to
-            accept a single :ref:`dict <python:dict>` and return a
-            :ref:`str <python:str>`, similar to
-            ``yaml.dump()``.
+            YAML serializer.
+
+            A valid ``serialize_function`` is expected to
+            accept a single :class:`dict <python:dict>` and return a
+            :class:`str <python:str>`, similar to ``yaml.dump()``.
 
             If you wish to pass additional arguments to your ``serialize_function``
             pass them as keyword arguments (in ``kwargs``).
 
         :type serialize_function: callable / :class:`None`
 
-        :param **kwargs: Optional keyword parameters that are passed to the
+        :param kwargs: Optional keyword parameters that are passed to the
           YAML serializer function. By default, these are options which are passed
           to ``yaml.dump()``.
-        :type **kwargs: keyword arguments
+        :type kwargs: keyword arguments
 
-        :returns: A :ref:`str <python:str>` with the JSON representation of the
+        :returns: A :class:`str <python:str>` with the JSON representation of the
           object.
-        :rtype: :ref:`str <python:str>`
+        :rtype: :class:`str <python:str>`
 
         :raises SerializableAttributeError: if attributes is empty
         :raises MaximumNestingExceededError: if ``current_nesting`` is greater
@@ -1741,19 +1821,19 @@ class BaseModel(object):
     def to_dict(self,
                 max_nesting = 0,
                 current_nesting = 0):
-        """Return a :ref:`dict <python:dict>` representation of the object.
+        """Return a :class:`dict <python:dict>` representation of the object.
 
         :param max_nesting: The maximum number of levels that the resulting
-          :ref:`dict <python:dict>` object can be nested. If set to ``0``, will
+          :class:`dict <python:dict>` object can be nested. If set to ``0``, will
           not nest other serializable objects. Defaults to ``0``.
-        :type max_nesting: :ref:`int <python:int>`
+        :type max_nesting: :class:`int <python:int>`
 
         :param current_nesting: The current nesting level at which the
-          :ref:`dict <python:dict>` representation will reside. Defaults to ``0``.
-        :type current_nesting: :ref:`int <python:int>`
+          :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
+        :type current_nesting: :class:`int <python:int>`
 
-        :returns: A :ref:`dict <python:dict>` representation of the object.
-        :rtype: :ref:`dict <python:dict>`
+        :returns: A :class:`dict <python:dict>` representation of the object.
+        :rtype: :class:`dict <python:dict>`
 
         :raises SerializableAttributeError: if attributes is empty
         :raises MaximumNestingExceededError: if ``current_nesting`` is greater
@@ -1772,39 +1852,39 @@ class BaseModel(object):
                     format,
                     error_on_extra_keys = True,
                     drop_extra_keys = False):
-        """Generate a processed :ref:`dict <python:dict>` object from
-        in-bound :ref:`dict <python:dict>` data.
+        """Generate a processed :class:`dict <python:dict>` object from
+        in-bound :class:`dict <python:dict>` data.
 
-        :param input_data: An inbound :ref:`dict <python:dict>` object which
+        :param input_data: An inbound :class:`dict <python:dict>` object which
           can be processed for de-serialization.
-        :type input_data: :ref:`dict <python:dict>`
+        :type input_data: :class:`dict <python:dict>`
 
         :param format: The format from which ``input_data`` was received. Accepts:
           ``'csv'``, ``'json'``, ``'yaml'``, and ``'dict'``.
-        :type format: :ref:`str <python:str>`
+        :type format: :class:`str <python:str>`
 
         :param error_on_extra_keys: If ``True``, will raise an error if an
           unrecognized key is found in ``dict_data``. If ``False``, will
           either drop or include the extra key in the result, as configured in
           the ``drop_extra_keys`` parameter. Defaults to ``True``.
-        :type error_on_extra_keys: :ref:`bool <python:bool>`
+        :type error_on_extra_keys: :class:`bool <python:bool>`
 
         :param drop_extra_keys: If ``True``, will omit unrecognized top-level keys
-          from the resulting :ref:`dict <python:dict>`. If ``False``, will
+          from the resulting :class:`dict <python:dict>`. If ``False``, will
           include unrecognized keys or raise an error based on the configuration of
           the ``error_on_extra_keys`` parameter. Defaults to ``False``.
-        :type drop_extra_keys: :ref:`bool <python:bool>`
+        :type drop_extra_keys: :class:`bool <python:bool>`
 
-        :returns: A processed :ref:`dict <python:dict>` object that has had
+        :returns: A processed :class:`dict <python:dict>` object that has had
           :term:`deserializer functions` applied to it.
-        :rtype: :ref:`dict <python:dict>`
+        :rtype: :class:`dict <python:dict>`
 
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
           ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
         :raises DeserializationError: if ``input_data`` is
-          not a :ref:`dict <python:dict>` or JSON object serializable to a
-          :ref:`dict <python:dict>` or if ``input_data`` is empty.
+          not a :class:`dict <python:dict>` or JSON object serializable to a
+          :class:`dict <python:dict>` or if ``input_data`` is empty.
         :raises InvalidFormatError: if ``format`` is not a supported value
         """
         if format not in ['csv', 'json', 'yaml', 'dict']:
@@ -1871,40 +1951,41 @@ class BaseModel(object):
                          input_data,
                          error_on_extra_keys = True,
                          drop_extra_keys = False):
-        """Update the model instance from data in a :ref:`dict <python:dict>` object.
+        """Update the model instance from data in a :class:`dict <python:dict>` object.
 
-        .. warning::
-
-          Be careful setting ``error_on_extra_keys`` to ``False``.
-
-          This method's last step attempts to set an attribute on the model
-          instance for every top-level key in the parsed/processed input data.
-
-          If there is an extra key that cannot be set as an attribute on your
-          model instance, it *will* raise :ref:`AttributeError <python:AttributeError>`.
-
-        :param input_data: The input :ref:`dict <python:dict>`
-        :type input_data: :ref:`dict <python:dict>`
+        :param input_data: The input :class:`dict <python:dict>`
+        :type input_data: :class:`dict <python:dict>`
 
         :param error_on_extra_keys: If ``True``, will raise an error if an
           unrecognized key is found in ``input_data``. If ``False``, will
           either drop or include the extra key in the result, as configured in
           the ``drop_extra_keys`` parameter. Defaults to ``True``.
-        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+          .. warning::
+
+            Be careful setting ``error_on_extra_keys`` to ``False``.
+
+            This method's last step attempts to set an attribute on the model
+            instance for every top-level key in the parsed/processed input data.
+
+            If there is an extra key that cannot be set as an attribute on your
+            model instance, it *will* raise
+            :class:`AttributeError <python:AttributeError>`.
+
+        :type error_on_extra_keys: :class:`bool <python:bool>`
 
         :param drop_extra_keys: If ``True``, will omit unrecognized top-level keys
-          from the resulting :ref:`dict <python:dict>`. If ``False``, will
+          from the resulting :class:`dict <python:dict>`. If ``False``, will
           include unrecognized keys or raise an error based on the configuration of
           the ``error_on_extra_keys`` parameter. Defaults to ``False``.
-        :type drop_extra_keys: :ref:`bool <python:bool>`
+        :type drop_extra_keys: :class:`bool <python:bool>`
 
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
           ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
         :raises DeserializationError: if ``input_data`` is
-          not a :ref:`dict <python:dict>` or JSON object serializable to a
-          :ref:`dict <python:dict>` or if ``input_data`` is empty.
-        :raises InvalidFormatError: if ``format`` is not a supported value
+          not a :class:`dict <python:dict>` or JSON object serializable to a
+          :class:`dict <python:dict>` or if ``input_data`` is empty.
 
         """
         data = self._parse_dict(input_data,
@@ -1920,40 +2001,40 @@ class BaseModel(object):
                       input_data,
                       error_on_extra_keys = True,
                       drop_extra_keys = False):
-        """Update the model instance from data in a :ref:`dict <python:dict>` object.
+        """Update the model instance from data in a :class:`dict <python:dict>` object.
 
-        .. warning::
-
-          Be careful setting ``error_on_extra_keys`` to ``False``.
-
-          This method's last step passes the keys/values of the processed input
-          data to your model's ``__init__()`` method.
-
-          If your instance's ``__init__()`` method does not support your extra keys,
-          it will likely raise a :ref:`TypeError <python:TypeError>`.
-
-        :param input_data: The input :ref:`dict <python:dict>`
-        :type input_data: :ref:`dict <python:dict>`
+        :param input_data: The input :class:`dict <python:dict>`
+        :type input_data: :class:`dict <python:dict>`
 
         :param error_on_extra_keys: If ``True``, will raise an error if an
           unrecognized key is found in ``input_data``. If ``False``, will
           either drop or include the extra key in the result, as configured in
           the ``drop_extra_keys`` parameter. Defaults to ``True``.
-        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+          .. warning::
+
+            Be careful setting ``error_on_extra_keys`` to ``False``.
+
+            This method's last step passes the keys/values of the processed input
+            data to your model's ``__init__()`` method.
+
+            If your instance's ``__init__()`` method does not support your extra keys,
+            it will likely raise a :class:`TypeError <python:TypeError>`.
+
+        :type error_on_extra_keys: :class:`bool <python:bool>`
 
         :param drop_extra_keys: If ``True``, will omit unrecognized top-level keys
-          from the resulting :ref:`dict <python:dict>`. If ``False``, will
+          from the resulting :class:`dict <python:dict>`. If ``False``, will
           include unrecognized keys or raise an error based on the configuration of
           the ``error_on_extra_keys`` parameter. Defaults to ``False``.
-        :type drop_extra_keys: :ref:`bool <python:bool>`
+        :type drop_extra_keys: :class:`bool <python:bool>`
 
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
           ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
         :raises DeserializationError: if ``input_data`` is
-          not a :ref:`dict <python:dict>` or JSON object serializable to a
-          :ref:`dict <python:dict>` or if ``input_data`` is empty.
-        :raises InvalidFormatError: if ``format`` is not a supported value
+          not a :class:`dict <python:dict>` or JSON object serializable to a
+          :class:`dict <python:dict>` or if ``input_data`` is empty.
 
         """
         data = cls._parse_dict(input_data,
@@ -1971,18 +2052,8 @@ class BaseModel(object):
                          **kwargs):
         """Update the model instance from data in a YAML string.
 
-        .. warning::
-
-          Be careful setting ``error_on_extra_keys`` to ``False``.
-
-          This method's last step attempts to set an attribute on the model
-          instance for every top-level key in the parsed/processed input data.
-
-          If there is an extra key that cannot be set as an attribute on your
-          model instance, it *will* raise :ref:`AttributeError <python:AttributeError>`.
-
         :param input_data: The YAML data to de-serialize.
-        :type input_data: :ref:`str <python:str>`
+        :type input_data: :class:`str <python:str>`
 
         :param deserialize_function: Optionally override the default YAML deserializer.
           Defaults to :class:`None`, which calls the default ``yaml.safe_load()``
@@ -1991,9 +2062,11 @@ class BaseModel(object):
           .. note::
 
             Use the ``deserialize_function`` parameter to override the default
-            YAML deserializer. A valid ``deserialize_function`` is expected to
-            accept a single :ref:`str <python:str>` and return a
-            :ref:`dict <python:dict>`, similar to ``yaml.safe_load()``.
+            YAML deserializer.
+
+            A valid ``deserialize_function`` is expected to accept a single
+            :class:`str <python:str>` and return a :class:`dict <python:dict>`,
+            similar to ``yaml.safe_load()``.
 
             If you wish to pass additional arguments to your ``deserialize_function``
             pass them as keyword arguments (in ``kwargs``).
@@ -2004,25 +2077,37 @@ class BaseModel(object):
           unrecognized key is found in ``input_data``. If ``False``, will
           either drop or include the extra key in the result, as configured in
           the ``drop_extra_keys`` parameter. Defaults to ``True``.
-        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+          .. warning::
+
+            Be careful setting ``error_on_extra_keys`` to ``False``.
+
+            This method's last step attempts to set an attribute on the model
+            instance for every top-level key in the parsed/processed input data.
+
+            If there is an extra key that cannot be set as an attribute on your
+            model instance, it *will* raise
+            :class:`AttributeError <python:AttributeError>`.
+
+        :type error_on_extra_keys: :class:`bool <python:bool>`
 
         :param drop_extra_keys: If ``True``, will ignore unrecognized keys in the
           input data. If ``False``, will include unrecognized keys or raise an
           error based on the configuration of the ``error_on_extra_keys`` parameter.
           Defaults to ``False``.
-        :type drop_extra_keys: :ref:`bool <python:bool>`
+        :type drop_extra_keys: :class:`bool <python:bool>`
 
-        :param **kwargs: Optional keyword parameters that are passed to the
+        :param kwargs: Optional keyword parameters that are passed to the
           YAML deserializer function. By default, these are options which are passed
           to ``yaml.safe_load()``.
-        :type **kwargs: keyword arguments
+        :type kwargs: keyword arguments
 
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
           ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
         :raises DeserializationError: if ``input_data`` is
-          not a :ref:`str <python:str>` YAML de-serializable object to a
-          :ref:`dict <python:dict>` or if ``input_data`` is empty.
+          not a :class:`str <python:str>` YAML de-serializable object to a
+          :class:`dict <python:dict>` or if ``input_data`` is empty.
 
         """
         from_yaml = parse_yaml(input_data,
@@ -2046,18 +2131,8 @@ class BaseModel(object):
                       **kwargs):
         """Create a new model instance from data in YAML.
 
-        .. warning::
-
-          Be careful setting ``error_on_extra_keys`` to ``False``.
-
-          This method's last step passes the keys/values of the processed input
-          data to your model's ``__init__()`` method.
-
-          If your instance's ``__init__()`` method does not support your extra keys,
-          it will likely raise a :ref:`TypeError <python:TypeError>`.
-
         :param input_data: The input YAML data.
-        :type input_data: :ref:`str <python:str>`
+        :type input_data: :class:`str <python:str>`
 
         :param deserialize_function: Optionally override the default YAML deserializer.
           Defaults to :class:`None`, which calls the default ``yaml.safe_load()``
@@ -2066,9 +2141,11 @@ class BaseModel(object):
           .. note::
 
             Use the ``deserialize_function`` parameter to override the default
-            YAML deserializer. A valid ``deserialize_function`` is expected to
-            accept a single :ref:`str <python:str>` and return a
-            :ref:`dict <python:dict>`, similar to ``yaml.safe_load()``.
+            YAML deserializer.
+
+            A valid ``deserialize_function`` is expected to accept a single
+            :class:`str <python:str>` and return a :class:`dict <python:dict>`,
+            similar to ``yaml.safe_load()``.
 
             If you wish to pass additional arguments to your ``deserialize_function``
             pass them as keyword arguments (in ``kwargs``).
@@ -2079,21 +2156,31 @@ class BaseModel(object):
           unrecognized key is found in ``input_data``. If ``False``, will
           either drop or include the extra key in the result, as configured in
           the ``drop_extra_keys`` parameter. Defaults to ``True``.
-        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+          .. warning::
+
+            Be careful setting ``error_on_extra_keys`` to ``False``.
+
+            This method's last step passes the keys/values of the processed input
+            data to your model's ``__init__()`` method.
+
+            If your instance's ``__init__()`` method does not support your extra keys,
+            it will likely raise a :class:`TypeError <python:TypeError>`.
+
+        :type error_on_extra_keys: :class:`bool <python:bool>`
 
         :param drop_extra_keys: If ``True``, will ignore unrecognized top-level
           keys in ``input_data``. If ``False``, will include unrecognized keys
           or raise an error based on the configuration of
           the ``error_on_extra_keys`` parameter. Defaults to ``False``.
-        :type drop_extra_keys: :ref:`bool <python:bool>`
+        :type drop_extra_keys: :class:`bool <python:bool>`
 
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
           ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
         :raises DeserializationError: if ``input_data`` is
-          not a :ref:`dict <python:dict>` or JSON object serializable to a
-          :ref:`dict <python:dict>` or if ``input_data`` is empty.
-        :raises InvalidFormatError: if ``format`` is not a supported value
+          not a :class:`dict <python:dict>` or JSON object serializable to a
+          :class:`dict <python:dict>` or if ``input_data`` is empty.
 
         """
         from_yaml = parse_yaml(input_data,
@@ -2115,31 +2202,23 @@ class BaseModel(object):
                          **kwargs):
         """Update the model instance from data in a JSON string.
 
-        .. warning::
-
-          Be careful setting ``error_on_extra_keys`` to ``False``.
-
-          This method's last step attempts to set an attribute on the model
-          instance for every top-level key in the parsed/processed input data.
-
-          If there is an extra key that cannot be set as an attribute on your
-          model instance, it *will* raise :ref:`AttributeError <python:AttributeError>`.
-
         :param input_data: The JSON data to de-serialize.
-        :type input_data: :ref:`str <python:str>`
+        :type input_data: :class:`str <python:str>`
 
         :param deserialize_function: Optionally override the default JSON deserializer.
           Defaults to :class:`None`, which calls the default
-          :ref:`simplejson.loads() <simplejson:simplejson.loads>`
-          function from the `simplejson <https://github.com/simplejson/simplejson>`_ library.
+          :func:`simplejson.loads() <simplejson:simplejson.loads>` function from
+          the :doc:`simplejson <simplejson:index>` library.
 
           .. note::
 
             Use the ``deserialize_function`` parameter to override the default
-            YAML deserializer. A valid ``deserialize_function`` is expected to
-            accept a single :ref:`str <python:str>` and return a
-            :ref:`dict <python:dict>`, similar to
-            :ref:`simplejson.loads() <simplejson:simplejson.loads>`
+            JSON deserializer.
+
+            A valid ``deserialize_function`` is expected to
+            accept a single :class:`str <python:str>` and return a
+            :class:`dict <python:dict>`, similar to
+            :func:`simplejson.loads() <simplejson:simplejson.loads>`.
 
             If you wish to pass additional arguments to your ``deserialize_function``
             pass them as keyword arguments (in ``kwargs``).
@@ -2150,25 +2229,37 @@ class BaseModel(object):
           unrecognized key is found in ``input_data``. If ``False``, will
           either drop or include the extra key in the result, as configured in
           the ``drop_extra_keys`` parameter. Defaults to ``True``.
-        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+          .. warning::
+
+            Be careful setting ``error_on_extra_keys`` to ``False``.
+
+            This method's last step attempts to set an attribute on the model
+            instance for every top-level key in the parsed/processed input data.
+
+            If there is an extra key that cannot be set as an attribute on your
+            model instance, it *will* raise
+            :class:`AttributeError <python:AttributeError>`.
+
+        :type error_on_extra_keys: :class:`bool <python:bool>`
 
         :param drop_extra_keys: If ``True``, will ignore unrecognized keys in the
           input data. If ``False``, will include unrecognized keys or raise an
           error based on the configuration of the ``error_on_extra_keys`` parameter.
           Defaults to ``False``.
-        :type drop_extra_keys: :ref:`bool <python:bool>`
+        :type drop_extra_keys: :class:`bool <python:bool>`
 
-        :param **kwargs: Optional keyword parameters that are passed to the
-          JSON deserializer function. By default, these are options which are passed
-          to :ref:`simplejson.loads() <simplejson:simplejson.loads>`.
-        :type **kwargs: keyword arguments
+        :param kwargs: Optional keyword parameters that are passed to the
+          JSON deserializer function.By default, these are options which are passed
+          to :func:`simplejson.loads() <simplejson:simplejson.loads>`.
+        :type kwargs: keyword arguments
 
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
           ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
         :raises DeserializationError: if ``input_data`` is
-          not a :ref:`str <python:str>` JSON de-serializable object to a
-          :ref:`dict <python:dict>` or if ``input_data`` is empty.
+          not a :class:`str <python:str>` JSON de-serializable object to a
+          :class:`dict <python:dict>` or if ``input_data`` is empty.
 
         """
         from_json = parse_json(input_data,
@@ -2190,33 +2281,24 @@ class BaseModel(object):
                       error_on_extra_keys = True,
                       drop_extra_keys = False,
                       **kwargs):
-        """Create a new model instance from data in YAML.
+        """Create a new model instance from data in JSON.
 
-        .. warning::
-
-          Be careful setting ``error_on_extra_keys`` to ``False``.
-
-          This method's last step passes the keys/values of the processed input
-          data to your model's ``__init__()`` method.
-
-          If your instance's ``__init__()`` method does not support your extra keys,
-          it will likely raise a :ref:`TypeError <python:TypeError>`.
-
-        :param input_data: The input YAML data.
-        :type input_data: :ref:`str <python:str>`
+        :param input_data: The input JSON data.
+        :type input_data: :class:`str <python:str>`
 
         :param deserialize_function: Optionally override the default JSON deserializer.
           Defaults to :class:`None`, which calls the default
-          :ref:`simplejson.loads() <simplejson:simplejson.loads>`
-          function from the `simplejson <https://github.com/simplejson/simplejson>`_ library.
+          :func:`simplejson.loads() <simplejson:simplejson.loads>`
+          function from the doc:`simplejson <simplejson:index>` library.
 
           .. note::
 
             Use the ``deserialize_function`` parameter to override the default
-            YAML deserializer. A valid ``deserialize_function`` is expected to
-            accept a single :ref:`str <python:str>` and return a
-            :ref:`dict <python:dict>`, similar to
-            :ref:`simplejson.loads() <simplejson:simplejson.loads>`
+            JSON deserializer.
+
+            A valid ``deserialize_function`` is expected to accept a single
+            :class:`str <python:str>` and return a :class:`dict <python:dict>`,
+            similar to :func:`simplejson.loads() <simplejson:simplejson.loads>`.
 
             If you wish to pass additional arguments to your ``deserialize_function``
             pass them as keyword arguments (in ``kwargs``).
@@ -2227,26 +2309,36 @@ class BaseModel(object):
           unrecognized key is found in ``input_data``. If ``False``, will
           either drop or include the extra key in the result, as configured in
           the ``drop_extra_keys`` parameter. Defaults to ``True``.
-        :type error_on_extra_keys: :ref:`bool <python:bool>`
+
+          .. warning::
+
+            Be careful setting ``error_on_extra_keys`` to ``False``.
+
+            This method's last step passes the keys/values of the processed input
+            data to your model's ``__init__()`` method.
+
+            If your instance's ``__init__()`` method does not support your extra keys,
+            it will likely raise a :class:`TypeError <python:TypeError>`.
+
+        :type error_on_extra_keys: :class:`bool <python:bool>`
 
         :param drop_extra_keys: If ``True``, will ignore unrecognized top-level
           keys in ``input_data``. If ``False``, will include unrecognized keys
           or raise an error based on the configuration of
           the ``error_on_extra_keys`` parameter. Defaults to ``False``.
-        :type drop_extra_keys: :ref:`bool <python:bool>`
+        :type drop_extra_keys: :class:`bool <python:bool>`
 
-        :param **kwargs: Optional keyword parameters that are passed to the
+        :param kwargs: Optional keyword parameters that are passed to the
           JSON deserializer function. By default, these are options which are passed
-          to :ref:`simplejson.loads() <simplejson:simplejson.loads>`.
-        :type **kwargs: keyword arguments
+          to :func:`simplejson.loads() <simplejson:simplejson.loads>`.
+        :type kwargs: keyword arguments
 
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
           ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
         :raises DeserializationError: if ``input_data`` is
-          not a :ref:`dict <python:dict>` or JSON object serializable to a
-          :ref:`dict <python:dict>` or if ``input_data`` is empty.
-        :raises InvalidFormatError: if ``format`` is not a supported value
+          not a :class:`dict <python:dict>` or JSON object serializable to a
+          :class:`dict <python:dict>` or if ``input_data`` is empty.
 
         """
         from_json = parse_json(input_data,
@@ -2260,5 +2352,86 @@ class BaseModel(object):
 
         return cls(**data)
 
+def declarative_base(cls, **kwargs):
+    """Construct a base class for declarative class definitions.
 
-BaseModel = declarative_base(cls = BaseModel)
+    The new base class will be given a metaclass that produces appropriate
+    :class:`Table <sqlalchemy:sqlalchemy.schema.Table>` objects and makes the
+    appropriate :func:`mapper <sqlalchemy:sqlalchemy.orm.mapper>` calls based on the
+    information provided declaratively in the class and any subclasses of the class.
+
+    :param cls: Defaults to :class:`BaseModel` to provide  serialization/de-serialization
+      support.
+
+      If a :class:`tuple <python:tuple>` of classes, will include :class:`BaseModel`
+      in that list of classes to mixin serialization/de-serialization support.
+
+      If not :class:`None` and not a :class:`tuple <python:tuple>`, will mixin
+      :class:`BaseModel` with the value passed to provide
+      serialization/de-serialization support.
+    :type cls: :class:`None` / :class:`tuple <python:tuple>` of classes / class object
+
+    :param kwargs: Additional keyword arguments supported by the original
+      :func:`sqlalchemy.ext.declarative.declarative_base() <sqlalchemy:sqlalchemy.ext.declarative.declarative_base>`
+      function
+    :type kwargs: keyword arguments
+
+    :returns: Base class for declarative class definitions with support for
+      serialization and de-serialization.
+
+    """
+    cls = kwargs.pop('cls', None)
+    if cls is None:
+        cls = BaseModel
+    elif isinstance(cls, tuple):
+        class_list = [x for x in cls]
+        class_list.insert(0, BaseModel)
+        cls = (x for x in class_list)
+    elif checkers.is_iterable(cls):
+        class_list = [BaseModel]
+        class_list.extend(cls)
+        cls = (x for x in class_list)
+
+    return SA_declarative_base(cls = cls, **kwargs)
+
+def as_declarative(**kw):
+    """Class decorator for :func:`declarative_base`.
+
+    Provides a syntactical shortcut to the ``cls`` argument
+    sent to :func:`declarative_base`, allowing the base class
+    to be converted in-place to a "declarative" base:
+
+    .. code-block:: python
+
+        from sqlathanor import as_declarative
+
+        @as_declarative()
+        class Base(object):
+            @declared_attr
+            def __tablename__(cls):
+                return cls.__name__.lower()
+
+            id = Column(Integer,
+                        primary_key = True,
+                        supports_csv = True)
+
+        class MyMappedClass(Base):
+            # ...
+
+    .. tip::
+
+      All keyword arguments passed to :func:`as_declarative` are passed
+      along to :func:`declarative_base`.
+
+    .. seealso::
+
+      For more information, please see:
+
+      * :func:`declarative_base() <declarative_base>`
+    """
+    def decorate(cls):
+        kw['cls'] = cls
+        kw['name'] = cls.__name__
+        return declarative_base(**kw)
+
+    return decorate

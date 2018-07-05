@@ -18,9 +18,6 @@ class SQLAthanorWarning(UserWarning):
     :class:`UserWarning <python:warnings.UserWarning>`."""
     pass
 
-class SQLAthanorValidationError(SQLAthanorError):
-    pass
-
 class SerializationError(SQLAthanorError):
     """Error raised when something went wrong during serialization."""
     pass

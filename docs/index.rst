@@ -22,40 +22,45 @@ SQLAthanor
   **SQLAthanor** is designed to be compatible with:
 
     * Python 2.7 and Python 3.4 or higher, and
-    * `SQLAlchemy <http://www.sqlalchemy.org>`_ 0.8 or higher
+    * `SQLAlchemy <http://www.sqlalchemy.org>`_ 0.9 or higher
 
 .. include:: _unit_tests_code_coverage.rst
 
 .. toctree::
  :hidden:
- :maxdepth: 2
+ :maxdepth: 3
  :caption: Contents:
 
  Home <self>
  Quickstart <quickstart>
  Using SQLAthanor <using>
+ API Reference <api>
  Error Reference <errors>
  Contributor Guide <contributing>
  Testing Reference <testing>
  Release History <history>
  Glossary <glossary>
+ License <license>
 
-**SQLAthanor** is a Python library that extends `SQLAlchemy`_'s
-fantastic `Declarative ORM <http://docs.sqlalchemy.org/en/latest/orm/tutorial.html>`_
-to provide easy-to-use record serialization/de-serialization with support for:
+**SQLAthanor** is a Python library that extends
+`SQLAlchemy <https://www.sqlalchemy.org>`_'s fantastic
+`Declarative ORM <http://docs.sqlalchemy.org/en/latest/orm/tutorial.html>`_
+to provide easy-to-use record :term:`serialization`/:term:`de-serialization` with support for:
 
-  * :ref:`dict <python:dict>`
+  * :class:`dict <python:dict>`
   * CSV
   * JSON
   * YAML
 
 The library works as a drop-in extension - change one line of existing code, and it
 should just work. Furthermore, it has been extensively tested on Python 2.7, 3.4,
-3.5, and 3.6 using SQLAlchemy 0.8 and higher.
+3.5, and 3.6 using SQLAlchemy 0.9 and higher.
 
 .. contents::
  :depth: 3
  :backlinks: entry
+
+-----------------
 
 ***************
 Installation
@@ -71,6 +76,98 @@ Dependencies
 ==============
 
 .. include:: _dependencies.rst
+
+-------------
+
+************************************
+Why SQLAthanor?
+************************************
+
+Odds are you've used `SQLAlchemy <http://www.sqlalchemy.org>`_ before. And if
+you haven't, why on earth not? It is hands down the best relational database
+toolkit and :term:`ORM <Object Relational Mapper (ORM)>` available for Python, and
+has helped me quickly write code for many APIs, software platforms, and data science
+projects. Just look at some of these great `features <http://www.sqlalchemy.org/features.html>`_.
+
+As its name suggests, SQLAlchemy focuses on the problem of connecting your Python
+code to an underlying relational (SQL) database. That's a super hard problem, especially
+when you consider the complexity of abstraction, different SQL databases, different SQL
+dialects, performance optimization, etc. It ain't easy, and the SQLAlchemy team
+has spent years building one of the most elegant solutions out there.
+
+.. sidebar:: What's in a name?
+
+  Who can resist a good (for certain values of good) pun?
+
+  .. image:: _static/athanor.png
+    :alt: A diagram of an athanor
+    :align: right
+
+  In the time-honored "science" of alchemy, an :term:`athanor` is a furnace that
+  provides uniform heat over an extended period of time.
+
+  Since **SQLAthanor** extends the great `SQLAlchemy <https://www.sqlalchemy.org>`_
+  library, the idea was to keep the alchemical theme going.
+
+  Bottom line: I - for one - clearly cannot resist a pun, whether good or not.
+
+But as hard as Pythonically communicating with a database is, in the real world
+with microservices, serverless architectures, RESTful APIs and the like we often
+need to do more with the data than read or write from/to our database. In almost
+all of the projects I've worked on over the last fifteen years, I've had to:
+
+  * hand data off in some fashion (:term:`serialize <serialization>`) for another
+    program (possibly written by someone else in another programming language) to work
+    with, or
+  * accept and interpret data (:term:`de-serialize <de-serialization>`) received
+    from some other program (possibly written by someone else in another programming
+    language).
+
+Python objects (:term:`pickled <pickling>` or not) are great, but they're rarely
+the best way of transmitting data over the wire, or communicating data between
+independent applications. Which is where formats like JSON, CSV, and YAML come in.
+
+So when writing many Python APIs, I found myself writing methods to convert my
+SQLAlchemy records (technically, :term:`model instances <model instance>`) into JSON
+or creating new SQLAlchemy records based on data I received in JSON. So after writing
+similar methods many times over, I figured a better approach would be to write the
+serialization/de-serialization code just once, and then re-use it across all of
+my various projects.
+
+Which is how **SQLAthanor** came about.
+
+It adds simple methods like :func:`to_json() <sqlathanor.declarative.BaseModel.to_json>`,
+:func:`new_from_csv() <sqlathanor.declarative.BaseModel.new_from_csv>`, and
+:func:`update_from_csv() <sqlathanor.declarative.BaseModel.update_from_json>` to your SQLAlchemy
+declarative models and provides powerful configuration options that give you tons of flexibility.
+
+Key SQLAthanor Features
+==========================
+
+* **Easy to adopt**: Just tweak your existing SQLAlchemy ``import`` statements and
+  you're good to go.
+* With one method call, convert SQLAlchemy model instances to:
+
+  * CSV records
+  * JSON objects
+  * YAML objects
+  * :class:`dict <python:dict>` objects
+
+* With one method call, create or update SQLAlchemy model instances from:
+
+  * :class:`dict <python:dict>` objects
+  * CSV records
+  * JSON objects
+  * YAML objects
+
+* Decide which serialization formats you want to support for which models.
+* Decide which columns you want to include in their serialized form (and pick
+  different columns for different formats, too).
+* Default validation for de-serialized data for every SQLAlchemy data type.
+* Customize the validation used when de-serializing particular columns to match
+  your needs.
+
+---------------
 
 ***********************************
 Hello, World and Basic Usage
@@ -108,7 +205,7 @@ To start using it, all you need to do is import it in place of your standard SQL
 
       # The following are optional, depending on how your data model is designed:
       from sqlathanor import relationship
-      from sqlathanor import hybrid_property
+      from sqlalchemy.ext.hybrid import hybrid_property
       from sqlalchemy.ext.associationproxy import association_proxy
 
     .. tip::
@@ -117,7 +214,7 @@ To start using it, all you need to do is import it in place of your standard SQL
       splits its various pieces into multiple modules and forces you to use many
       ``import`` statements.
 
-      The example below maintains this strategy to show how **SQLAthanor** is a
+      The example above maintains this strategy to show how **SQLAthanor** is a
       1:1 drop-in replacement. But obviously, you can import all of the items you
       need in just one ``import`` statement.
 
@@ -126,7 +223,8 @@ To start using it, all you need to do is import it in place of your standard SQL
 
     .. tip::
 
-      **SQLAthanor** is designed to work with `Flask-SQLAlchemy`_ too! The process
+      **SQLAthanor** is designed to work with
+      `Flask-SQLAlchemy <http://flask-sqlalchemy.pocoo.org/2.3/>`_ too! The process
       is a little more involved, but just do the following:
 
 2. Declare Your Models
@@ -139,12 +237,20 @@ definitions that control whether and how they are serialized or validated.
 
 .. note::
 
+  .. epigraph::
+
+    explicit is better than implicit
+
+    -- :PEP:`20` - The Zen of Python
+
   By default, all columns, relationships, association proxies, and hybrid properties will
-  be serialized to all formats. Using our new arguments, you can limit what gets
-  serialized / de-serialized to which formats and supply custom validators that are
-  used when setting values on your model instance.
+  **not** be serialized. In order for a column, relationship, proxy, or hybrid property
+  to be serializable to a given format or de-serializable from a given format, you
+  will need to **explicitly** enable serialization/deserialization.
 
 .. code-block:: python
+
+  from sqlathanor import declarative_base
 
   BaseModel = declarative_base()
 
@@ -194,19 +300,19 @@ definitions that control whether and how they are serialized or validated.
                        on_deserialize = my_custom_password_hash_function)
 
 As you can see, we've just added some (optional) arguments to the
-:ref:`Column <sqlalchemy:sqlalchemy.schema.Column>` constructor. Hopefully, they're
+:class:`Column <sqlalchemy:sqlalchemy.schema.Column>` constructor. Hopefully, they're
 pretty self-explanatory:
 
   * ``supports_<format>`` determines whether that attribute is included when
     :term:`serializing <serialization>` or :term:`de-serializing <de-serialization>`
-    the object.
+    the object to the ``<format>`` indicated.
 
     .. tip::
 
-      If you give these options one value, it will either enable (``True``) / disable
-      (``False``) both serialization and de-serialization.
+      If you give these options one value, it will either enable (``True``) or disable
+      (``False``) both serialization and de-serialization, respectively.
 
-      But you can also supply a :ref:`tuple <python:tuple>` with two values,
+      But you can also supply a :class:`tuple <python:tuple>` with two values,
       where the first value controls whether the attribute supports the format
       when inbound (de-serialization) or whether it supports the format when
       outbound (serialization).
@@ -217,7 +323,7 @@ pretty self-explanatory:
 
   * ``on_serialize`` indicates the function or functions that are used to prepare
     an attribute for serialization. This can either be a single function (that applies
-    to all serialization formats) or a :ref:`dict <python>` where each key corresponds
+    to all serialization formats) or a :class:`dict <python:dict>` where each key corresponds
     to a format and its value is the function to use when serializing to that format.
 
     .. tip::
@@ -228,7 +334,7 @@ pretty self-explanatory:
 
   * ``on_deserialize`` indicates the function or functions that are used to validate
     or pre-process an attribute when de-serializing. This can either be a single
-    function (that applies to all formats) or a :ref:`dict <python>` where each key corresponds
+    function (that applies to all formats) or a :class:`dict <python:dict>` where each key corresponds
     to a format and its value is the function to use when de-serializing from that format.
 
     .. tip::
@@ -243,10 +349,10 @@ pretty self-explanatory:
 .. note:: See Also
 
   :ref:`Serialization Reference <serialization>`:
-    * :ref:`to_csv() <BaseModel.to_csv>`
-    * :ref:`to_dict() <BaseModel.to_dict>`
-    * :ref:`to_json() <BaseModel.to_json>`
-    * :ref:`to_yaml() <BaseModel.to_yaml>`
+    * :ref:`to_csv() <to_csv>`
+    * :ref:`to_dict() <to_dict>`
+    * :ref:`to_json() <to_json>`
+    * :ref:`to_yaml() <to_yaml>`
 
 So now let's say you have a :term:`model instance` and want to serialize it. It's
 super easy:
@@ -260,6 +366,7 @@ super easy:
       # Get user with id == 123 from the database
       user = User.query.get(123)
 
+      # Serialize the user record to a JSON string.
       serialized_version = user.to_json()
 
   .. tab:: CSV
@@ -269,6 +376,7 @@ super easy:
       # Get user with id == 123 from the database
       user = User.query.get(123)
 
+      # Serialize the user record to a CSV string.
       serialized_version = user.to_csv()
 
   .. tab:: YAML
@@ -278,6 +386,7 @@ super easy:
       # Get user with id == 123 from the database
       user = User.query.get(123)
 
+      # Serialize the user record to a YAML string.
       serialized_version = user.to_yaml()
 
   .. tab:: dict
@@ -287,6 +396,7 @@ super easy:
       # Get user with id == 123 from the database
       user = User.query.get(123)
 
+      # Serialize the user record to a Python dict.
       serialized_version = user.to_dict()
 
 That's it! Of course, the serialization methods all support a variety of other
@@ -299,10 +409,19 @@ nesting, etc.).
 .. note:: See Also
 
   :ref:`De-serialization Reference <de-serialization>`:
-    * :ref:`from_csv() <BaseModel.from_csv>`
-    * :ref:`from_dict() <BaseModel.from_dict>`
-    * :ref:`from_json() <BaseModel.from_json>`
-    * :ref:`from_yaml() <BaseModel.from_yaml>`
+    * Create a new :term:`model instance`:
+
+      * :ref:`new_from_csv() <new_from_csv>`
+      * :ref:`new_from_dict() <new_from_dict>`
+      * :ref:`new_from_json() <new_from_json>`
+      * :ref:`new_from_yaml() <new_from_yaml>`
+
+    * Update an existing model instance:
+
+      * :ref:`update_from_csv() <update_from_csv>`
+      * :ref:`update_from_json() <update_from_json>`
+      * :ref:`update_from_yaml() <update_from_yaml>`
+      * :ref:`update_from_dict() <update_from_dict>`
 
 Now let's say you receive a ``User`` object in serialized form and want
 to create a proper Python ``User`` object. That's easy, too:
@@ -313,143 +432,50 @@ to create a proper Python ``User`` object. That's easy, too:
 
     .. code-block:: python
 
-      # Assuming you have a "deserialized_object" in JSON format
+      # EXAMPLE 1: Create a new User from a JSON string called "deserialized_object".
+      user = User.new_from_json(deserialized_object)
 
-      user = deserialized_object.from_json()
+      # EXAMPLE 2: Update an existing "user" instance from a JSON
+      # string called "deserialized_object".
+      user.update_from_json(updated_object)
 
   .. tab:: CSV
 
     .. code-block:: python
 
-      # Assuming you have a "deserialized_object" in CSV format
+      # EXAMPLE 1: Create a new User from a CSV string called "deserialized_object".
+      user = User.new_from_csv(deserialized_object)
 
-      user = deserialized_object.from_csv()
+      # EXAMPLE 2: Update an existing "user" instance from a CSV
+      # string called "deserialized_object".
+      user.update_from_csv(updated_object)
 
   .. tab:: YAML
 
     .. code-block:: python
 
-      # Assuming you have a "deserialized_object" in YAML format
+      # EXAMPLE 1: Create a new User from a YAML string called "deserialized_object".
+      user = User.new_from_json(deserialized_object)
 
-      user = deserialized_object.from_yaml()
+      # EXAMPLE 2: Update an existing "user" instance from a YAML
+      # string called "deserialized_object".
+      user.update_from_yaml(updated_object)
 
   .. tab:: dict
 
     .. code-block:: python
 
-      # Assuming you have a "deserialized_object" as a Python dict
+      # EXAMPLE 1: Create a new User from a dict called "deserialized_object".
+      user = User.new_from_dict(deserialized_object)
 
-      user = deserialized_object.from_dict()
+      # EXAMPLE 2: Update an existing "user" instance from a dict called
+      # "deserialized_object".
+      user.update_from_dict(updated_object)
 
 That's it! Of course, all the de-serialization functions have additional options to
 fine-tune their behavior as needed. But that's it.
 
-6. Persist Data to the Database
-===================================
-
-So now that we've serialized and de-serialized our user, let's use
-`SQLAlchemy <https://www.sqlalchemy.org/>`_ to update the database. That's really
-easy, too:
-
-.. code-block:: python
-
-  # To create a new record:
-  user.add()
-
-  # To update an existing record:
-  user.save()
-
-  # To delete an existing record:
-  user.delete()
-
-That's it!
-
-
-************************************
-Why SQLAthanor?
-************************************
-
-Odds are you've used `SQLAlchemy <http://www.sqlalchemy.org>`_ before. And if
-you haven't, why on earth not? It is hands down the best relational database
-toolkit and :term:`ORM <Object Relational Mapper (ORM)>` available for Python, and has helped me quickly write
-code for many APIs, software platforms, and data science projects. Just look at
-some of these great `features <http://www.sqlalchemy.org/features.html>`_.
-
-As its name suggests, SQLAlchemy focuses on the problem of connecting your Python
-code to an underlying SQL database. That's a super hard problem, especially when
-you consider the complexity of abstraction, different SQL databases, different SQL
-dialects, performance optimization, etc. It ain't easy, and the SQLAlchemy team
-has spent years building one of the most elegant solutions out there.
-
-.. sidebar:: What's in a name?
-
-
-  Who can resist a good (for certain values of good) pun?
-
-  .. image:: _static/athanor.png
-    :alt: A diagram of an athanor
-    :align: right
-
-  In the time-honored "science" of alchemy, an :term:`athanor` is a furnace that
-  provides uniform heat over an extended period of time.
-
-  Since **SQLAthanor** extends the great `SQLAlchemy <https://www.sqlalchemy.org>`_
-  library, the idea was to keep the alchemical theme going.
-
-  Bottom line: I - for one - clearly cannot resist a pun, whether good or not.
-
-But as hard as Pythonically communicating with a database is, in the real world
-with microservices, serverless architectures, RESTful APIs and the like we often
-need to do more with the data than read or write from/to our database. In almost
-all of the projects I've worked on over the last fifteen years, I've had to:
-
-  * hand data off in some fashion (:term:`serialize <serialization>`) for another
-    program (possibly written by someone else in another programming language) to work
-    with, or
-  * accept and interpret data (:term:`de-serialize <de-serialization>`) received
-    from some other program (possibly written by someone else in another programming
-    language).
-
-Python objects (pickled or not) are great, but they're rarely an effective means
-of transmitting data over the wire, or communicating data between independent
-applications. Which is where formats like JSON, CSV, and YAML come in.
-
-So when writing many Python APIs, I found myself writing methods to convert my
-SQLAlchemy records (technically, :term:`model instances <model instance>`) into JSON or creating new
-SQLAlchemy records based on data I received in JSON. So after writing similar
-methods many times over, I figured a better approach would be to write the
-serialization/de-serialization code just once, and then re-use it across all of
-my various projects.
-
-Which is how **SQLAthanor** came about.
-
-It adds simple methods like :ref:`to_json() <BaseModel.to_json>` and
-:ref:`from_csv() <BaseModel.from_json>` to your SQLAlchemy declarative models
-and provides powerful configuration options that give you tons of flexibility.
-
-Key SQLAthanor Features
-==========================
-
-* **Easy to adopt**: Just tweak your existing SQLAlchemy ``import`` statements and
-  you're good to go.
-* With one method call, convert SQLAlchemy model instances to:
-  * CSV records
-  * JSON objects
-  * YAML objects
-  * :ref:`dict <python:dict>` objects
-* With one method call, create SQLAlchemy model instances from:
-  * :ref:`dict <python:dict>` objects
-  * CSV records
-  * JSON objects
-  * YAML objects
-* Decide which serialization formats you want to support for which models.
-* Decide which columns you want to include in their serialized form (and pick
-  different columns for different formats, too).
-* Default validation for de-serialized data for every SQLAlchemy data type.
-* Customize the validation used when de-serializing particular columns to match
-  your needs.
-* With one method call, persist (create and/or update) records to your database.
-* With one method call, delete records from your database.
+--------------
 
 *********************
 Questions and Issues
@@ -458,12 +484,16 @@ Questions and Issues
 You can ask questions and report issues on the project's
 `Github Issues Page <https://github.com/insightindustry/sqlathanor/issues>`_
 
+-----------------
+
 *********************
 Contributing
 *********************
 
 We welcome contributions and pull requests! For more information, please see the
 :doc:`Contributor Guide <contributing>`
+
+-------------------
 
 *********************
 Testing
@@ -475,11 +505,15 @@ We use `TravisCI <http://travisci.org>`_ for our build automation and
 Detailed information about our test suite and how to run tests locally can be
 found in our :doc:`Testing Reference <testing>`.
 
+--------------------
+
 **********************
 License
 **********************
 
 **SQLAthanor** is made available under an :doc:`MIT License <license>`.
+
+----------------
 
 ********************
 Indices and tables

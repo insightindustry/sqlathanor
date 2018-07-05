@@ -34,28 +34,31 @@ class Column(SerializationMixin, SA_Column):
 
         .. warning::
 
-          This method is analogous to the original
-          :ref:`SQLAlchemy Column.__init__() <sqlalchemy:sqlalchemy.sql.schema.Column.__init__>`
+          This method is analogous to the original SQLAlchemy
+          :class:`Column.__init__() <sqlalchemy:sqlalchemy.schema.Column>`
           from which it inherits. The only difference is that it supports additional
           keyword arguments which are not supported in the original, and which
           are documented below.
 
           **For the original SQLAlchemy version, see:**
-          :ref:`(SQLAlchemy) Column.__init__() <sqlalchemy:sqlalchemy.sql.schema.Column.__init__>`
+
+          * :doc:`SQLAlchemy <sqlalchemy:index>`: :class:`Column.__init__() <sqlalchemy:sqlalchemy.schema.Column>`
 
         :param supports_csv: Determines whether the column can be serialized to or
-          de-serialized from CSV format. If ``True``, can be serialized to CSV and
-          de-serialized from CSV. If ``False``, will not be included when serialized to CSV
-          and will be ignored if present in a de-serialized CSV.
+          de-serialized from CSV format.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          If ``True``, can be serialized to CSV and de-serialized from CSV.
+          If ``False``, will not be included when serialized to CSV and will be
+          ignored if present in a de-serialized CSV.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to CSV
           or de-serialized from CSV.
 
-        :type supports_csv: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_csv: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param csv_sequence: Indicates the numbered position that the column should be in
           in a valid CSV-version of the object. Defaults to :class:`None`.
@@ -68,51 +71,56 @@ class Column(SerializationMixin, SA_Column):
             If two columns have the same ``csv_sequence``, they will be sorted
             alphabetically.
 
-        :type csv_sequence: :ref:`int <python:int>` / :class:`None`
+        :type csv_sequence: :class:`int <python:int>` / :class:`None`
 
         :param supports_json: Determines whether the column can be serialized to or
-          de-serialized from JSON format. If ``True``, can be serialized to JSON and
-          de-serialized from JSON. If ``False``, will not be included when serialized
-          to JSON and will be ignored if present in a de-serialized JSON.
+          de-serialized from JSON format.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          If ``True``, can be serialized to JSON and de-serialized from JSON.
+          If ``False``, will not be included when serialized to JSON and will be
+          ignored if present in a de-serialized JSON.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to JSON
           or de-serialized from JSON.
 
-        :type supports_json: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_json: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param supports_yaml: Determines whether the column can be serialized to or
-          de-serialized from YAML format. If ``True``, can be serialized to YAML and
-          de-serialized from YAML. If ``False``, will not be included when serialized
-          to YAML and will be ignored if present in a de-serialized YAML.
+          de-serialized from YAML format.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          If ``True``, can be serialized to YAML and de-serialized from YAML.
+          If ``False``, will not be included when serialized to YAML and will be
+          ignored if present in a de-serialized YAML.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to YAML
           or de-serialized from YAML.
 
-        :type supports_yaml: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_yaml: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param supports_dict: Determines whether the column can be serialized to or
-          de-serialized to a Python :ref:`dict <python:dict>`. If ``True``, can
-          be serialized to :ref:`dict <python:dict>` and de-serialized from a
-          :ref:`dict <python:dict>`. If ``False``, will not be included when serialized
-          to :ref:`dict <python:dict>` and will be ignored if present in a de-serialized
-          :ref:`dict <python:dict>`.
+          de-serialized to a Python :class:`dict <python:dict>`.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          If ``True``, can be serialized to :class:`dict <python:dict>` and
+          de-serialized from a :class:`dict <python:dict>`. If ``False``, will not be
+          included when serialized to :class:`dict <python:dict>` and will be
+          ignored if present in a de-serialized :class:`dict <python:dict>`.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to a
-          :ref:`dict <python:dict>` or de-serialized from a :ref:`dict <python:dict>`.
+          :class:`dict <python:dict>` or de-serialized from a :class:`dict <python:dict>`.
 
-        :type supports_dict: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_dict: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param on_deserialize: A function that will be called when attempting to
           assign a de-serialized value to the column. This is intended to either coerce
@@ -123,7 +131,7 @@ class Column(SerializationMixin, SA_Column):
           .. tip::
 
             If you need to execute different ``on_deserialize`` functions for
-            different formats, you can also supply a :ref:`dict <python:dict>`:
+            different formats, you can also supply a :class:`dict <python:dict>`:
 
             .. code-block:: python
 
@@ -136,7 +144,7 @@ class Column(SerializationMixin, SA_Column):
 
           Defaults to :class:`None`.
 
-        :type on_deserialize: callable / :ref:`dict <python:dict>` with formats
+        :type on_deserialize: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables
 
         :param on_serialize: A function that will be called when attempting to
@@ -146,7 +154,7 @@ class Column(SerializationMixin, SA_Column):
           .. tip::
 
             If you need to execute different ``on_serialize`` functions for
-            different formats, you can also supply a :ref:`dict <python:dict>`:
+            different formats, you can also supply a :class:`dict <python:dict>`:
 
             .. code-block:: python
 
@@ -159,7 +167,7 @@ class Column(SerializationMixin, SA_Column):
 
           Defaults to :class:`None`.
 
-        :type on_serialize: callable / :ref:`dict <python:dict>` with formats
+        :type on_serialize: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables
 
         """
@@ -218,44 +226,44 @@ class RelationshipProperty(SA_RelationshipProperty):
           de-serialized from JSON. If ``False``, will not be included when serialized
           to JSON and will be ignored if present in a de-serialized JSON.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to JSON
           or de-serialized from JSON.
 
-        :type supports_json: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_json: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param supports_yaml: Determines whether the column can be serialized to or
           de-serialized from YAML format. If ``True``, can be serialized to YAML and
           de-serialized from YAML. If ``False``, will not be included when serialized
           to YAML and will be ignored if present in a de-serialized YAML.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to YAML
           or de-serialized from YAML.
 
-        :type supports_yaml: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_yaml: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param supports_dict: Determines whether the column can be serialized to or
-          de-serialized to a Python :ref:`dict <python:dict>`. If ``True``, can
-          be serialized to :ref:`dict <python:dict>` and de-serialized from a
-          :ref:`dict <python:dict>`. If ``False``, will not be included when serialized
-          to :ref:`dict <python:dict>` and will be ignored if present in a de-serialized
-          :ref:`dict <python:dict>`.
+          de-serialized to a Python :class:`dict <python:dict>`. If ``True``, can
+          be serialized to :class:`dict <python:dict>` and de-serialized from a
+          :class:`dict <python:dict>`. If ``False``, will not be included when serialized
+          to :class:`dict <python:dict>` and will be ignored if present in a de-serialized
+          :class:`dict <python:dict>`.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to a
-          :ref:`dict <python:dict>` or de-serialized from a :ref:`dict <python:dict>`.
+          :class:`dict <python:dict>` or de-serialized from a :class:`dict <python:dict>`.
 
-        :type supports_dict: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_dict: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         """
         if on_serialize is not None and not isinstance(on_serialize, dict):

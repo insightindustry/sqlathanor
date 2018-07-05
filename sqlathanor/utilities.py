@@ -23,18 +23,18 @@ from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError,
     MaximumNestingExceededWarning, DeserializationError
 
 def bool_to_tuple(input):
-    """Converts a single :ref:`bool <python:bool>` value to a
-    :ref:`tuple <python:tuple>` of form ``(bool, bool)``.
+    """Converts a single :class:`bool <python:bool>` value to a
+    :class:`tuple <python:tuple>` of form ``(bool, bool)``.
 
     :param input: Value that should be converted.
-    :type input: :ref:`bool <python:bool>` / 2-member :ref:`tuple <python:tuple>`
+    :type input: :class:`bool <python:bool>` / 2-member :class:`tuple <python:tuple>`
 
-    :returns: :ref:`tuple <python:tuple>` of form (:ref:`bool <python:bool>`,
-      :ref:`bool <python:bool>`)
-    :rtype: :ref:`tuple <python:tuple>`
+    :returns: :class:`tuple <python:tuple>` of form (:class:`bool <python:bool>`,
+      :class:`bool <python:bool>`)
+    :rtype: :class:`tuple <python:tuple>`
 
-    :raises ValueError: if ``input`` is not a :ref:`bool <python:bool>` or
-      2-member :ref:`tuple <python:tuple>`
+    :raises ValueError: if ``input`` is not a :class:`bool <python:bool>` or
+      2-member :class:`tuple <python:tuple>`
     """
 
     if input is True:
@@ -48,16 +48,16 @@ def bool_to_tuple(input):
 
 
 def callable_to_dict(input):
-    """Coerce the ``input`` into a :ref:`dict <python:dict>` with callable
+    """Coerce the ``input`` into a :class:`dict <python:dict>` with callable
     keys for each supported serialization format.
 
     :param input: The callable function that should correspond to one or more
       formats.
-    :type input: callable / :ref:`dict <python:dict>` with formats
+    :type input: callable / :class:`dict <python:dict>` with formats
       as keys and callables as values
 
-    :returns: :ref:`dict <python:dict>` with formats as keys and callables as values
-    :rtype: :ref:`dict <python:dict>`
+    :returns: :class:`dict <python:dict>` with formats as keys and callables as values
+    :rtype: :class:`dict <python:dict>`
 
     """
     if input is not None and not isinstance(input, dict):
@@ -92,12 +92,12 @@ def format_to_tuple(format):
 
     :param format: The format to which the value should be serialized. Accepts
       either: ``csv``, ``json``, ``yaml``, or ``dict``.
-    :type format: :ref:`str <python:str>`
+    :type format: :class:`str <python:str>`
 
-    :returns: A 4-member :ref:`tuple <python:tuple>` corresponding to
+    :returns: A 4-member :class:`tuple <python:tuple>` corresponding to
       ``<direction>_csv``, ``<direction>_json``, ``<direction>_yaml``,
       ``<direction>_dict``
-    :rtype: :ref:`tuple <python:tuple>` of :ref:`bool <python:bool>` / :class:`None`
+    :rtype: :class:`tuple <python:tuple>` of :class:`bool <python:bool>` / :class:`None`
 
     :raises InvalidFormatError: if ``format`` is not ``csv``, ``json``, ``yaml``,
       or ``dict``.
@@ -143,12 +143,12 @@ def get_class_type_key(class_attribute, value = None):
 
     :param format: The format to which the value should be serialized. Accepts
       either: ``csv``, ``json``, ``yaml``, or ``dict``. Defaults to :class:`None`.
-    :type format: :ref:`str <python:str>`
+    :type format: :class:`str <python:str>`
 
     :param value: The class attribute's value.
 
     :returns: The key to use to find a default serializer or de-serializer.
-    :rtype: :ref:`str <python:str>`
+    :rtype: :class:`str <python:str>`
 
     """
     if class_attribute is not None:
@@ -184,24 +184,24 @@ def iterable__to_dict(iterable,
     :param iterable: An iterable to traverse.
     :type iterable: iterable
 
-    :param format: The format to which the :ref:`dict <python:dict>` will
+    :param format: The format to which the :class:`dict <python:dict>` will
       ultimately be serialized. Accepts: ``'csv'``, ``'json'``, ``'yaml'``, and
       ``'dict'``.
-    :type format: :ref:`str <python:str>`
+    :type format: :class:`str <python:str>`
 
 
     :param max_nesting: The maximum number of levels that the resulting
-      :ref:`dict <python:dict>` object can be nested. If set to ``0``, will
+      :class:`dict <python:dict>` object can be nested. If set to ``0``, will
       not nest other serializable objects. Defaults to ``0``.
-    :type max_nesting: :ref:`int <python:int>`
+    :type max_nesting: :class:`int <python:int>`
 
     :param current_nesting: The current nesting level at which the
-      :ref:`dict <python:dict>` representation will reside. Defaults to ``0``.
-    :type current_nesting: :ref:`int <python:int>`
+      :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
+    :type current_nesting: :class:`int <python:int>`
 
-    :returns: Collection of values, possibly converted to :ref:`dict <python:dict>`
+    :returns: Collection of values, possibly converted to :class:`dict <python:dict>`
       objects.
-    :rtype: :ref:`list <python:list>` of objects
+    :rtype: :class:`list <python:list>` of objects
 
     :raises InvalidFormatError: if ``format`` is not an acceptable value
     :raises ValueError: if ``iterable`` is not an iterable
@@ -355,10 +355,10 @@ def are_dicts_equivalent(*args, **kwargs):
 def parse_yaml(input_data,
                deserialize_function = None,
                **kwargs):
-    """De-serialize YAML data into a Python :ref:`dict <python:dict>` object.
+    """De-serialize YAML data into a Python :class:`dict <python:dict>` object.
 
     :param input_data: The YAML data to de-serialize.
-    :type input_data: :ref:`str <python:str>`
+    :type input_data: :class:`str <python:str>`
 
     :param deserialize_function: Optionally override the default YAML deserializer.
       Defaults to :class:`None`, which calls the default ``yaml.safe_load()``
@@ -368,21 +368,21 @@ def parse_yaml(input_data,
 
         Use the ``deserialize_function`` parameter to override the default
         YAML deserializer. A valid ``deserialize_function`` is expected to
-        accept a single :ref:`str <python:str>` and return a
-        :ref:`dict <python:dict>`, similar to ``yaml.safe_load()``.
+        accept a single :class:`str <python:str>` and return a
+        :class:`dict <python:dict>`, similar to ``yaml.safe_load()``.
 
         If you wish to pass additional arguments to your ``deserialize_function``
         pass them as keyword arguments (in ``kwargs``).
 
     :type deserialize_function: callable / :class:`None`
 
-    :param **kwargs: Optional keyword parameters that are passed to the
+    :param kwargs: Optional keyword parameters that are passed to the
       YAML deserializer function. By default, these are options which are passed
       to ``yaml.safe_load()``.
-    :type **kwargs: keyword arguments
+    :type kwargs: keyword arguments
 
-    :returns: A :ref:`dict <python:dict>` representation of ``input_data``.
-    :rtype: :ref:`dict <python:dict>`
+    :returns: A :class:`dict <python:dict>` representation of ``input_data``.
+    :rtype: :class:`dict <python:dict>`
     """
     if deserialize_function is None:
         deserialize_function = yaml.safe_load
@@ -409,10 +409,10 @@ def parse_yaml(input_data,
 def parse_json(input_data,
                deserialize_function = None,
                **kwargs):
-    """De-serialize JSON data into a Python :ref:`dict <python:dict>` object.
+    """De-serialize JSON data into a Python :class:`dict <python:dict>` object.
 
     :param input_data: The JSON data to de-serialize.
-    :type input_data: :ref:`str <python:str>`
+    :type input_data: :class:`str <python:str>`
 
     :param deserialize_function: Optionally override the default JSON deserializer.
       Defaults to :class:`None`, which calls the default
@@ -423,8 +423,8 @@ def parse_json(input_data,
 
         Use the ``deserialize_function`` parameter to override the default
         YAML deserializer. A valid ``deserialize_function`` is expected to
-        accept a single :ref:`str <python:str>` and return a
-        :ref:`dict <python:dict>`, similar to
+        accept a single :class:`str <python:str>` and return a
+        :class:`dict <python:dict>`, similar to
         :ref:`simplejson.loads() <simplejson:simplejson.loads>`
 
         If you wish to pass additional arguments to your ``deserialize_function``
@@ -432,13 +432,13 @@ def parse_json(input_data,
 
     :type deserialize_function: callable / :class:`None`
 
-    :param **kwargs: Optional keyword parameters that are passed to the
+    :param kwargs: Optional keyword parameters that are passed to the
       JSON deserializer function. By default, these are options which are passed
       to :ref:`simplejson.loads() <simplejson:simplejson.loads>`.
-    :type **kwargs: keyword arguments
+    :type kwargs: keyword arguments
 
-    :returns: A :ref:`dict <python:dict>` representation of ``input_data``.
-    :rtype: :ref:`dict <python:dict>`
+    :returns: A :class:`dict <python:dict>` representation of ``input_data``.
+    :rtype: :class:`dict <python:dict>`
     """
     if deserialize_function is None:
         deserialize_function = json.loads

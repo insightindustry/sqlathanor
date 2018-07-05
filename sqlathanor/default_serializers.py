@@ -27,7 +27,7 @@ def get_default_serializer(class_attribute = None,
 
     :param format: The format to which the value should be serialized. Accepts
       either: ``csv``, ``json``, ``yaml``, or ``dict``. Defaults to :class:`None`.
-    :type format: :ref:`str <python:str>`
+    :type format: :class:`str <python:str>`
 
     :param value: The class attribute's value.
 

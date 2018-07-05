@@ -224,7 +224,9 @@ epub_exclude_files = ['search.html']
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.6', None),
-    'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest/', None)
+    'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest/', None),
+    'simplejson': ('http://simplejson.readthedocs.io/en/latest/', None),
+    'validator-collection': ('http://validator-collection.readthedocs.io/en/latest/', None),
 }
 
 # -- Options for todo extension ----------------------------------------------

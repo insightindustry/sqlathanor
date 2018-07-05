@@ -25,7 +25,7 @@ def get_default_deserializer(class_attribute = None,
 
     :param format: The format to which the value should be serialized. Accepts
       either: ``csv``, ``json``, ``yaml``, or ``dict``. Defaults to :class:`None`.
-    :type format: :ref:`str <python:str>`
+    :type format: :class:`str <python:str>`
 
     :returns: The default :term:`deserializer function` to apply or :class:`None`
     :rtype: callable / :class:`None`

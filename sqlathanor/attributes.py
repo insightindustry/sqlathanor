@@ -12,7 +12,6 @@ from validator_collection import validators, checkers
 
 from sqlathanor._serialization_support import SerializationMixin
 from sqlathanor.utilities import bool_to_tuple, callable_to_dict
-from sqlathanor.errors import SQLAthanorError, SQLAthanorValidationError
 
 
 BLANK_ON_SERIALIZE = {
@@ -24,7 +23,7 @@ BLANK_ON_SERIALIZE = {
 
 
 class AttributeConfiguration(SerializationMixin):
-    """Serialization/de-serialization configuration of a model attribute.
+    """Serialization/de-serialization configuration of a :term:`model attribute`.
     """
     # pylint: disable=too-many-instance-attributes
 
@@ -34,65 +33,72 @@ class AttributeConfiguration(SerializationMixin):
         """Construct an :class:`AttributeConfiguration` object.
 
         :param name: The name of the attribute. Defaults to ``None``.
-        :type name: :ref:`str <python:str>`
+        :type name: :class:`str <python:str>`
 
         :param supports_csv: Determines whether the column can be serialized to or
-          de-serialized from CSV format. If ``True``, can be serialized to CSV and
-          de-serialized from CSV. If ``False``, will not be included when serialized
-          to CSV and will be ignored if present in a de-serialized CSV.
+          de-serialized from CSV format.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          If ``True``, can be serialized to CSV and de-serialized from CSV. If
+          ``False``, will not be included when serialized to CSV and will be ignored
+          if present in a de-serialized CSV.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to CSV
           or de-serialized from CSV.
 
-        :type supports_csv: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_csv: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param supports_json: Determines whether the column can be serialized to or
-          de-serialized from JSON format. If ``True``, can be serialized to JSON and
-          de-serialized from JSON. If ``False``, will not be included when serialized
-          to JSON and will be ignored if present in a de-serialized JSON.
+          de-serialized from JSON format.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          If ``True``, can be serialized to JSON and de-serialized from JSON.
+          If ``False``, will not be included when serialized to JSON and will be
+          ignored if present in a de-serialized JSON.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to JSON
           or de-serialized from JSON.
 
-        :type supports_json: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_json: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param supports_yaml: Determines whether the column can be serialized to or
-          de-serialized from YAML format. If ``True``, can be serialized to YAML and
-          de-serialized from YAML. If ``False``, will not be included when serialized
-          to YAML and will be ignored if present in a de-serialized YAML.
+          de-serialized from YAML format.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          If ``True``, can be serialized to YAML and de-serialized from YAML.
+          If ``False``, will not be included when serialized to YAML and will be
+          ignored if present in a de-serialized YAML.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to YAML
           or de-serialized from YAML.
 
-        :type supports_yaml: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_yaml: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param supports_dict: Determines whether the column can be serialized to or
-          de-serialized to a Python :ref:`dict <python:dict>`. If ``True``, can
-          be serialized to :ref:`dict <python:dict>` and de-serialized from a
-          :ref:`dict <python:dict>`. If ``False``, will not be included when serialized
-          to :ref:`dict <python:dict>` and will be ignored if present in a de-serialized
-          :ref:`dict <python:dict>`.
+          de-serialized to a Python :class:`dict <python:dict>`.
 
-          Can also accept a 2-member :ref:`tuple <python:tuple>` (inbound / outbound)
+          If ``True``, can be serialized to :class:`dict <python:dict>` and de-serialized
+          from a :class:`dict <python:dict>`. If ``False``, will not be included
+          when serialized to :class:`dict <python:dict>` and will be ignored if
+          present in a de-serialized :class:`dict <python:dict>`.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
           which determines de-serialization and serialization support respectively.
 
           Defaults to ``False``, which means the column will not be serialized to a
-          :ref:`dict <python:dict>` or de-serialized from a :ref:`dict <python:dict>`.
+          :class:`dict <python:dict>` or de-serialized from a :class:`dict <python:dict>`.
 
-        :type supports_dict: :ref:`bool <python:bool>` / :ref:`tuple <python:tuple>` of
-          form (inbound: :ref:`bool <python:bool>`, outbound: :ref:`bool <python:bool>`)
+        :type supports_dict: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
+          form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param on_deserialize: A function that will be called when attempting to
           assign a de-serialized value to the column. This is intended to either coerce
@@ -103,7 +109,7 @@ class AttributeConfiguration(SerializationMixin):
           .. tip::
 
             If you need to execute different ``on_deserialize`` functions for
-            different formats, you can also supply a :ref:`dict <python:dict>`:
+            different formats, you can also supply a :class:`dict <python:dict>`:
 
             .. code-block:: python
 
@@ -116,7 +122,7 @@ class AttributeConfiguration(SerializationMixin):
 
           Defaults to :class:`None`.
 
-        :type on_deserialize: callable / :ref:`dict <python:dict>` with formats
+        :type on_deserialize: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables
 
         :param on_serialize: A function that will be called when attempting to
@@ -126,7 +132,7 @@ class AttributeConfiguration(SerializationMixin):
           .. tip::
 
             If you need to execute different ``on_serialize`` functions for
-            different formats, you can also supply a :ref:`dict <python:dict>`:
+            different formats, you can also supply a :class:`dict <python:dict>`:
 
             .. code-block:: python
 
@@ -139,7 +145,7 @@ class AttributeConfiguration(SerializationMixin):
 
           Defaults to :class:`None`.
 
-        :type on_serialize: callable / :ref:`dict <python:dict>` with formats
+        :type on_serialize: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables
 
         :param csv_sequence: Indicates the numbered position that the column should be in
@@ -153,7 +159,7 @@ class AttributeConfiguration(SerializationMixin):
             If two columns have the same ``csv_sequence``, they will be sorted
             alphabetically.
 
-        :type csv_sequence: :ref:`int <python:int>` / :class:`None`
+        :type csv_sequence: :class:`int <python:int>` / :class:`None`
 
         :param attribute: The object representation of an attribute. Supplying this
           value overrides any other configuration options supplied. Defaults to
@@ -360,7 +366,7 @@ class AttributeConfiguration(SerializationMixin):
     def name(self):
         """The name of the attribute.
 
-        :rtype: :ref:`str <python:str>` / :class:`None`
+        :rtype: :class:`str <python:str>` / :class:`None`
         """
         return self._name
 
@@ -397,13 +403,11 @@ def validate_serialization_config(config):
     :param config: Object or iterable of objects that represent
       :class:`AttributeConfigurations <AttributeConfiguration>`
     :type config: iterable of :class:`AttributeConfiguration` objects / iterable of
-      :ref:`dict <python:dict>` objects corresponding to a
+      :class:`dict <python:dict>` objects corresponding to a
       :class:`AttributeConfiguration` / :class:`AttributeConfiguration` /
-      :ref:`dict <python:dict>` object corresponding to a :class:`AttributeConfiguration`
+      :class:`dict <python:dict>` object corresponding to a :class:`AttributeConfiguration`
 
-    :rtype: :ref:`list <python:list>` of :class:`AttributeConfiguration` objects
-    :raises SQLAthanorValidationError: if unable to validate an
-      :class:`AttributeConfiguration`
+    :rtype: :class:`list <python:list>` of :class:`AttributeConfiguration` objects
     """
     if config and not checkers.is_iterable(config,
                                            forbid_literals = (str,

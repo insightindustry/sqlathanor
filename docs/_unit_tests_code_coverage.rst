@@ -18,7 +18,7 @@
         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status (ReadTheDocs)
 
-  * - `v. 1.1.0 <https://github.com/insightindustry/sqlathanor/tree/v.0.1.0>`_
+  * - `v.0.1.0 <https://github.com/insightindustry/sqlathanor/tree/v.0.1.0>`_
     -
       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.1.0
         :target: https://travis-ci.org/insightindustry/sqlathanor

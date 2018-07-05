@@ -5,7 +5,7 @@
 tests.test_dict_support
 ******************************************
 
-Tests for :ref:`dict <python:dict>` serialization/de-serialization support.
+Tests for :class:`dict <python:dict>` serialization/de-serialization support.
 
 """
 # pylint: disable=line-too-long,protected-access

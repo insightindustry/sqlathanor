@@ -47,10 +47,10 @@ class SerializationMixin(object):
     def supports_csv(self):
         """Indicates whether the attribute can be serialized / de-serialized to CSV.
 
-        :returns: 2-member :ref:`tuple <python:tuple>` (inbound de-serialization /
+        :returns: 2-member :class:`tuple <python:tuple>` (inbound de-serialization /
           outbound serialization)
-        :rtype: :ref:`tuple <python:tuple>` of form (:ref:`bool <python:bool>`,
-          :ref:`bool <python:bool>`)
+        :rtype: :class:`tuple <python:tuple>` of form (:class:`bool <python:bool>`,
+          :class:`bool <python:bool>`)
 
         """
         return self._supports_csv
@@ -69,7 +69,7 @@ class SerializationMixin(object):
           If :class:`None`, will default to alphabetical sorting *after* any
           attributes that have an explicit ``csv_sequence`` provided.
 
-        :rtype: :ref:`int <python:int>` / :class:`None`.
+        :rtype: :class:`int <python:int>` / :class:`None`.
         """
         return self._csv_sequence
 
@@ -84,10 +84,10 @@ class SerializationMixin(object):
     def supports_json(self):
         """Indicates whether the attribute can be serialized / de-serialized to JSON.
 
-        :returns: 2-member :ref:`tuple <python:tuple>` (inbound de-serialization /
+        :returns: 2-member :class:`tuple <python:tuple>` (inbound de-serialization /
           outbound serialization)
-        :rtype: :ref:`tuple <python:tuple>` of form (:ref:`bool <python:bool>`,
-          :ref:`bool <python:bool>`)
+        :rtype: :class:`tuple <python:tuple>` of form (:class:`bool <python:bool>`,
+          :class:`bool <python:bool>`)
 
         """
         return self._supports_json
@@ -101,10 +101,10 @@ class SerializationMixin(object):
     def supports_yaml(self):
         """Indicates whether the attribute can be serialized / de-serialized to YAML.
 
-        :returns: 2-member :ref:`tuple <python:tuple>` (inbound de-serialization /
+        :returns: 2-member :class:`tuple <python:tuple>` (inbound de-serialization /
           outbound serialization)
-        :rtype: :ref:`tuple <python:tuple>` of form (:ref:`bool <python:bool>`,
-          :ref:`bool <python:bool>`)
+        :rtype: :class:`tuple <python:tuple>` of form (:class:`bool <python:bool>`,
+          :class:`bool <python:bool>`)
 
         """
         return self._supports_yaml
@@ -117,12 +117,12 @@ class SerializationMixin(object):
     @property
     def supports_dict(self):
         """Indicates whether the attribute can be serialized / de-serialized to
-        :ref:`dict <python:dict>`.
+        :class:`dict <python:dict>`.
 
-        :returns: 2-member :ref:`tuple <python:tuple>` (inbound de-serialization /
+        :returns: 2-member :class:`tuple <python:tuple>` (inbound de-serialization /
           outbound serialization)
-        :rtype: :ref:`tuple <python:tuple>` of form (:ref:`bool <python:bool>`,
-          :ref:`bool <python:bool>`)
+        :rtype: :class:`tuple <python:tuple>` of form (:class:`bool <python:bool>`,
+          :class:`bool <python:bool>`)
 
         """
         return self._supports_dict
@@ -143,7 +143,7 @@ class SerializationMixin(object):
         .. tip::
 
           If you need to execute different ``on_serialize`` functions for
-          different formats, you can also supply a :ref:`dict <python:dict>`:
+          different formats, you can also supply a :class:`dict <python:dict>`:
 
           .. code-block:: python
 
@@ -156,7 +156,7 @@ class SerializationMixin(object):
 
         Defaults to :class:`None`.
 
-        :rtype: callable / :ref:`dict <python:dict>` with formats
+        :rtype: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables
         """
         return self._on_serialize
@@ -186,7 +186,7 @@ class SerializationMixin(object):
         .. tip::
 
           If you need to execute different ``on_deserialize`` functions for
-          different formats, you can also supply a :ref:`dict <python:dict>`:
+          different formats, you can also supply a :class:`dict <python:dict>`:
 
           .. code-block:: python
 
@@ -199,7 +199,7 @@ class SerializationMixin(object):
 
           Defaults to :class:`None`.
 
-        :rtype: callable / :ref:`dict <python:dict>` with formats
+        :rtype: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables
         """
         return self._on_deserialize
