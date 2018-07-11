@@ -15,7 +15,7 @@
 SQLAthanor
 ####################################################
 
-**Serialization / De-serialization for SQLAlchemy**
+**Serialization/De-serialization Support for the SQLAlchemy Declarative ORM**
 
 .. |strong| raw:: html
 

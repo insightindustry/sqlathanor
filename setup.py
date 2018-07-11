@@ -56,7 +56,7 @@ setup(
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary
-    description=('Add serialization/de-serialization to the SQLAlchemy Declarative ORM'),  # Required
+    description=('Serialization/De-serialization Support for the SQLAlchemy Declarative ORM'),  # Required
 
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.
@@ -73,7 +73,7 @@ setup(
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    url='https://github.com/insightindustry/sqlathanor',  # Optional
+    url='https://sqlathanor.readthedocs.io/en/latest',  # Optional
 
     # This should be your name or the name of the organization which owns the
     # project.
@@ -127,7 +127,7 @@ setup(
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    keywords='sqlalchemy model extension serialization JSON YAML dict deserialization',  # Optional
+    keywords='sqlalchemy ORM model extension serialization CSV JSON YAML dict deserialization',  # Optional
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -147,10 +147,10 @@ setup(
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'sqlalchemy',
-        'validator-collection',
-        'simplejson',
-        'PyYAML',
+        'sqlalchemy>=0.9',
+        'validator-collection>=1.1.0',
+        'simplejson>=3.0',
+        'PyYAML>=3.10',
     ],
 
     # List additional groups of dependencies here (e.g. development
@@ -166,13 +166,16 @@ setup(
                 'sphinx',
                 'sphinx-rtd-theme',
                 'sphinx-tabs',
+                'readme-renderer',
+                'restview',
                 'Flask-SQLAlchemy'],
         'test': ['coverage',
                  'pytest',
                  'pytest-benchmark',
                  'pytest-cov',
                  'tox',
-                 'codecov'],
+                 'codecov',
+                 'Flask-SQLAlchemy'],
     },
 
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4',
@@ -224,7 +227,8 @@ setup(
     # maintainers, and where to support the project financially. The key is
     # what's used to render the link text on PyPI.
     project_urls={  # Optional
-        'Documentation': 'http://sqlathanor.readthedocs.io/en/latest',
+        'Documentation': 'https://sqlathanor.readthedocs.io/en/latest',
+        'Say Thanks!': 'https://saythanks.io/to/sqlathanor',
         'Bug Reports': 'https://github.com/insightindustry/sqlathanor/issues',
         'Source': 'https://github.com/insightindustry/sqlathanor/',
     },

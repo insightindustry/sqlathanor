@@ -2,12 +2,12 @@
 SQLAthanor
 ####################################################
 
-.. image:: docs/_static/sqlathanor-logo-200x100.png
+**Serialization/De-serialization Support for the SQLAlchemy Declarative ORM**
+
+.. image:: https://sqlathanor.readthedocs.io/en/latest/_static/sqlathanor-logo-200x100.png
   :align: right
   :alt: SQLAthanor - Serialization/De-serialization for SQLAlchemy
-  :target: http://sqlathanor.readthedocs.org/en/latest/index.html
-
-**Serialization / De-serialization for SQLAlchemy**
+  :target: https://sqlathanor.readthedocs.io/en/latest/index.html
 
 .. list-table::
    :widths: 10 90
