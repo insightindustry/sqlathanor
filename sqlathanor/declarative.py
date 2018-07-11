@@ -27,7 +27,7 @@ from sqlathanor.utilities import format_to_tuple, iterable__to_dict, parse_yaml,
     parse_json
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
     UnsupportedSerializationError, UnsupportedDeserializationError, DeserializationError,\
-    CSVColumnError, MaximumNestingExceededError, MaximumNestingExceededWarning, \
+    CSVStructureError, MaximumNestingExceededError, MaximumNestingExceededWarning, \
     SerializableAttributeError, InvalidFormatError, DeserializableAttributeError, \
     ExtraKeyError, YAMLParseError, JSONParseError
 from sqlathanor.default_serializers import get_default_serializer
@@ -142,19 +142,19 @@ class BaseModel(object):
 
         .. note::
 
-          If not :class:`None`, this value can always be passed to
+          If not :obj:`None <python:None>`, this value can always be passed to
           :meth:`Query.get() <sqlalchemy:sqlalchemy.orm.query.Query.get>`.
 
         .. warning::
 
-          Returns :class:`None` if the instance is pending, in a transient state, or
+          Returns :obj:`None <python:None>` if the instance is pending, in a transient state, or
           does not have a primary key.
 
         :returns: scalar or :class:`tuple <python:tuple>` value representing the
           primary key. For a composite primary key, the order of identifiers
           corresponds to the order with which the model's primary keys were
-          defined. If no primary keys are available, will return :class:`None`.
-        :rtype: scalar / :class:`tuple <python:tuple>` / :class:`None`
+          defined. If no primary keys are available, will return :obj:`None <python:None>`.
+        :rtype: scalar / :class:`tuple <python:tuple>` / :obj:`None <python:None>`
 
         """
         if not inspect(self).has_identity or not inspect(self).identity:
@@ -231,61 +231,61 @@ class BaseModel(object):
 
         :param from_csv: If ``True``, includes attribute names that **can** be
           de-serialized from CSV strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from CSV strings. If :class:`None`,
+          that **cannot** be de-serialized from CSV strings. If :obj:`None <python:None>`,
           will not include attributes based on CSV de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_csv: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_csv: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_csv: If ``True``, includes attribute names that **can** be
           serialized to CSV strings. If ``False``, includes attribute names
-          that **cannot** be serialized to CSV strings. If :class:`None`,
+          that **cannot** be serialized to CSV strings. If :obj:`None <python:None>`,
           will not include attributes based on CSV serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_csv: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_csv: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_json: If ``True``, includes attribute names that **can** be
           de-serialized from JSON strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from JSON strings. If :class:`None`,
+          that **cannot** be de-serialized from JSON strings. If :obj:`None <python:None>`,
           will not include attributes based on JSON de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_json: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_json: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_json: If ``True``, includes attribute names that **can** be
           serialized to JSON strings. If ``False``, includes attribute names
-          that **cannot** be serialized to JSON strings. If :class:`None`,
+          that **cannot** be serialized to JSON strings. If :obj:`None <python:None>`,
           will not include attributes based on JSON serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_json: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_json: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_yaml: If ``True``, includes attribute names that **can** be
           de-serialized from YAML strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from YAML strings. If :class:`None`,
+          that **cannot** be de-serialized from YAML strings. If :obj:`None <python:None>`,
           will not include attributes based on YAML de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_yaml: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_yaml: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_yaml: If ``True``, includes attribute names that **can** be
           serialized to YAML strings. If ``False``, includes attribute names
-          that **cannot** be serialized to YAML strings. If :class:`None`,
+          that **cannot** be serialized to YAML strings. If :obj:`None <python:None>`,
           will not include attributes based on YAML serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_yaml: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_yaml: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_dict: If ``True``, includes attribute names that **can** be
           de-serialized from :class:`dict <python:dict>` objects. If ``False``, includes
           attribute names that **cannot** be de-serialized from :class:`dict <python:dict>`
-          objects. If :class:`None`, will not include attributes based on
+          objects. If :obj:`None <python:None>`, will not include attributes based on
           :class:`dict <python:dict>` de-serialization support (but may include them
-          based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :class:`bool <python:bool>` / :class:`None`
+          based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_dict: If ``True``, includes attribute names that **can** be
           serialized to :class:`dict <python:dict>` objects. If ``False``, includes
           attribute names that **cannot** be serialized to :class:`dict <python:dict>`
-          objects. If :class:`None`, will not include attributes based on
+          objects. If :obj:`None <python:None>`, will not include attributes based on
           :class:`dict <python:dict>` serialization support (but may include them
-          based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :class:`bool <python:bool>` / :class:`None`
+          based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param exclude_private: If ``True``, will exclude private attributes whose
           names begin with a single underscore. Defaults to ``True``.
@@ -397,61 +397,61 @@ class BaseModel(object):
 
         :param from_csv: If ``True``, includes attribute names that **can** be
           de-serialized from CSV strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from CSV strings. If :class:`None`,
+          that **cannot** be de-serialized from CSV strings. If :obj:`None <python:None>`,
           will not include attributes based on CSV de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_csv: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_csv: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_csv: If ``True``, includes attribute names that **can** be
           serialized to CSV strings. If ``False``, includes attribute names
-          that **cannot** be serialized to CSV strings. If :class:`None`,
+          that **cannot** be serialized to CSV strings. If :obj:`None <python:None>`,
           will not include attributes based on CSV serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_csv: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_csv: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_json: If ``True``, includes attribute names that **can** be
           de-serialized from JSON strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from JSON strings. If :class:`None`,
+          that **cannot** be de-serialized from JSON strings. If :obj:`None <python:None>`,
           will not include attributes based on JSON de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_json: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_json: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_json: If ``True``, includes attribute names that **can** be
           serialized to JSON strings. If ``False``, includes attribute names
-          that **cannot** be serialized to JSON strings. If :class:`None`,
+          that **cannot** be serialized to JSON strings. If :obj:`None <python:None>`,
           will not include attributes based on JSON serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_json: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_json: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_yaml: If ``True``, includes attribute names that **can** be
           de-serialized from YAML strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from YAML strings. If :class:`None`,
+          that **cannot** be de-serialized from YAML strings. If :obj:`None <python:None>`,
           will not include attributes based on YAML de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_yaml: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_yaml: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_yaml: If ``True``, includes attribute names that **can** be
           serialized to YAML strings. If ``False``, includes attribute names
-          that **cannot** be serialized to YAML strings. If :class:`None`,
+          that **cannot** be serialized to YAML strings. If :obj:`None <python:None>`,
           will not include attributes based on YAML serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_yaml: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_yaml: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_dict: If ``True``, includes attribute names that **can** be
           de-serialized from :class:`dict <python:dict>` objects. If ``False``, includes
           attribute names that **cannot** be de-serialized from :class:`dict <python:dict>`
-          objects. If :class:`None`, will not include attributes based on
+          objects. If :obj:`None <python:None>`, will not include attributes based on
           :class:`dict <python:dict>` de-serialization support (but may include them
-          based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :class:`bool <python:bool>` / :class:`None`
+          based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_dict: If ``True``, includes attribute names that **can** be
           serialized to :class:`dict <python:dict>` objects. If ``False``, includes
           attribute names that **cannot** be serialized to :class:`dict <python:dict>`
-          objects. If :class:`None`, will not include attributes based on
+          objects. If :obj:`None <python:None>`, will not include attributes based on
           :class:`dict <python:dict>` serialization support (but may include them
-          based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :class:`bool <python:bool>` / :class:`None`
+          based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :returns: List of attribute configurations.
         :rtype: :class:`list <python:list>` of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
@@ -573,61 +573,61 @@ class BaseModel(object):
 
         :param from_csv: If ``True``, includes attribute names that **can** be
           de-serialized from CSV strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from CSV strings. If :class:`None`,
+          that **cannot** be de-serialized from CSV strings. If :obj:`None <python:None>`,
           will not include attributes based on CSV de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_csv: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_csv: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_csv: If ``True``, includes attribute names that **can** be
           serialized to CSV strings. If ``False``, includes attribute names
-          that **cannot** be serialized to CSV strings. If :class:`None`,
+          that **cannot** be serialized to CSV strings. If :obj:`None <python:None>`,
           will not include attributes based on CSV serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_csv: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_csv: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_json: If ``True``, includes attribute names that **can** be
           de-serialized from JSON strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from JSON strings. If :class:`None`,
+          that **cannot** be de-serialized from JSON strings. If :obj:`None <python:None>`,
           will not include attributes based on JSON de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_json: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_json: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_json: If ``True``, includes attribute names that **can** be
           serialized to JSON strings. If ``False``, includes attribute names
-          that **cannot** be serialized to JSON strings. If :class:`None`,
+          that **cannot** be serialized to JSON strings. If :obj:`None <python:None>`,
           will not include attributes based on JSON serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_json: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_json: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_yaml: If ``True``, includes attribute names that **can** be
           de-serialized from YAML strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from YAML strings. If :class:`None`,
+          that **cannot** be de-serialized from YAML strings. If :obj:`None <python:None>`,
           will not include attributes based on YAML de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_yaml: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_yaml: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_yaml: If ``True``, includes attribute names that **can** be
           serialized to YAML strings. If ``False``, includes attribute names
-          that **cannot** be serialized to YAML strings. If :class:`None`,
+          that **cannot** be serialized to YAML strings. If :obj:`None <python:None>`,
           will not include attributes based on YAML serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_yaml: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_yaml: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_dict: If ``True``, includes attribute names that **can** be
           de-serialized from :class:`dict <python:dict>` objects. If ``False``, includes
           attribute names that **cannot** be de-serialized from :class:`dict <python:dict>`
-          objects. If :class:`None`, will not include attributes based on
+          objects. If :obj:`None <python:None>`, will not include attributes based on
           :class:`dict <python:dict>` de-serialization support (but may include them
-          based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :class:`bool <python:bool>` / :class:`None`
+          based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_dict: If ``True``, includes attribute names that **can** be
           serialized to :class:`dict <python:dict>` objects. If ``False``, includes
           attribute names that **cannot** be serialized to :class:`dict <python:dict>`
-          objects. If :class:`None`, will not include attributes based on
+          objects. If :obj:`None <python:None>`, will not include attributes based on
           :class:`dict <python:dict>` serialization support (but may include them
-          based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :class:`bool <python:bool>` / :class:`None`
+          based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param exclude_private: If ``True``, will exclude private attributes whose
           names begin with a single underscore. Defaults to ``True``.
@@ -672,18 +672,18 @@ class BaseModel(object):
         :param deserialize: If ``True``, returns configurations for attributes that
           **can** be de-serialized from CSV strings. If ``False``,
           returns configurations for attributes that **cannot** be de-serialized from
-          CSV strings. If :class:`None`, ignores de-serialization
+          CSV strings. If :obj:`None <python:None>`, ignores de-serialization
           configuration when determining which attribute configurations to return.
-          Defaults to :class:`None`.
-        :type deserialize: :class:`bool <python:bool>` / :class:`None`
+          Defaults to :obj:`None <python:None>`.
+        :type deserialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param serialize: If ``True``, returns configurations for attributes that
           **can** be serialized to CSV strings. If ``False``,
           returns configurations for attributes that **cannot** be serialized to
-          CSV strings. If :class:`None`, ignores serialization
+          CSV strings. If :obj:`None <python:None>`, ignores serialization
           configuration when determining which attribute configurations to return.
-          Defaults to :class:`None`.
-        :type serialize: :class:`bool <python:bool>` / :class:`None`
+          Defaults to :obj:`None <python:None>`.
+        :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
@@ -706,18 +706,18 @@ class BaseModel(object):
         :param deserialize: If ``True``, returns configurations for attributes that
           **can** be de-serialized from JSON strings. If ``False``,
           returns configurations for attributes that **cannot** be de-serialized from
-          JSON strings. If :class:`None`, ignores de-serialization
+          JSON strings. If :obj:`None <python:None>`, ignores de-serialization
           configuration when determining which attribute configurations to return.
-          Defaults to :class:`None`.
-        :type deserialize: :class:`bool <python:bool>` / :class:`None`
+          Defaults to :obj:`None <python:None>`.
+        :type deserialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param serialize: If ``True``, returns configurations for attributes that
           **can** be serialized to JSON strings. If ``False``,
           returns configurations for attributes that **cannot** be serialized to
-          JSON strings. If :class:`None`, ignores serialization
+          JSON strings. If :obj:`None <python:None>`, ignores serialization
           configuration when determining which attribute configurations to return.
-          Defaults to :class:`None`.
-        :type serialize: :class:`bool <python:bool>` / :class:`None`
+          Defaults to :obj:`None <python:None>`.
+        :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
@@ -734,18 +734,18 @@ class BaseModel(object):
         :param deserialize: If ``True``, returns configurations for attributes that
           **can** be de-serialized from YAML strings. If ``False``,
           returns configurations for attributes that **cannot** be de-serialized from
-          YAML strings. If :class:`None`, ignores de-serialization
+          YAML strings. If :obj:`None <python:None>`, ignores de-serialization
           configuration when determining which attribute configurations to return.
-          Defaults to :class:`None`.
-        :type deserialize: :class:`bool <python:bool>` / :class:`None`
+          Defaults to :obj:`None <python:None>`.
+        :type deserialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param serialize: If ``True``, returns configurations for attributes that
           **can** be serialized to YAML strings. If ``False``,
           returns configurations for attributes that **cannot** be serialized to
-          YAML strings. If :class:`None`, ignores serialization
+          YAML strings. If :obj:`None <python:None>`, ignores serialization
           configuration when determining which attribute configurations to return.
-          Defaults to :class:`None`.
-        :type serialize: :class:`bool <python:bool>` / :class:`None`
+          Defaults to :obj:`None <python:None>`.
+        :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
@@ -764,18 +764,18 @@ class BaseModel(object):
         :param deserialize: If ``True``, returns configurations for attributes that
           **can** be de-serialized from :class:`dict <python:dict>` objects. If ``False``,
           returns configurations for attributes that **cannot** be de-serialized from
-          :class:`dict <python:dict>` objects. If :class:`None`, ignores de-serialization
+          :class:`dict <python:dict>` objects. If :obj:`None <python:None>`, ignores de-serialization
           configuration when determining which attribute configurations to return.
-          Defaults to :class:`None`.
-        :type deserialize: :class:`bool <python:bool>` / :class:`None`
+          Defaults to :obj:`None <python:None>`.
+        :type deserialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param serialize: If ``True``, returns configurations for attributes that
           **can** be serialized to :class:`dict <python:dict>` objects. If ``False``,
           returns configurations for attributes that **cannot** be serialized to
-          :class:`dict <python:dict>` objects. If :class:`None`, ignores serialization
+          :class:`dict <python:dict>` objects. If :obj:`None <python:None>`, ignores serialization
           configuration when determining which attribute configurations to return.
-          Defaults to :class:`None`.
-        :type serialize: :class:`bool <python:bool>` / :class:`None`
+          Defaults to :obj:`None <python:None>`.
+        :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
@@ -828,66 +828,66 @@ class BaseModel(object):
 
         :param from_csv: If ``True``, includes attribute names that **can** be
           de-serialized from CSV strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from CSV strings. If :class:`None`,
+          that **cannot** be de-serialized from CSV strings. If :obj:`None <python:None>`,
           will not include attributes based on CSV de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_csv: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_csv: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_csv: If ``True``, includes attribute names that **can** be
           serialized to CSV strings. If ``False``, includes attribute names
-          that **cannot** be serialized to CSV strings. If :class:`None`,
+          that **cannot** be serialized to CSV strings. If :obj:`None <python:None>`,
           will not include attributes based on CSV serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_csv: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_csv: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_json: If ``True``, includes attribute names that **can** be
           de-serialized from JSON strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from JSON strings. If :class:`None`,
+          that **cannot** be de-serialized from JSON strings. If :obj:`None <python:None>`,
           will not include attributes based on JSON de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_json: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_json: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_json: If ``True``, includes attribute names that **can** be
           serialized to JSON strings. If ``False``, includes attribute names
-          that **cannot** be serialized to JSON strings. If :class:`None`,
+          that **cannot** be serialized to JSON strings. If :obj:`None <python:None>`,
           will not include attributes based on JSON serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_json: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_json: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_yaml: If ``True``, includes attribute names that **can** be
           de-serialized from YAML strings. If ``False``, includes attribute names
-          that **cannot** be de-serialized from YAML strings. If :class:`None`,
+          that **cannot** be de-serialized from YAML strings. If :obj:`None <python:None>`,
           will not include attributes based on YAML de-serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type from_yaml: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_yaml: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_yaml: If ``True``, includes attribute names that **can** be
           serialized to YAML strings. If ``False``, includes attribute names
-          that **cannot** be serialized to YAML strings. If :class:`None`,
+          that **cannot** be serialized to YAML strings. If :obj:`None <python:None>`,
           will not include attributes based on YAML serialization support (but
-          may include them based on other parameters). Defaults to :class:`None`.
-        :type to_yaml: :class:`bool <python:bool>` / :class:`None`
+          may include them based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type to_yaml: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param from_dict: If ``True``, includes attribute names that **can** be
           de-serialized from :class:`dict <python:dict>` objects. If ``False``, includes
           attribute names that **cannot** be de-serialized from :class:`dict <python:dict>`
-          objects. If :class:`None`, will not include attributes based on
+          objects. If :obj:`None <python:None>`, will not include attributes based on
           :class:`dict <python:dict>` de-serialization support (but may include them
-          based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :class:`bool <python:bool>` / :class:`None`
+          based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param to_dict: If ``True``, includes attribute names that **can** be
           serialized to :class:`dict <python:dict>` objects. If ``False``, includes
           attribute names that **cannot** be serialized to :class:`dict <python:dict>`
-          objects. If :class:`None`, will not include attributes based on
+          objects. If :obj:`None <python:None>`, will not include attributes based on
           :class:`dict <python:dict>` serialization support (but may include them
-          based on other parameters). Defaults to :class:`None`.
-        :type from_dict: :class:`bool <python:bool>` / :class:`None`
+          based on other parameters). Defaults to :obj:`None <python:None>`.
+        :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :returns: ``True`` if the attribute's serialization support matches,
-          ``False`` if not, and :class:`None` if no serialization support was
+          ``False`` if not, and :obj:`None <python:None>` if no serialization support was
           specified.
-        :rtype: :class:`bool <python:bool>` / :class:`None`
+        :rtype: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :raises AttributeError: if ``attribute`` is not present on the object
         """
@@ -1100,13 +1100,13 @@ class BaseModel(object):
 
         :param deserialize: If ``True``, returns columns that support
           :term:`de-serialization`. If ``False``, returns columns that do *not*
-          support deserialization. If :class:`None`, does not take
+          support deserialization. If :obj:`None <python:None>`, does not take
           deserialization into account. Defaults to ``True``.
         :type deserialize: :class:`bool <python:bool>`
 
         :param serialize: If ``True``, returns columns that support
           :term:`serialization`. If ``False``, returns columns that do *not*
-          support serialization. If :class:`None`, does not take
+          support serialization. If :obj:`None <python:None>`, does not take
           serialization into account. Defaults to ``True``.
         :type serialize: :class:`bool <python:bool>`
 
@@ -1381,7 +1381,7 @@ class BaseModel(object):
         .. tip::
 
           Unwrapped empty column values are automatically interpreted as null
-          (:class:`None`).
+          (:obj:`None <python:None>`).
 
         :param csv_data: The CSV record. Should be a single row and should **not**
           include column headers.
@@ -1403,7 +1403,7 @@ class BaseModel(object):
 
         :raises DeserializationError: if ``csv_data`` is not a valid
           :class:`str <python:str>`
-        :raises CSVColumnError: if the columns in ``csv_data`` do not match
+        :raises CSVStructureError: if the columns in ``csv_data`` do not match
           the expected columns returned by
           :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
         :raises ValueDeserializationError: if a value extracted from the CSV
@@ -1449,7 +1449,7 @@ class BaseModel(object):
         rows = [x for x in csv_reader]
 
         if len(rows) > 1:
-            raise CSVColumnError('expected 1 row of data, received %s' % len(csv_reader))
+            raise CSVStructureError('expected 1 row of data, received %s' % len(csv_reader))
         elif len(rows) == 0:
             data = {}
             for column_name in csv_column_names:
@@ -1458,7 +1458,7 @@ class BaseModel(object):
             data = rows[0]
 
         if data.get(None, None) is not None:
-            raise CSVColumnError('expected %s fields, found %s' % (len(csv_column_names),
+            raise CSVStructureError('expected %s fields, found %s' % (len(csv_column_names),
                                                                    len(data.keys())))
         for key in data:
             if data[key] == null_text:
@@ -1489,7 +1489,7 @@ class BaseModel(object):
         .. tip::
 
           Unwrapped empty column values are automatically interpreted as null
-          (:class:`None`).
+          (:obj:`None <python:None>`).
 
         :param csv_data: The CSV record. Should be a single row and should **not**
           include column headers.
@@ -1508,7 +1508,7 @@ class BaseModel(object):
 
         :raises DeserializationError: if ``csv_data`` is not a valid
           :class:`str <python:str>`
-        :raises CSVColumnError: if the columns in ``csv_data`` do not match
+        :raises CSVStructureError: if the columns in ``csv_data`` do not match
           the expected columns returned by
           :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
         :raises ValueDeserializationError: if a value extracted from the CSV
@@ -1542,7 +1542,7 @@ class BaseModel(object):
         .. tip::
 
           Unwrapped empty column values are automatically interpreted as null
-          (:class:`None`).
+          (:obj:`None <python:None>`).
 
         :param csv_data: The CSV record. Should be a single row and should **not**
           include column headers.
@@ -1564,7 +1564,7 @@ class BaseModel(object):
 
         :raises DeserializationError: if ``csv_data`` is not a valid
           :class:`str <python:str>`
-        :raises CSVColumnError: if the columns in ``csv_data`` do not match
+        :raises CSVStructureError: if the columns in ``csv_data`` do not match
           the expected columns returned by
           :func:`get_csv_column_names() <BaseModel.get_csv_column_names>`
         :raises ValueDeserializationError: if a value extracted from the CSV
@@ -1703,7 +1703,7 @@ class BaseModel(object):
         :type current_nesting: :class:`int <python:int>`
 
         :param serialize_function: Optionally override the default JSON serializer.
-          Defaults to :class:`None`, which applies the default
+          Defaults to :obj:`None <python:None>`, which applies the default
           :doc:`simplejson <simplejson:index>` JSON serializer.
 
           .. note::
@@ -1718,7 +1718,7 @@ class BaseModel(object):
             If you wish to pass additional arguments to your ``serialize_function``
             pass them as keyword arguments (in ``kwargs``).
 
-        :type serialize_function: callable / :class:`None`
+        :type serialize_function: callable / :obj:`None <python:None>`
 
         :param kwargs: Optional keyword parameters that are passed to the
           JSON serializer function. By default, these are options which are passed
@@ -1769,7 +1769,7 @@ class BaseModel(object):
         :type current_nesting: :class:`int <python:int>`
 
         :param serialize_function: Optionally override the default YAML serializer.
-          Defaults to :class:`None`, which calls the default ``yaml.dump()``
+          Defaults to :obj:`None <python:None>`, which calls the default ``yaml.dump()``
           function from the `PyYAML <https://github.com/yaml/pyyaml>`_ library.
 
           .. note::
@@ -1784,7 +1784,7 @@ class BaseModel(object):
             If you wish to pass additional arguments to your ``serialize_function``
             pass them as keyword arguments (in ``kwargs``).
 
-        :type serialize_function: callable / :class:`None`
+        :type serialize_function: callable / :obj:`None <python:None>`
 
         :param kwargs: Optional keyword parameters that are passed to the
           YAML serializer function. By default, these are options which are passed
@@ -2056,7 +2056,7 @@ class BaseModel(object):
         :type input_data: :class:`str <python:str>`
 
         :param deserialize_function: Optionally override the default YAML deserializer.
-          Defaults to :class:`None`, which calls the default ``yaml.safe_load()``
+          Defaults to :obj:`None <python:None>`, which calls the default ``yaml.safe_load()``
           function from the `PyYAML <https://github.com/yaml/pyyaml>`_ library.
 
           .. note::
@@ -2071,7 +2071,7 @@ class BaseModel(object):
             If you wish to pass additional arguments to your ``deserialize_function``
             pass them as keyword arguments (in ``kwargs``).
 
-        :type deserialize_function: callable / :class:`None`
+        :type deserialize_function: callable / :obj:`None <python:None>`
 
         :param error_on_extra_keys: If ``True``, will raise an error if an
           unrecognized key is found in ``input_data``. If ``False``, will
@@ -2135,7 +2135,7 @@ class BaseModel(object):
         :type input_data: :class:`str <python:str>`
 
         :param deserialize_function: Optionally override the default YAML deserializer.
-          Defaults to :class:`None`, which calls the default ``yaml.safe_load()``
+          Defaults to :obj:`None <python:None>`, which calls the default ``yaml.safe_load()``
           function from the `PyYAML <https://github.com/yaml/pyyaml>`_ library.
 
           .. note::
@@ -2150,7 +2150,7 @@ class BaseModel(object):
             If you wish to pass additional arguments to your ``deserialize_function``
             pass them as keyword arguments (in ``kwargs``).
 
-        :type deserialize_function: callable / :class:`None`
+        :type deserialize_function: callable / :obj:`None <python:None>`
 
         :param error_on_extra_keys: If ``True``, will raise an error if an
           unrecognized key is found in ``input_data``. If ``False``, will
@@ -2206,7 +2206,7 @@ class BaseModel(object):
         :type input_data: :class:`str <python:str>`
 
         :param deserialize_function: Optionally override the default JSON deserializer.
-          Defaults to :class:`None`, which calls the default
+          Defaults to :obj:`None <python:None>`, which calls the default
           :func:`simplejson.loads() <simplejson:simplejson.loads>` function from
           the :doc:`simplejson <simplejson:index>` library.
 
@@ -2223,7 +2223,7 @@ class BaseModel(object):
             If you wish to pass additional arguments to your ``deserialize_function``
             pass them as keyword arguments (in ``kwargs``).
 
-        :type deserialize_function: callable / :class:`None`
+        :type deserialize_function: callable / :obj:`None <python:None>`
 
         :param error_on_extra_keys: If ``True``, will raise an error if an
           unrecognized key is found in ``input_data``. If ``False``, will
@@ -2287,7 +2287,7 @@ class BaseModel(object):
         :type input_data: :class:`str <python:str>`
 
         :param deserialize_function: Optionally override the default JSON deserializer.
-          Defaults to :class:`None`, which calls the default
+          Defaults to :obj:`None <python:None>`, which calls the default
           :func:`simplejson.loads() <simplejson:simplejson.loads>`
           function from the doc:`simplejson <simplejson:index>` library.
 
@@ -2303,7 +2303,7 @@ class BaseModel(object):
             If you wish to pass additional arguments to your ``deserialize_function``
             pass them as keyword arguments (in ``kwargs``).
 
-        :type deserialize_function: callable / :class:`None`
+        :type deserialize_function: callable / :obj:`None <python:None>`
 
         :param error_on_extra_keys: If ``True``, will raise an error if an
           unrecognized key is found in ``input_data``. If ``False``, will
@@ -2366,10 +2366,10 @@ def declarative_base(cls, **kwargs):
       If a :class:`tuple <python:tuple>` of classes, will include :class:`BaseModel`
       in that list of classes to mixin serialization/de-serialization support.
 
-      If not :class:`None` and not a :class:`tuple <python:tuple>`, will mixin
+      If not :obj:`None <python:None>` and not a :class:`tuple <python:tuple>`, will mixin
       :class:`BaseModel` with the value passed to provide
       serialization/de-serialization support.
-    :type cls: :class:`None` / :class:`tuple <python:tuple>` of classes / class object
+    :type cls: :obj:`None <python:None>` / :class:`tuple <python:tuple>` of classes / class object
 
     :param kwargs: Additional keyword arguments supported by the original
       :func:`sqlalchemy.ext.declarative.declarative_base() <sqlalchemy:sqlalchemy.ext.declarative.declarative_base>`
@@ -2424,8 +2424,6 @@ def as_declarative(**kw):
       along to :func:`declarative_base`.
 
     .. seealso::
-
-      For more information, please see:
 
       * :func:`declarative_base() <declarative_base>`
     """

@@ -93,7 +93,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 pygments_style = 'sphinx'
 
 # Autodoc configuration settings.
-autoclass_content = 'both'
+autoclass_content = 'class'
 autodoc_member_order = 'groupwise'
 add_module_names = False
 
@@ -104,6 +104,8 @@ add_module_names = False
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
+
+# html_logo = '_static/sqlathanor-logo-100x50.png'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -224,9 +226,11 @@ epub_exclude_files = ['search.html']
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.6', None),
+    'python27': ('https://docs.python.org/2.7', None),
     'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest/', None),
     'simplejson': ('http://simplejson.readthedocs.io/en/latest/', None),
     'validator-collection': ('http://validator-collection.readthedocs.io/en/latest/', None),
+    'flask_sqlalchemy': ('http://flask-sqlalchemy.pocoo.org/2.3/', None),
 }
 
 # -- Options for todo extension ----------------------------------------------

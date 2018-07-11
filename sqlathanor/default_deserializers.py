@@ -21,14 +21,14 @@ def get_default_deserializer(class_attribute = None,
     type of ``class_attribute``.
 
     :param class_attribute: The class attribute whose default deserializer will be
-      returned. Defaults to :class:`None`.
+      returned. Defaults to :obj:`None <python:None>`.
 
     :param format: The format to which the value should be serialized. Accepts
-      either: ``csv``, ``json``, ``yaml``, or ``dict``. Defaults to :class:`None`.
+      either: ``csv``, ``json``, ``yaml``, or ``dict``. Defaults to :obj:`None <python:None>`.
     :type format: :class:`str <python:str>`
 
-    :returns: The default :term:`deserializer function` to apply or :class:`None`
-    :rtype: callable / :class:`None`
+    :returns: The default :term:`deserializer function` to apply or :obj:`None <python:None>`
+    :rtype: callable / :obj:`None <python:None>`
 
     :raises InvalidFormatError: if ``format`` is not a valid format type
     """
@@ -721,7 +721,7 @@ DEFAULT_DESERIALIZERS = {
         'yaml': from_uuid,
         'dict': from_uuid
     },
-    'UNIQUE_IDENTIFIER': {
+    'UNIQUEIDENTIFIER': {
         'csv': None,
         'json': None,
         'yaml': None,

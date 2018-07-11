@@ -25,7 +25,9 @@ from sqlathanor.errors import SQLAthanorError
 
 
 class Column(SerializationMixin, SA_Column):
-    """Represents a column in a database table."""
+    """Represents a column in a database table. Inherits from
+    :class:`sqlalchemy.schema.Column <sqlalchemy:sqlalchemy.schema.Column>`
+    """
 
     # pylint: disable=too-many-ancestors, W0223
 
@@ -61,7 +63,7 @@ class Column(SerializationMixin, SA_Column):
           form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         :param csv_sequence: Indicates the numbered position that the column should be in
-          in a valid CSV-version of the object. Defaults to :class:`None`.
+          in a valid CSV-version of the object. Defaults to :obj:`None <python:None>`.
 
           .. note::
 
@@ -71,7 +73,7 @@ class Column(SerializationMixin, SA_Column):
             If two columns have the same ``csv_sequence``, they will be sorted
             alphabetically.
 
-        :type csv_sequence: :class:`int <python:int>` / :class:`None`
+        :type csv_sequence: :class:`int <python:int>` / :obj:`None <python:None>`
 
         :param supports_json: Determines whether the column can be serialized to or
           de-serialized from JSON format.
@@ -125,7 +127,7 @@ class Column(SerializationMixin, SA_Column):
         :param on_deserialize: A function that will be called when attempting to
           assign a de-serialized value to the column. This is intended to either coerce
           the value being assigned to a form that is acceptable by the column, or
-          raise an exception if it cannot be coerced. If :class:`None`, the data
+          raise an exception if it cannot be coerced. If :obj:`None <python:None>`, the data
           type's default ``on_deserialize`` function will be called instead.
 
           .. tip::
@@ -142,13 +144,13 @@ class Column(SerializationMixin, SA_Column):
                 'dict': dict_on_deserialize_callable
               }
 
-          Defaults to :class:`None`.
+          Defaults to :obj:`None <python:None>`.
 
         :type on_deserialize: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables
 
         :param on_serialize: A function that will be called when attempting to
-          serialize a value from the column. If :class:`None`, the data
+          serialize a value from the column. If :obj:`None <python:None>`, the data
           type's default ``on_serialize`` function will be called instead.
 
           .. tip::
@@ -165,7 +167,7 @@ class Column(SerializationMixin, SA_Column):
                 'dict': dict_on_serialize_callable
               }
 
-          Defaults to :class:`None`.
+          Defaults to :obj:`None <python:None>`.
 
         :type on_serialize: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables

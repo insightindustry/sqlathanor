@@ -97,7 +97,7 @@ def format_to_tuple(format):
     :returns: A 4-member :class:`tuple <python:tuple>` corresponding to
       ``<direction>_csv``, ``<direction>_json``, ``<direction>_yaml``,
       ``<direction>_dict``
-    :rtype: :class:`tuple <python:tuple>` of :class:`bool <python:bool>` / :class:`None`
+    :rtype: :class:`tuple <python:tuple>` of :class:`bool <python:bool>` / :obj:`None <python:None>`
 
     :raises InvalidFormatError: if ``format`` is not ``csv``, ``json``, ``yaml``,
       or ``dict``.
@@ -139,10 +139,10 @@ def get_class_type_key(class_attribute, value = None):
       determines the data type based on ``value``.
 
     :param class_attribute: The class attribute whose default serializer will be
-      returned. Defaults to :class:`None`.
+      returned. Defaults to :obj:`None <python:None>`.
 
     :param format: The format to which the value should be serialized. Accepts
-      either: ``csv``, ``json``, ``yaml``, or ``dict``. Defaults to :class:`None`.
+      either: ``csv``, ``json``, ``yaml``, or ``dict``. Defaults to :obj:`None <python:None>`.
     :type format: :class:`str <python:str>`
 
     :param value: The class attribute's value.
@@ -361,7 +361,7 @@ def parse_yaml(input_data,
     :type input_data: :class:`str <python:str>`
 
     :param deserialize_function: Optionally override the default YAML deserializer.
-      Defaults to :class:`None`, which calls the default ``yaml.safe_load()``
+      Defaults to :obj:`None <python:None>`, which calls the default ``yaml.safe_load()``
       function from the `PyYAML <https://github.com/yaml/pyyaml>`_ library.
 
       .. note::
@@ -374,7 +374,7 @@ def parse_yaml(input_data,
         If you wish to pass additional arguments to your ``deserialize_function``
         pass them as keyword arguments (in ``kwargs``).
 
-    :type deserialize_function: callable / :class:`None`
+    :type deserialize_function: callable / :obj:`None <python:None>`
 
     :param kwargs: Optional keyword parameters that are passed to the
       YAML deserializer function. By default, these are options which are passed
@@ -415,7 +415,7 @@ def parse_json(input_data,
     :type input_data: :class:`str <python:str>`
 
     :param deserialize_function: Optionally override the default JSON deserializer.
-      Defaults to :class:`None`, which calls the default
+      Defaults to :obj:`None <python:None>`, which calls the default
       :ref:`simplejson.loads() <simplejson:simplejson.loads>`
       function from the `simplejson <https://github.com/simplejson/simplejson>`_ library.
 
@@ -430,7 +430,7 @@ def parse_json(input_data,
         If you wish to pass additional arguments to your ``deserialize_function``
         pass them as keyword arguments (in ``kwargs``).
 
-    :type deserialize_function: callable / :class:`None`
+    :type deserialize_function: callable / :obj:`None <python:None>`
 
     :param kwargs: Optional keyword parameters that are passed to the
       JSON deserializer function. By default, these are options which are passed

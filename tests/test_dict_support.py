@@ -17,7 +17,7 @@ from validator_collection import checkers
 from tests.fixtures import db_engine, tables, base_model, db_session, \
     model_single_pk, instance_single_pk, model_complex_postgresql, instance_postgresql
 
-from sqlathanor.errors import CSVColumnError, DeserializationError, \
+from sqlathanor.errors import CSVStructureError, DeserializationError, \
     MaximumNestingExceededError, MaximumNestingExceededWarning, \
     SerializableAttributeError, InvalidFormatError, ValueSerializationError, \
     ValueDeserializationError, DeserializableAttributeError, DeserializationError, \

@@ -103,7 +103,7 @@ class AttributeConfiguration(SerializationMixin):
         :param on_deserialize: A function that will be called when attempting to
           assign a de-serialized value to the column. This is intended to either coerce
           the value being assigned to a form that is acceptable by the column, or
-          raise an exception if it cannot be coerced. If :class:`None`, the data
+          raise an exception if it cannot be coerced. If :obj:`None <python:None>`, the data
           type's default ``on_deserialize`` function will be called instead.
 
           .. tip::
@@ -120,13 +120,13 @@ class AttributeConfiguration(SerializationMixin):
                 'dict': dict_on_deserialize_callable
               }
 
-          Defaults to :class:`None`.
+          Defaults to :obj:`None <python:None>`.
 
         :type on_deserialize: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables
 
         :param on_serialize: A function that will be called when attempting to
-          serialize a value from the column. If :class:`None`, the data
+          serialize a value from the column. If :obj:`None <python:None>`, the data
           type's default ``on_serialize`` function will be called instead.
 
           .. tip::
@@ -143,13 +143,13 @@ class AttributeConfiguration(SerializationMixin):
                 'dict': dict_on_serialize_callable
               }
 
-          Defaults to :class:`None`.
+          Defaults to :obj:`None <python:None>`.
 
         :type on_serialize: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables
 
         :param csv_sequence: Indicates the numbered position that the column should be in
-          in a valid CSV-version of the object. Defaults to :class:`None`.
+          in a valid CSV-version of the object. Defaults to :obj:`None <python:None>`.
 
           .. note::
 
@@ -159,11 +159,11 @@ class AttributeConfiguration(SerializationMixin):
             If two columns have the same ``csv_sequence``, they will be sorted
             alphabetically.
 
-        :type csv_sequence: :class:`int <python:int>` / :class:`None`
+        :type csv_sequence: :class:`int <python:int>` / :obj:`None <python:None>`
 
         :param attribute: The object representation of an attribute. Supplying this
           value overrides any other configuration options supplied. Defaults to
-          :class:`None`.
+          :obj:`None <python:None>`.
         :type attribute: class attribute
 
 
@@ -315,6 +315,12 @@ class AttributeConfiguration(SerializationMixin):
         """Create a new :class:`AttributeConfiguration` with keys in ``seq`` and
         values in ``value``.
 
+        :param seq: Iterable of keys
+        :type seq: iterable
+
+        :param value: Iterable of values
+        :type value: iterable
+
         :rtype: :class:`AttributeConfiguration`
 
         """
@@ -366,7 +372,7 @@ class AttributeConfiguration(SerializationMixin):
     def name(self):
         """The name of the attribute.
 
-        :rtype: :class:`str <python:str>` / :class:`None`
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
         """
         return self._name
 

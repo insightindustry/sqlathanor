@@ -26,6 +26,37 @@ Glossary
     oven") which Califate-era alchemical texts describe as being used for slow,
     uniform alchemical disgestion in talismanic alchemy.
 
+  Comma-Separated Value (CSV)
+    A text-based data exchange format where data is represented in one row of text,
+    with fields (columns) separated by a delimiter character (typically a comma
+    ``,`` or pipe ``|``).
+
+  Declarative Configuration
+    A way of configuring :term:`serialization` and :term:`de-serialization`
+    for particular :term:`model attributes <model attribute>` when defining
+    those attributes on the :term:`model class` using the
+    :doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`.
+
+    .. tip::
+
+      The Declarative Configuration approach does **not** support serialization
+      or de-serialization for :term:`model attributes <model attribute>` that are not
+      :class:`Column <sqlalthanor.schema.Column>` or
+      :func:`relationship() <sqlathanor.schema.relationship>`.
+
+      If you want to support serialization on
+      :term:`hybrid properties <hybrid property>`,
+      :term:`association proxies <association proxy>`, or
+      :term:`instance attributes <instance attribute>` please use
+      :term:`Meta Configuration`.
+
+    .. seealso::
+
+      * :ref:`Configure Serialization/De-serialization <configuration>` >
+        :ref:`Declarative Configuration <declarative_configuration>`
+      * :doc:`Quickstart <quickstart>` >
+        :ref:`Declarative Configuration Pattern <declarative_configuration_pattern>`
+
   De-serialization
     De-Serialization - as you can probably guess - is the reverse of
     :term:`serialization`. It's the process whereby data is received in one format
@@ -50,6 +81,15 @@ Glossary
     the data types supported by :doc:`SQLAlchemy <sqlalchemy:index>` and its
     dialects.
 
+    .. seealso::
+
+      * :ref:`De-serialization Post-processing <deserialization_postprocessing>`
+
+  Drop-in Replacement
+    A Python library that extends the functionality of an existing library
+    by inheriting from (and extending or modifying) its original classes or
+    replacing its original functions.
+
   Hybrid Property
     A concept in :doc:`SQLAlchemy <sqlalchemy:orm/extensions/hybrid>` that
     is used to define a :term:`model attribute` that is not directly represented
@@ -59,6 +99,36 @@ Glossary
     .. seealso::
 
       * **SQLAlchemy**: :class:`hybrid_property <sqlalchemy:sqlalchemy.ext.hybrid.hybrid_property>`
+
+  Instance Attribute
+    A :term:`model attribute` that is only present within a :term:`model instance`
+    that is defined using Python's built-in :func:`@property <python:property>`
+    decorator.
+
+  JavaScript Object Notation (JSON)
+    A lightweight data-interchange format that has become the *de facto* standard
+    for communication across internet-enabled APIs.
+
+    For a formal definition, please see the
+    `ECMA-404 Standard: JSON Data Interchange Syntax <http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf>`_
+
+  Meta Configuration
+    A way of configuring :term:`serialization` and :term:`de-serialization` using
+    a private :term:`model attribute` labeled ``__serialization__``.
+
+    .. tip::
+
+      Meta configuration is used to configure serialization/de-serialization for
+      :term:`hybrid properties <hybrid property>`,
+      :term:`association proxies <association proxy>`, and regular (non-hybrid)
+      Python properties.
+
+      .. seealso::
+
+        * :ref:`Configure Serialization/De-serialization <configuration>` >
+          :ref:`Meta Configuration <meta_configuration>`
+        * :doc:`Quickstart <quickstart>` >
+          :ref:`Meta Configuration Pattern <meta_configuration_pattern>`
 
   Model Attribute
     A property or attribute that belongs to a :term:`model class` or
@@ -141,3 +211,17 @@ Glossary
     Typical usages include value format conversion. **SQLAthanor** applies a set of
     default serialization functions that apply for the data types supported by
     :doc:`SQLAlchemy <sqlalchemy:index>` and its dialects.
+
+    .. seealso::
+
+      * :ref:`Serialization Pre-processing <serialization_preprocessing>`
+
+  YAML Ain't a Markup Language (YAML)
+    YAML is a text-based data serialization format similar in some respects to
+    :term:`JSON <JavaScript Object Notation (JSON)>`. For more information, please
+    see the `YAML 1.2 (3rd Edition) Specification <http://yaml.org/spec/1.2/spec.html>`_.
+
+    .. note::
+
+      If we're being absolutely formal, JSON is actually a subset of YAML's syntax.
+      But that's being needlessly formal.

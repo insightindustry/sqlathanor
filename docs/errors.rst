@@ -22,7 +22,17 @@ standard library, it leverages the same API for handling stack trace information
 This means that it will be handled just like a normal exception in unit test
 frameworks, logging solutions, and other tools that might need that information.
 
----------
+Errors During Serialization
+-----------------------------
+
+.. include:: _error_handling_serialization.rst
+
+Errors During De-Serialization
+--------------------------------
+
+.. include:: _error_handling_deserialization.rst
+
+------------------
 
 SQLAthanor Errors
 ===================
@@ -83,10 +93,10 @@ DeserializationError (from :class:`SQLAthanorError`)
 
 ----------------
 
-CSVColumnError (from :class:`DeserializationError`)
+CSVStructureError (from :class:`DeserializationError`)
 -------------------------------------------------------
 
-.. autoclass:: CSVColumnError
+.. autoclass:: CSVStructureError
 
 ----------------
 

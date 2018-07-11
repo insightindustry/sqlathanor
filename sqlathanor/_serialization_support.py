@@ -66,10 +66,10 @@ class SerializationMixin(object):
 
         .. note::
 
-          If :class:`None`, will default to alphabetical sorting *after* any
+          If :obj:`None <python:None>`, will default to alphabetical sorting *after* any
           attributes that have an explicit ``csv_sequence`` provided.
 
-        :rtype: :class:`int <python:int>` / :class:`None`.
+        :rtype: :class:`int <python:int>` / :obj:`None <python:None>`.
         """
         return self._csv_sequence
 
@@ -137,7 +137,7 @@ class SerializationMixin(object):
         """A function that will be called when attempting to serialize a value from
         the attribute.
 
-        If :class:`None`, the data type's default ``on_serialize``  function will be
+        If :obj:`None <python:None>`, the data type's default ``on_serialize``  function will be
         called instead.
 
         .. tip::
@@ -154,7 +154,7 @@ class SerializationMixin(object):
                 'dict': dict_on_serialize_callable
             }
 
-        Defaults to :class:`None`.
+        Defaults to :obj:`None <python:None>`.
 
         :rtype: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables
@@ -180,7 +180,7 @@ class SerializationMixin(object):
         This is intended to either coerce the value being assigned to a form that
         is acceptable by the attribute, or raise an exception if it cannot be coerced.
 
-        If :class:`None`, the data type's default ``on_deserialize`` function will
+        If :obj:`None <python:None>`, the data type's default ``on_deserialize`` function will
         be called instead.
 
         .. tip::
@@ -197,7 +197,7 @@ class SerializationMixin(object):
                 'dict': dict_on_deserialize_callable
             }
 
-          Defaults to :class:`None`.
+          Defaults to :obj:`None <python:None>`.
 
         :rtype: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables

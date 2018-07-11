@@ -75,7 +75,7 @@ class UnsupportedDeserializationError(DeserializationError):
     de-serialization."""
     pass
 
-class CSVColumnError(DeserializationError):
+class CSVStructureError(DeserializationError):
     """Error raised when there is a mismatch between expected columns and found columns
     in CSV data."""
     pass

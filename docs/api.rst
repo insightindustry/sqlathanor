@@ -65,15 +65,14 @@ model's columns and relationsips, and so should replace your imports of their
 
 .. seealso::
 
-  For more information, please see:
-
   * :doc:`Using SQLAthanor <using>`
 
 Column
 ------------
 
 .. autoclass:: Column
-  :members:
+
+  .. automethod:: Column.__init__
 
 ----------------------------
 
@@ -86,23 +85,21 @@ relationship()
 
   .. seealso::
 
-    For more information, please see:
-
       * :class:`RelationshipProperty`
-      * **SQLAlchemy**: :func:`relationship() <sqlalchemy:sqlalchemy.orm.relationship>`
+      * :func:`sqlalchemy.orm.relationship() <sqlalchemy:sqlalchemy.orm.relationship>`
 
   .. warning::
 
     This constructor is analogous to the original
-    SQLAlchemy :func:`relationship <sqlalchemy:sqlalchemy.orm.relationship>`
+    SQLAlchemy :func:`relationship() <sqlalchemy:sqlalchemy.ormrelationship>`
     from which it inherits. The only difference is that it supports additional
     keyword arguments which are not supported in the original, and which
     are documented below.
 
-    **For the original SQLAlchemy version, see:** :func:`relationship() <sqlalchemy:sqlalchemy.orm.relationship>`
+    **For the original SQLAlchemy version, see:** :func:`sqlalchemy.orm.relationship() <sqlalchemy:sqlalchemy.orm.relationship>`
 
   :param argument: see
-    :ref:`(SQLAlchemy) relationship() <sqlalchemy:sqlalchemy.orm.relationship>`
+    :func:`sqlalchemy.orm.relationship() <sqlalchemy:sqlalchemy.orm.relationship>`
 
   :param supports_json: Determines whether the column can be serialized to or
     de-serialized from JSON format.
@@ -166,15 +163,16 @@ to your SQLAlchemy model.
 
 .. seealso::
 
-  For more information, please see:
-
     * :doc:`Using SQLAthanor <using>`
 
 AttributeConfiguration
 -------------------------
 
 .. autoclass:: AttributeConfiguration
-  :members:
+  :members: fromkeys, name, from_attribute
+  :inherited-members:
+
+  .. automethod:: AttributeConfiguration.__init__
 
 ----------------------
 
@@ -185,6 +183,35 @@ validate_serialization_config()
 
 ---------------------
 
+.. module:: sqlathanor.flask_sqlathanor
+
+Flask-SQLAlchemy / Flask-SQLAthanor
+======================================
+
+initialize_flask_sqlathanor()
+--------------------------------
+
+.. autofunction:: initialize_flask_sqlathanor
+
+-----------------------------------------------------
+
+FlaskBaseModel
+------------------
+
+.. class:: FlaskBaseModel
+
+  Base class that establishes shared methods, attributes, and properties.
+
+  Designed to be supplied as a ``model_class`` when initializing
+  `Flask-SQLAlchemy`_.
+
+  .. seealso::
+
+    For detailed explanation of functionality, please see
+    :class:`BaseModel <sqlathanor.declarative.BaseModel>`.
+
+---------------------
+
 SQLAthanor Internals
 =======================
 
@@ -192,4 +219,6 @@ RelationshipProperty
 -----------------------
 
 .. autoclass:: sqlathanor.schema.RelationshipProperty
-  :members:
+
+.. _SQLAlchemy: http://www.sqlalchemy.org
+.. _Flask-SQLAlchemy: http://flask-sqlalchemy.pocoo.org

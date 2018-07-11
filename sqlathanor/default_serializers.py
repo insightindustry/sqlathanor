@@ -23,16 +23,16 @@ def get_default_serializer(class_attribute = None,
       determines the data type based on ``value``.
 
     :param class_attribute: The class attribute whose default serializer will be
-      returned. Defaults to :class:`None`.
+      returned. Defaults to :obj:`None <python:None>`.
 
     :param format: The format to which the value should be serialized. Accepts
-      either: ``csv``, ``json``, ``yaml``, or ``dict``. Defaults to :class:`None`.
+      either: ``csv``, ``json``, ``yaml``, or ``dict``. Defaults to :obj:`None <python:None>`.
     :type format: :class:`str <python:str>`
 
     :param value: The class attribute's value.
 
-    :returns: The default :term:`serializer function` to apply or :class:`None`
-    :rtype: callable / :class:`None`
+    :returns: The default :term:`serializer function` to apply or :obj:`None <python:None>`
+    :rtype: callable / :obj:`None <python:None>`
 
     :raises InvalidFormatError: if ``format`` is not a valid format type
     """
@@ -49,7 +49,7 @@ def get_default_serializer(class_attribute = None,
     return serializer_dict.get(format, None)
 
 def empty_string(value):
-    """Convert a :class:`None` ``value`` to an empty string."""
+    """Convert a :obj:`None <python:None>` ``value`` to an empty string."""
     # pylint: disable=unused-argument
     return ''
 
@@ -694,7 +694,7 @@ DEFAULT_SERIALIZERS = {
         'yaml': to_str,
         'dict': to_str
     },
-    'UNIQUE_IDENTIFIER': {
+    'UNIQUEIDENTIFIER': {
         'csv': None,
         'json': None,
         'yaml': None,

@@ -14,7 +14,7 @@ import pytest
 from tests.fixtures import db_engine, tables, base_model, db_session, \
     model_complex_postgresql, instance_postgresql
 
-from sqlathanor.errors import CSVColumnError, DeserializationError
+from sqlathanor.errors import CSVStructureError, DeserializationError
 
 
 @pytest.mark.parametrize('deserialize, serialize, expected_length', [
@@ -155,7 +155,7 @@ def test_to_csv(request,
 
 @pytest.mark.parametrize('input_value, expected_name, expected_smallint, expected_id, expected_serialization, error', [
     ('1|serialized|test-password|3|2\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
-    ('1|serialized|test-password|3|2|extra\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVColumnError),
+    ('1|serialized|test-password|3|2|extra\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVStructureError),
     (123, 'deserialized', 3, 1, '1|serialized|3|2\r\n', DeserializationError),
 
 ])
@@ -189,7 +189,7 @@ def test_update_from_csv(request,
 
 @pytest.mark.parametrize('input_value, expected_name, expected_smallint, expected_id, expected_serialization, error', [
     ('1|serialized|test-password|3|2\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
-    ('1|serialized|test-password|3|2|extra\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVColumnError),
+    ('1|serialized|test-password|3|2|extra\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVStructureError),
     (123, 'deserialized', 3, 1, '1|serialized|3|2\r\n', DeserializationError),
 
 ])
