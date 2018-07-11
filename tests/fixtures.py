@@ -21,6 +21,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.dialects import sqlite
 
+from flask import Flask
 
 from validator_collection import validators
 
@@ -36,6 +37,12 @@ def return_serialized(value):
 def return_deserialized(value):
     return "deserialized"
 
+@pytest.fixture
+def flask_app(request):
+    app = Flask("test_flask_app")
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
+
+    return app
 
 @pytest.fixture
 def state(request):

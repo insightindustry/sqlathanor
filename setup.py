@@ -162,7 +162,11 @@ setup(
     # Similar to `install_requires` above, these must be valid existing
     # projects.
     extras_require={  # Optional
-        'dev': ['check-manifest','sphinx','sphinx-rtd-theme','sphinx-tabs'],
+        'dev': ['check-manifest',
+                'sphinx',
+                'sphinx-rtd-theme',
+                'sphinx-tabs',
+                'Flask-SQLAlchemy'],
         'test': ['coverage',
                  'pytest',
                  'pytest-benchmark',
