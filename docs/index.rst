@@ -190,9 +190,30 @@ and parts of the :doc:`SQLAlchemy Core <sqlalchemy:core/api_basics>`.
 =========================
 
 Now that you have imported **SQLAthanor**, you can just declare your models
-the way you normally would, even using the exact same syntax. But now when you
-define your model, you can supply some additional arguments to your attribute
-definitions that control whether and how they are serialized or validated.
+the way you normally would, even using the exact same syntax.
+
+But now when you define your model, you can also configure serialization and
+de-serialization for each attribute using two approaches:
+
+  * The :ref:`Meta Configuration approach <meta_configuration>` lets you
+    define a single ``__serialization__`` attribute on your model that configures
+    serialization/de-serialization for all of your model's columns, hybrid properties,
+    association proxies, and properties.
+  * The :ref:`Declarative Configuration approach <declarative_configuration>` lets
+    you supply additional arguments to your attribute definitions that control whether
+    and how they are serialized, de-serialized, or validated.
+
+.. seealso::
+
+  * :ref:`Configuring Serialization and De-serialization <configuration>`
+
+    * :ref:`Meta Configuration <meta_configuration>`
+    * :ref:`Declarative Configuration <declarative_configuration>`
+
+  * :doc:`Quickstart <quickstart>`
+
+    * :ref:`Meta Configuration Pattern <meta_configuration_pattern>`
+    * :ref:`Declarative Configuration Pattern <declarative_configuration_pattern>`
 
 .. note::
 
@@ -207,60 +228,154 @@ definitions that control whether and how they are serialized or validated.
   to be serializable to a given format or de-serializable from a given format, you
   will need to **explicitly** enable serialization/deserialization.
 
-.. code-block:: python
+.. tabs::
 
-  from sqlathanor import declarative_base
+  .. tab:: Meta Approach
 
-  BaseModel = declarative_base()
+    .. code-block:: python
 
-  class User(BaseModel):
-    __tablename__ = 'users'
+      from sqlathanor import declarative_base, Column, relationship, AttributeConfiguration
 
-    id = Column("id",
-                Integer,
-                primary_key = True,
-                autoincrement = True,
-                supports_csv = True,
-                csv_sequence = 1,
-                supports_json = True,
-                supports_yaml = True,
-                supports_dict = True,
-                on_serialize = None,
-                on_deserialize = None)
+      from sqlalchemy import Integer, String
+      from sqlalchemy.ext.hybrid import hybrid_property
+      from sqlalchemy.ext.associationproxy import association_proxy
 
-    name = Column("name",
-                  Text,
-                  supports_csv = True,
-                  csv_sequence = 2,
-                  supports_json = True,
-                  supports_yaml = True,
-                  supports_dict = True,
-                  on_serialize = None,
-                  on_deserialize = None)
+      BaseModel = declarative_base()
 
-    email = Column("email",
-                   Text,
-                   supports_csv = True,
-                   csv_sequence = 3,
-                   supports_json = True,
-                   supports_yaml = True,
-                   supports_dict = True,
-                   on_serialize = None,
-                   on_deserialize = validators.email)
+      class User(BaseModel):
+        __tablename__ = 'users'
 
-     password = Column("password",
+        __serialization__ = [AttributeConfiguration(name = 'id',
+                                                    supports_csv = True,
+                                                    csv_sequence = 1,
+                                                    supports_json = True,
+                                                    supports_yaml = True,
+                                                    supports_dict = True,
+                                                    on_serialize = None,
+                                                    on_deserialize = None),
+                             AttributeConfiguration(name = 'addresses',
+                                                    supports_json = True,
+                                                    supports_yaml = (True, True),
+                                                    supports_dict = (True, False),
+                                                    on_serialize = None,
+                                                    on_deserialize = None),
+                             AttributeConfiguration(name = 'hybrid',
+                                                    supports_csv = True,
+                                                    csv_sequence = 2,
+                                                    supports_json = True,
+                                                    supports_yaml = True,
+                                                    supports_dict = True,
+                                                    on_serialize = None,
+                                                    on_deserialize = None)]
+                             AttributeConfiguration(name = 'keywords',
+                                                    supports_csv = False,
+                                                    supports_json = True,
+                                                    supports_yaml = True,
+                                                    supports_dict = True,
+                                                    on_serialize = None,
+                                                    on_deserialize = None)]
+                             AttributeConfiguration(name = 'python_property',
+                                                    supports_csv = (False, True),
+                                                    csv_sequence = 3,
+                                                    supports_json = (False, True),
+                                                    supports_yaml = (False, True),
+                                                    supports_dict = (False, True),
+                                                    on_serialize = None,
+                                                    on_deserialize = None)]
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+
+        addresses = relationship('Address',
+                                 backref = 'user')
+
+        _hybrid = 1
+
+        @hybrid_property
+        def hybrid(self):
+            return self._hybrid
+
+        @hybrid.setter
+        def hybrid(self, value):
+            self._hybrid = value
+
+        @hybrid.expression
+        def hybrid(cls):
+          return False
+
+        keywords = association_proxy('keywords', 'keyword')
+
+        @property
+        def python_property(self):
+          return self._hybrid * 2
+
+    As you can see, we've added a ``__serialization__`` attribute to your standard
+    model. The ``__serialization__`` attribute takes a list of
+    :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+    instances, where each configures the serialization and de-serialization of a
+    :term:`model attribute`.
+
+  .. tab:: Declarative Approach
+
+    .. code-block:: python
+
+      from sqlathanor import declarative_base
+
+      BaseModel = declarative_base()
+
+      class User(BaseModel):
+        __tablename__ = 'users'
+
+        id = Column("id",
+                    Integer,
+                    primary_key = True,
+                    autoincrement = True,
+                    supports_csv = True,
+                    csv_sequence = 1,
+                    supports_json = True,
+                    supports_yaml = True,
+                    supports_dict = True,
+                    on_serialize = None,
+                    on_deserialize = None)
+
+        name = Column("name",
+                      Text,
+                      supports_csv = True,
+                      csv_sequence = 2,
+                      supports_json = True,
+                      supports_yaml = True,
+                      supports_dict = True,
+                      on_serialize = None,
+                      on_deserialize = None)
+
+        email = Column("email",
                        Text,
-                       supports_csv = (True, False),
-                       csv_sequence = 4,
-                       supports_json = (True, False),
-                       supports_yaml = (True, False),
-                       supports_dict = (True, False),
+                       supports_csv = True,
+                       csv_sequence = 3,
+                       supports_json = True,
+                       supports_yaml = True,
+                       supports_dict = True,
                        on_serialize = None,
-                       on_deserialize = my_custom_password_hash_function)
+                       on_deserialize = validators.email)
 
-As you can see, we've just added some (optional) arguments to the
-:class:`Column <sqlalchemy:sqlalchemy.schema.Column>` constructor. Hopefully, they're
-pretty self-explanatory:
+         password = Column("password",
+                           Text,
+                           supports_csv = (True, False),
+                           csv_sequence = 4,
+                           supports_json = (True, False),
+                           supports_yaml = (True, False),
+                           supports_dict = (True, False),
+                           on_serialize = None,
+                           on_deserialize = my_custom_password_hash_function)
+
+    As you can see, we've just added some (optional) arguments to the
+    :class:`Column <sqlalchemy:sqlalchemy.schema.Column>` constructor. Hopefully
+    these configuration arguments are self-explanatory.
+
+  Both the Meta and the Declarative configuration approaches use the same
+  API for configuring serialization and de-serialization. While there are a lot
+  of details, in general, the configuration arguments are:
 
   * ``supports_<format>`` determines whether that attribute is included when
     :term:`serializing <serialization>` or :term:`de-serializing <de-serialization>`
