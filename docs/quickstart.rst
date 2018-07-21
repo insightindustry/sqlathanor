@@ -344,6 +344,159 @@ Password De-serialization
 
 ----------------------------
 
+Using SQLAthanor with SQLAlchemy Reflection
+=============================================
+
+.. seealso::
+
+  * :ref:`Using Declarative Reflection with SQLAthanor <using_reflection>`
+  * **SQLAlchemy**: :doc:`Reflecting Database Objects <sqlalchemy:core/reflection>`
+  * **SQLAlchemy**: `Using Reflection with Declarative <http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/table_config.html#using-reflection-with-declarative>`_
+
+.. tabs::
+
+  .. tab:: Meta Approach
+
+    .. code-block:: python
+
+      from sqlathanor import declarative_base, Column, AttributeConfiguration
+
+      from sqlalchemy import create_engine, Table
+
+      BaseModel = declarative_base()
+
+      engine = create_engine('... ENGINE CONFIGURATION GOES HERE ...')
+      # NOTE: Because reflection relies on a specific SQLAlchemy Engine existing, presumably
+      # you would know how to configure / instantiate your database engine using SQLAlchemy.
+      # This is just here for the sake of completeness.
+
+      class ReflectedUser(BaseModel):
+          __table__ = Table('users',
+                            BaseModel.metadata,
+                            autoload = True,
+                            autoload_with = engine)
+
+          __serialization__ = [AttributeConfiguration(name = 'id',
+                                                      supports_csv = True,
+                                                      csv_sequence = 1,
+                                                      supports_json = True,
+                                                      supports_yaml = True,
+                                                      supports_dict = True,
+                                                      on_serialize = None,
+                                                      on_deserialize = None),
+                               AttributeConfiguration(name = 'password',
+                                                      supports_csv = (True, False),
+                                                      supports_json = (True, False),
+                                                      supports_yaml = (True, False),
+                                                      supports_dict = (True, False),
+                                                      on_serialize = None,
+                                                      on_deserialize = None)]
+
+          # ADDITIONAL RELATIONSHIPS, HYBRID PROPERTIES, OR ASSOCIATION PROXIES
+          # GO HERE
+
+  .. tab:: Declarative: with Table
+
+    .. code-block:: python
+
+      from sqlathanor import declarative_base, Column, AttributeConfiguration
+
+      from sqlalchemy import create_engine, Table, Integer, String
+
+      BaseModel = declarative_base()
+
+      engine = create_engine('... ENGINE CONFIGURATION GOES HERE ...')
+      # NOTE: Because reflection relies on a specific SQLAlchemy Engine existing, presumably
+      # you would know how to configure / instantiate your database engine using SQLAlchemy.
+      # This is just here for the sake of completeness.
+
+      UserTable = Table('users',
+                        BaseModel.metadata,
+                        Column('id',
+                               Integer,
+                               primary_key = True,
+                               supports_csv = True,
+                               csv_sequence = 1,
+                               supports_json = True,
+                               supports_yaml = True,
+                               supports_dict = True,
+                               on_serialize = None,
+                               on_deserialize = None),
+                        Column('password',
+                               String(255),
+                               supports_csv = (True, False),
+                               csv_sequence = 2,
+                               supports_json = (True, False),
+                               supports_yaml = (True, False),
+                               supports_dict = (True, False),
+                               on_serialize = None,
+                               on_deserialize = None))
+
+      class ReflectedUser(BaseModel):
+          __table__ = Table('users',
+                            BaseModel.metadata,
+                            autoload = True,
+                            autoload_with = engine)
+
+          # ADDITIONAL RELATIONSHIPS, HYBRID PROPERTIES, OR ASSOCIATION PROXIES
+          # GO HERE
+
+  .. tab:: Declarative: without Table
+
+    .. tip::
+
+      In practice, this pattern eliminates the time-saving benefits of using
+      `reflection <http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/table_config.html#using-reflection-with-declarative>`_
+      in the first place. Instead, I would recommend adopting the
+      :ref:`meta configuration <meta_configuration>` pattern with reflection
+      instead.
+
+    .. code-block:: python
+
+      from sqlathanor import declarative_base, Column, AttributeConfiguration
+
+      from sqlalchemy import create_engine, Table, Integer, String
+
+      BaseModel = declarative_base()
+
+      engine = create_engine('... ENGINE CONFIGURATION GOES HERE ...')
+      # NOTE: Because reflection relies on a specific SQLAlchemy Engine existing, presumably
+      # you would know how to configure / instantiate your database engine using SQLAlchemy.
+      # This is just here for the sake of completeness.
+
+      class ReflectedUser(BaseModel):
+          __table__ = Table('users',
+                            BaseModel.metadata,
+                            autoload = True,
+                            autoload_with = engine)
+
+          id = Column('id',
+                      Integer,
+                      primary_key = True,
+                      supports_csv = True,
+                      csv_sequence = 1,
+                      supports_json = True,
+                      supports_yaml = True,
+                      supports_dict = True,
+                      on_serialize = None,
+                      on_deserialize = None)
+
+          password = Column('password',
+                            String(255),
+                            supports_csv = (True, False),
+                            csv_sequence = 2,
+                            supports_json = (True, False),
+                            supports_yaml = (True, False),
+                            supports_dict = (True, False),
+                            on_serialize = None,
+                            on_deserialize = None)
+
+          # ADDITIONAL RELATIONSHIPS, HYBRID PROPERTIES, OR ASSOCIATION PROXIES
+          # GO HERE
+
+
+----------------------------
+
 Using SQLAthanor with Flask-SQLAlchemy
 =========================================
 

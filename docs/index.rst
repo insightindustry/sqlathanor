@@ -40,7 +40,7 @@ SQLAthanor
  :caption: Contents:
 
  Home <self>
- Quickstart <quickstart>
+ Quickstart: Patterns and Best Practices <quickstart>
  Using SQLAthanor <using>
  API Reference <api>
  Default Serialization Functions <default_serialization_functions>
