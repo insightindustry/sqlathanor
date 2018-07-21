@@ -14,7 +14,7 @@ import pytest
 from sqlathanor import BaseModel as Base
 from sqlathanor import Column, relationship, AttributeConfiguration
 
-from sqlalchemy import Integer, String, ForeignKey, create_engine, MetaData
+from sqlalchemy import Integer, String, ForeignKey, create_engine, MetaData, Table
 from sqlalchemy.orm import clear_mappers, Session, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -514,6 +514,35 @@ def model_single_pk(request, tables):
     Address = tables['model_single_pk'][1]
 
     return (User, Address)
+
+
+@pytest.fixture()
+def model_reflected_tables(request, db_engine, tables):
+    BaseModel = tables['base_model']
+
+    class User_Complex_Reflected(BaseModel):
+        __table__ = Table('users_complex',
+                          BaseModel.metadata,
+                          autoload = True,
+                          autoload_with = db_engine)
+
+    class User_Complex_Meta_Reflected(BaseModel):
+        __table__ = Table('users_complex_meta',
+                          BaseModel.metadata,
+                          autoload = True,
+                          autoload_with = db_engine)
+
+    class User_Complex_Meta_Reflected_Meta(BaseModel):
+        __serialization__ = tables['model_complex_meta'][0].__serialization__
+
+        __table__ = Table('users_complex_meta',
+                          BaseModel.metadata,
+                          autoload = True,
+                          autoload_with = db_engine)
+
+    return (User_Complex_Reflected,
+            User_Complex_Meta_Reflected,
+            User_Complex_Meta_Reflected_Meta)
 
 
 @pytest.fixture()

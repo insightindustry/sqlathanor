@@ -40,7 +40,7 @@ SQLAthanor
  :caption: Contents:
 
  Home <self>
- Quickstart <quickstart>
+ Quickstart: Patterns and Best Practices <quickstart>
  Using SQLAthanor <using>
  API Reference <api>
  Default Serialization Functions <default_serialization_functions>
@@ -170,6 +170,13 @@ Key SQLAthanor Features
 * Default validation for de-serialized data for every SQLAlchemy data type.
 * Customize the validation used when de-serializing particular columns to match
   your needs.
+
+|
+
+**SQLAthanor** vs Alternatives
+================================
+
+.. include:: _versus_alternatives.rst
 
 ---------------
 

@@ -29,6 +29,20 @@ SQLAthanor
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=latest
          :alt: Documentation Status (ReadTheDocs)
 
+   * - `v.0.1.1 <https://github.com/insightindustry/sqlathanor/tree/v.0.1.1>`_
+     -
+       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.1.1
+         :target: https://travis-ci.org/insightindustry/sqlathanor
+         :alt: Build Status (Travis CI)
+
+       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.1.1/graph/badge.svg
+         :target: https://codecov.io/gh/insightindustry/sqlathanor
+         :alt: Code Coverage Status (Codecov)
+
+       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.1.1
+         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.1.1
+         :alt: Documentation Status (ReadTheDocs)
+
    * - `v.0.1.0 <https://github.com/insightindustry/sqlathanor/tree/v.0.1.0>`_
      -
        .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.1.0
@@ -181,6 +195,13 @@ Key SQLAthanor Features
 * Customize the validation used when de-serializing particular columns to match
   your needs.
 
+**SQLAthanor** vs Alternatives
+================================
+
+For a comparison of **SQLAthanor** to various alternative
+serialization/de-serialization approaches, please see full documentation:
+https://sqlathanor.readthedocs.io/en/latest/index.html#sqlathanor-vs-alternatives
+
 ---------------
 
 ***********************************
@@ -190,7 +211,7 @@ Complete Documentation
 **SQLAthanor** is a complex library that integrates with other complex libraries.
 We strongly recommend that you review our comprehensive documentation at:
 
-  http://sqlathanor.readthedocs.org/en/latest/index.html
+  https://sqlathanor.readthedocs.org/en/latest/index.html
 
 --------------
 
