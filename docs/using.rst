@@ -108,6 +108,11 @@ and de-serialization into/from:
 Which should hopefully save some effort when building applications that need to
 talk to the outside world (and really, don't all apps do these days?).
 
+**SQLAthanor** vs. Alternatives
+----------------------------------
+
+.. include:: _versus_alternatives.rst
+
 ----------------
 
 .. _features:

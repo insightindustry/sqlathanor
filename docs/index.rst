@@ -171,6 +171,13 @@ Key SQLAthanor Features
 * Customize the validation used when de-serializing particular columns to match
   your needs.
 
+|
+
+**SQLAthanor** vs Alternatives
+================================
+
+.. include:: _versus_alternatives.rst
+
 ---------------
 
 ***********************************
