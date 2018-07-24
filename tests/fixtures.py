@@ -678,3 +678,16 @@ def instance_postgresql(request, model_complex_postgresql):
     instance_values = (user_instance_values, address_instance_values)
 
     return (instances, instance_values)
+
+
+@pytest.fixture
+def original_hybrid_config(request):
+    config  = AttributeConfiguration(name = 'hybrid',
+                                     supports_csv = True,
+                                     csv_sequence = None,
+                                     supports_json = True,
+                                     supports_yaml = True,
+                                     supports_dict = True,
+                                     on_serialize = None,
+                                     on_deserialize = None)
+    return config
