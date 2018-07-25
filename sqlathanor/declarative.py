@@ -569,8 +569,10 @@ class BaseModel(object):
                                  from_dict = None,
                                  to_dict = None,
                                  exclude_private = True):
-        """Retrieve a list of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` objects corresponding
-        to attributes whose values can be serialized from/to CSV, JSON, YAML, etc.
+        """Retrieve a list of
+        :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+        objects corresponding to attributes whose values can be serialized
+        from/to CSV, JSON, YAML, etc.
 
         :param from_csv: If ``True``, includes attribute names that **can** be
           de-serialized from CSV strings. If ``False``, includes attribute names

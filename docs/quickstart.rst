@@ -494,6 +494,96 @@ Using SQLAthanor with SQLAlchemy Reflection
           # ADDITIONAL RELATIONSHIPS, HYBRID PROPERTIES, OR ASSOCIATION PROXIES
           # GO HERE
 
+----------------------------
+
+.. _automap_pattern:
+
+Using SQLAthanor with Automap
+=============================================
+
+.. versionadded:: 0.2.0
+
+.. seealso::
+
+  * :ref:`Using Automap with SQLAthanor <using_automap>`
+  * **SQLAlchemy**: :doc:`Automap Extension <sqlalchemy:orm/extensions/automap>`
+
+.. error::
+
+  If you try to use :func:`automap_base() <sqlathanor.automap.automap_base>` with
+  SQLAlchemy **v.0.9.0**, you will get a
+  :exc:`SQLAlchemySupportError <sqlathanor.errors.SQLAlchemySupportError>`.
+
+.. tabs::
+
+  .. tab:: Declarative Approach
+
+    .. code-block:: python
+
+      from sqlathanor.automap import automap_base
+      from sqlalchemy import create_engine
+
+      # Create your Automap Base
+      Base = automap_base()
+
+      engine = create_engine('... DATABASE CONNECTION GOES HERE ...')
+
+      # Prepare your automap base. This reads your database and creates your models.
+      Base.prepare(engine, reflect = True)
+
+      # And here you can create a "User" model class and an "Address" model class.
+      User = Base.classes.users
+      Address = Base.classes.addresses
+
+
+      User.set_attribute_serialization_config('email_address',
+                                              supports_csv = True,
+                                              supports_json = True,
+                                              supports_yaml = True,
+                                              supports_dict = True)
+      User.set_attribute_serialization_config('password',
+                                              supports_csv = (True, False),
+                                              supports_json = (True, False),
+                                              supports_yaml = (True, False),
+                                              supports_dict = (True, False),
+                                              on_deserialize = my_encryption_function)
+
+  .. tab:: Meta Approach
+
+    .. code-block:: python
+
+      from sqlathanor.automap import automap_base
+      from sqlalchemy import create_engine
+
+      # Create your Automap Base
+      Base = automap_base()
+
+      engine = create_engine('... DATABASE CONNECTION GOES HERE ...')
+
+      # Prepare your automap base. This reads your database and creates your models.
+      Base.prepare(engine, reflect = True)
+
+      # And here you can create a "User" model class and an "Address" model class.
+      User = Base.classes.users
+      Address = Base.classes.addresses
+
+      User.__serialization__ = [
+          {
+              'name': 'email_address',
+              'supports_csv': True,
+              'supports_json': True,
+              'supports_yaml': True,
+              'supports_dict': True
+          },
+          {
+              'name': 'password',
+              'supports_csv': (True, False),
+              'supports_json': (True, False),
+              'supports_yaml': (True, False),
+              'supports_dict': (True, False),
+              'on_deserialize': my_encryption_function
+          }
+      ]
 
 ----------------------------
 
