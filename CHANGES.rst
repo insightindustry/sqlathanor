@@ -1,7 +1,21 @@
 -----------
 
+Release 0.2.1
+=========================================
+
+Bugs Fixed
+------------
+
+* #30: Tweaked function signature for ``declarative_base()`` to make ``cls`` a
+  keyword argument.
+
+-----------
+
 Release 0.2.0
 =========================================
+
+Features Added
+----------------
 
 * #21: Added support for `SQLAlchemy Automap Extension`_.
 * #27: Added support for programmatically modifying serialization/de-serialization

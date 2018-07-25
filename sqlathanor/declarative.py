@@ -2643,7 +2643,7 @@ class BaseModel(object):
 
         return cls(**data)
 
-def declarative_base(cls, **kwargs):
+def declarative_base(cls = BaseModel, **kwargs):
     """Construct a base class for declarative class definitions.
 
     The new base class will be given a metaclass that produces appropriate
@@ -2651,7 +2651,7 @@ def declarative_base(cls, **kwargs):
     appropriate :func:`mapper <sqlalchemy:sqlalchemy.orm.mapper>` calls based on the
     information provided declaratively in the class and any subclasses of the class.
 
-    :param cls: Defaults to :class:`BaseModel` to provide  serialization/de-serialization
+    :param cls: Defaults to :class:`BaseModel` to provide serialization/de-serialization
       support.
 
       If a :class:`tuple <python:tuple>` of classes, will include :class:`BaseModel`
@@ -2671,10 +2671,7 @@ def declarative_base(cls, **kwargs):
       serialization and de-serialization.
 
     """
-    cls = kwargs.pop('cls', None)
-    if cls is None:
-        cls = BaseModel
-    elif isinstance(cls, tuple):
+    if isinstance(cls, tuple):
         class_list = [x for x in cls]
         class_list.insert(0, BaseModel)
         cls = (x for x in class_list)
