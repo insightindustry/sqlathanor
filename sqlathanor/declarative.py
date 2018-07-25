@@ -22,7 +22,8 @@ from validator_collection import checkers, validators
 from validator_collection.errors import NotAnIterableError
 
 from sqlathanor._compat import StringIO, json
-from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config
+from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config, \
+    BLANK_ON_SERIALIZE
 from sqlathanor.utilities import format_to_tuple, iterable__to_dict, parse_yaml, \
     parse_json
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
@@ -568,8 +569,10 @@ class BaseModel(object):
                                  from_dict = None,
                                  to_dict = None,
                                  exclude_private = True):
-        """Retrieve a list of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` objects corresponding
-        to attributes whose values can be serialized from/to CSV, JSON, YAML, etc.
+        """Retrieve a list of
+        :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+        objects corresponding to attributes whose values can be serialized
+        from/to CSV, JSON, YAML, etc.
 
         :param from_csv: If ``True``, includes attribute names that **can** be
           de-serialized from CSV strings. If ``False``, includes attribute names
@@ -808,6 +811,294 @@ class BaseModel(object):
                 return config.copy()
 
         return None
+
+    @classmethod
+    def set_attribute_serialization_config(cls,
+                                           attribute,
+                                           config = None,
+                                           supports_csv = None,
+                                           csv_sequence = None,
+                                           supports_json = None,
+                                           supports_yaml = None,
+                                           supports_dict = None,
+                                           on_deserialize = None,
+                                           on_serialize = None):
+        """Set the serialization/de-serialization configuration for ``attribute``.
+
+        .. note::
+
+          Supplying keyword arguments like ``supports_csv`` or ``supports_json``
+          will override any configuration set in ``config``.
+
+        :param attribute: The name of the :term:`model attribute` whose
+          serialization/de-serialization configuration is to be configured.
+        :type attribute: :class:`str <python:str>`
+
+        :param config: The
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+          to apply. If :obj:`None <python:None>`, will set particular values based
+          on their corresponding keyword arguments.
+        :type config: :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+          / :obj:`None <python:None>`
+
+        :param supports_csv: Determines whether the column can be serialized to or
+          de-serialized from CSV format.
+
+          If ``True``, can be serialized to CSV and de-serialized from CSV. If
+          ``False``, will not be included when serialized to CSV and will be ignored
+          if present in a de-serialized CSV.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
+          which determines de-serialization and serialization support respectively.
+
+          If :obj:`None <python:None>`, will retain whatever configuration is currently
+          applied. Defaults to :obj:`None <python:None>`
+
+        :type supports_csv: :class:`bool <python:bool>` / :class:`tuple <python:tuple>`
+          of form (inbound: :class:`bool <python:bool>`, outbound:
+          :class:`bool <python:bool>`) / :obj:`None <python:None>`
+
+        :param supports_json: Determines whether the column can be serialized to or
+          de-serialized from JSON format.
+
+          If ``True``, can be serialized to JSON and de-serialized from JSON.
+          If ``False``, will not be included when serialized to JSON and will be
+          ignored if present in a de-serialized JSON.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
+          which determines de-serialization and serialization support respectively.
+
+          If :obj:`None <python:None>`, will retain whatever configuration is currently
+          applied. Defaults to :obj:`None <python:None>`
+
+        :type supports_json: :class:`bool <python:bool>` / :class:`tuple <python:tuple>`
+          of form (inbound: :class:`bool <python:bool>`, outbound:
+          :class:`bool <python:bool>`) / :obj:`None <python:None>`
+
+        :param supports_yaml: Determines whether the column can be serialized to or
+          de-serialized from YAML format.
+
+          If ``True``, can be serialized to YAML and de-serialized from YAML.
+          If ``False``, will not be included when serialized to YAML and will be
+          ignored if present in a de-serialized YAML.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
+          which determines de-serialization and serialization support respectively.
+
+          If :obj:`None <python:None>`, will retain whatever configuration is currently
+          applied. Defaults to :obj:`None <python:None>`
+
+        :type supports_yaml: :class:`bool <python:bool>` / :class:`tuple <python:tuple>`
+          of form (inbound: :class:`bool <python:bool>`, outbound:
+          :class:`bool <python:bool>`) / :obj:`None <python:None>`
+
+        :param supports_dict: Determines whether the column can be serialized to or
+          de-serialized to a Python :class:`dict <python:dict>`.
+
+          If ``True``, can be serialized to :class:`dict <python:dict>` and de-serialized
+          from a :class:`dict <python:dict>`. If ``False``, will not be included
+          when serialized to :class:`dict <python:dict>` and will be ignored if
+          present in a de-serialized :class:`dict <python:dict>`.
+
+          Can also accept a 2-member :class:`tuple <python:tuple>` (inbound / outbound)
+          which determines de-serialization and serialization support respectively.
+
+          If :obj:`None <python:None>`, will retain whatever configuration is currently
+          applied. Defaults to :obj:`None <python:None>`
+
+        :type supports_dict: :class:`bool <python:bool>` / :class:`tuple <python:tuple>`
+          of form (inbound: :class:`bool <python:bool>`, outbound:
+          :class:`bool <python:bool>`) / :obj:`None <python:None>`
+
+        :param on_deserialize: A function that will be called when attempting to
+          assign a de-serialized value to the column. This is intended to either coerce
+          the value being assigned to a form that is acceptable by the column, or
+          raise an exception if it cannot be coerced.
+
+          .. tip::
+
+            If you need to execute different ``on_deserialize`` functions for
+            different formats, you can also supply a :class:`dict <python:dict>`:
+
+            .. code-block:: python
+
+              on_deserialize = {
+                'csv': csv_on_deserialize_callable,
+                'json': json_on_deserialize_callable,
+                'yaml': yaml_on_deserialize_callable,
+                'dict': dict_on_deserialize_callable
+              }
+
+          If ``False``, will clear the current configuration to apply the default.
+
+          If :obj:`None <python:None>`, will retain whatever configuration is currently
+          applied. Defaults to :obj:`None <python:None>`
+
+          .. tip::
+
+            To clear the ``on_deserialize`` function, you can either supply a value
+            of ``False`` or pass a :class:`dict <python:dict>` with particular formats
+            set to :obj:`None <python:None>`:
+
+            .. code-block:: python
+
+              on_deserialize = {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+              }
+
+              # is equivalent to:
+
+              on_deserialize = False
+
+            This will revert the `on_deserialize` function to the attribute's
+            default `on_deserialize` function based on its data type.
+
+        :type on_deserialize: callable / :class:`dict <python:dict>` with formats
+          as keys and values as callables / :obj:`None <python:None>`
+
+        :param on_serialize: A function that will be called when attempting to
+          serialize a value from the column.
+
+          .. tip::
+
+            If you need to execute different ``on_serialize`` functions for
+            different formats, you can also supply a :class:`dict <python:dict>`:
+
+            .. code-block:: python
+
+              on_serialize = {
+                'csv': csv_on_serialize_callable,
+                'json': json_on_serialize_callable,
+                'yaml': yaml_on_serialize_callable,
+                'dict': dict_on_serialize_callable
+              }
+
+          If ``False``, will clear the current configuration to apply the default
+          configuration.
+
+          If :obj:`None <python:None>`, will retain whatever configuration is currently
+          applied. Defaults to :obj:`None <python:None>`
+
+          .. tip::
+
+            To clear the ``on_serialize`` function, you need to pass ``False`` or a
+            :class:`dict <python:dict>` with particular formats set to
+            :obj:`None <python:None>`:
+
+            .. code-block:: python
+
+              on_serialize = {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+              }
+
+              # is equivalent to
+
+              on_serialize = False
+
+            This will revert the `on_serialize` function to the attribute's
+            default `on_serialize` function based on its data type.
+
+        :type on_serialize: callable / :class:`dict <python:dict>` with formats
+          as keys and values as callables / :obj:`None <python:None>` / ``False``
+
+        :param csv_sequence: Indicates the numbered position that the column should be in
+          in a valid CSV-version of the object.
+
+          .. note::
+
+            If not specified, the column will go after any columns that *do* have a
+            ``csv_sequence`` assigned, sorted alphabetically.
+
+            If two columns have the same ``csv_sequence``, they will be sorted
+            alphabetically.
+
+          If ``False``, will set the position to :obj:`None` <python:None>` which will
+          position the column *after* any explicitly positioned columns in alphabetical
+          order.
+
+          If :obj:`None <python:None>`, will retain whatever configuration is currently
+          applied. Defaults to :obj:`None <python:None>`
+
+        :type csv_sequence: :class:`int <python:int>` / :obj:`None <python:None>` /
+          ``False``
+
+        :raises ValueError: if ``attribute`` does not match ``config.name`` if
+          ``config`` is not :obj:`None <python:None>`
+
+        """
+        # pylint: disable=too-many-branches
+        original_config = cls.get_attribute_serialization_config(attribute)
+        if original_config is None:
+            original_config = AttributeConfiguration(name = attribute)
+
+        if config is None:
+            new_config = AttributeConfiguration(name = attribute)
+        else:
+            new_config = config
+
+        if attribute != new_config.name:
+            raise ValueError(
+                'attribute (%s) does not match config.name (%s)' % (attribute,
+                                                                    config.name)
+            )
+
+        if supports_csv is not None:
+            new_config.supports_csv = supports_csv
+        elif new_config.get('supports_csv', None) is None:
+            new_config.supports_csv = original_config['supports_csv']
+
+        if supports_json is not None:
+            new_config.supports_json = supports_json
+        elif new_config.get('supports_json', None) is None:
+            new_config.supports_json = original_config['supports_json']
+
+        if supports_yaml is not None:
+            new_config.supports_yaml = supports_yaml
+        elif new_config.get('supports_yaml', None) is None:
+            new_config.supports_yaml = original_config['supports_yaml']
+
+        if supports_dict is not None:
+            new_config.supports_dict = supports_dict
+        elif new_config.get('supports_dict', None) is None:
+            new_config.supports_dict = original_config['supports_dict']
+
+        if csv_sequence is not None:
+            if csv_sequence is False:
+                csv_sequence = None
+
+            new_config.csv_sequence = csv_sequence
+        elif new_config.get('csv_sequence', None) is None:
+            new_config['csv_sequence'] = original_config['csv_sequence']
+
+        if on_deserialize is not None:
+            if on_deserialize is False:
+                on_deserialize = BLANK_ON_SERIALIZE
+
+            new_config.on_deserialize = on_deserialize
+        elif checkers.are_dicts_equivalent(new_config.on_deserialize,
+                                           BLANK_ON_SERIALIZE):
+            new_config.on_deserialize = original_config.on_deserialize
+
+        if on_serialize is not None:
+            if on_serialize is False:
+                on_serialize = BLANK_ON_SERIALIZE
+
+            new_config.on_serialize = on_serialize
+        elif checkers.are_dicts_equivalent(new_config.on_serialize,
+                                           BLANK_ON_SERIALIZE):
+            new_config.on_serialize = original_config.on_serialize
+
+        serialization = [x for x in cls.__serialization__
+                         if x.name != attribute]
+        serialization.append(new_config)
+
+        cls.__serialization__ = [x for x in serialization]
 
     @classmethod
     def does_support_serialization(cls,
