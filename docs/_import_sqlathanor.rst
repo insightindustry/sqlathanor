@@ -148,3 +148,15 @@ The table below shows how `SQLAlchemy`_ classes and functions map to their
       .. code-block:: python
 
         from sqlathanor import relationship
+
+  * - :func:`ext.automap.automap_base() <sqlalchemy:sqlalchemy.ext.automap.automap_base>`
+
+      .. code-block:: python
+
+        from sqlalchemy.ext.automap import automap_base
+
+    - :func:`automap.automap_base() <sqlathanor.automap.automap_base>`
+
+      .. code-block:: python
+
+        from sqlathanor.automap import automap_base

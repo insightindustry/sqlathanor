@@ -18,6 +18,11 @@ class SQLAthanorWarning(UserWarning):
     :class:`UserWarning <python:warnings.UserWarning>`."""
     pass
 
+class SQLAlchemySupportError(SQLAthanorError):
+    """Error raised when attempting to leverage a SQLAlchemy functionality that
+    is not supported in your environment's version of SQLAlchemy."""
+    pass
+
 class SerializationError(SQLAthanorError):
     """Error raised when something went wrong during serialization."""
     pass

@@ -256,15 +256,61 @@ Dependencies
 3. Define Your Models
 =========================
 
-Because **SQLAthanor** is a drop-in replacement for `SQLAlchemy`_ and its
-:doc:`Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`, you can
-define your models the *exact same way* you would do so normally.
+.. tabs::
 
-.. seealso::
+  .. tab:: Standard Approach
 
-  * :doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`
-  * :doc:`SQLAlchemy ORM Tutorial <sqlalchemy:orm/tutorial>`
-  * :doc:`Flask-SQLAlchemy: Declaring Models <flask_sqlalchemy:models>`
+    Because **SQLAthanor** is a drop-in replacement for `SQLAlchemy`_ and its
+    :doc:`Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`, you can
+    define your models the *exact same way* you would do so normally:
+
+    .. seealso::
+
+      * :doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`
+      * :doc:`SQLAlchemy ORM Tutorial <sqlalchemy:orm/tutorial>`
+      * :doc:`Flask-SQLAlchemy: Declaring Models <flask_sqlalchemy:models>`
+
+  .. tab:: Declarative Reflection
+
+    `SQLAlchemy`_ supports the use of `reflection`_ with the
+    :doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`.
+
+    This is a process where `SQLAlchemy`_ automatically constructs a
+    :doc:`Declarative <sqlalchemy:orm/extensions/declarative/index>`
+    :term:`model class` based on what it reads from the table definition stored in your
+    SQL database *or* a corresponding :class:`Table <sqlalchemy:sqlalchemy.schema.Table>`
+    instance already defined and registered with a
+    :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>` object.
+
+    **SQLAthanor** also supports the same pattern. For details, please see:
+    :ref:`Using Declarative Reflection with SQLAthanor <using_reflection>`
+
+    .. seealso::
+
+      * :ref:`Using Declarative Reflection with SQLAthanor <using_reflection>`
+      * **SQLAlchemy**: :doc:`Reflecting Database Objects <sqlalchemy:core/reflection>`
+      * **SQLAlchemy**: `Using Reflection with Declarative <http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/table_config.html#using-reflection-with-declarative>`_
+
+  .. tab:: Using Automap
+
+    .. versionadded:: 0.2.0
+
+    The :doc:`Automap Extension <sqlalchemy:orm/extensions/automap>` is an incredibly
+    useful tool for modeling *existing* databases with minimal effort. What it does
+    is it reasd your existing database's metadata and automatically constructs
+    :doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`
+    :term:`model classes <model class>` populated with your tables' columns.
+
+    Neat, right? Saves a ton of effort.
+
+    Using **SQLAthanor** you can ensure that your automapped (automatically
+    generated) models support serialization and de-serialization. For more
+    details, please see: :ref:`Using Automap with SQLAthanor <using_automap>`.
+
+    .. seealso::
+
+      * :ref:`Using Automap with SQLAthanor <using_automap>`
+      * **SQLAlchemy**: :doc:`Automap Extension <sqlalchemy:orm/extensions/automap>`
 
 -----------------
 
@@ -306,7 +352,7 @@ Here are some important facts to understand for context:
      * :term:`Instance attributes <instance attribute>` defined using Python's
        built-in :func:`@property <python:property>` decorator.
 
-**SQLAthanor** supports two different mechanisms to configure
+In general, **SQLAthanor** supports two different mechanisms to configure
 serialization/de-serialization: :ref:`Declarative Configuration <declarative_configuration>`
 and :ref:`Meta Configuration <meta_configuration>`.
 
@@ -853,103 +899,6 @@ Why Two Configuration Approaches?
   and "data scientists", I've tried to design an interface that will feel "natural"
   to both communities.
 
-.. _using_reflection:
-
-Using Declarative Reflection with SQLAthanor
------------------------------------------------
-
-`SQLAlchemy`_ supports the use of `reflection`_ with the
-:doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`.
-
-This is a process where `SQLAlchemy`_ automatically constructs a
-:doc:`Declarative <sqlalchemy:orm/extensions/declarative/index>`
-:term:`model class` based on what it reads from the table definition stored in your
-SQL database *or* a corresponding :class:`Table <sqlalchemy:sqlalchemy.schema.Table>`
-instance already defined and registered with a
-:class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>` object.
-
-.. seealso::
-
-  * **SQLAlchemy**: :doc:`Reflecting Database Objects <sqlalchemy:core/reflection>`
-  * **SQLAlchemy**: `Using Reflection with Declarative <http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/table_config.html#using-reflection-with-declarative>`_
-
-**SQLAthanor** is *also* compatible with this pattern. In fact, it works just
-as you might expect. At a minimum:
-
-.. code-block:: python
-
-  from sqlathanor import declarative_base, Column, relationship, AttributeConfiguration
-
-  from sqlalchemy import create_engine, Integer, String, Table
-  from sqlalchemy.ext.hybrid import hybrid_property
-  from sqlalchemy.ext.associationproxy import association_proxy
-
-  engine = create_engine('... ENGINE CONFIGURATION GOES HERE ...')
-  # NOTE: Because reflection relies on a specific SQLAlchemy Engine existing, presumably
-  # you would know how to configure / instantiate your database engine using SQLAlchemy.
-  # This is just here for the sake of completeness.
-
-  BaseModel = declarative_base()
-
-  class ReflectedUser(BaseModel):
-    __table__ = Table('users',
-                      BaseModel.metadata,
-                      autoload = True,
-                      autoload_with = engine)
-
-will read the structure of your ``users`` table, and populate your ``ReflectedUser``
-model class with :term:`model attributes <model attribute>` that correspond to
-the table's columns as defined in the underlying SQL table.
-
-.. caution::
-
-  By design, `SQLAlchemy`_'s reflection **ONLY** reflects ``Column`` definitions.
-  It does **NOT** reflect :term:`relationships <relationship>` that you may
-  otherwise model using `SQLAlchemy`_.
-
-Because the ``ReflectedUser`` class inherits from the **SQLAthanor** base model,
-it establishes the ``__serialization__`` attribute, and the
-:meth:`to_csv() <sqlathanor.BaseModel.to_csv>`,
-:meth:`to_json() <sqlathanor.BaseModel.to_json>`,
-:meth:`to_yaml() <sqlathanor.BaseModel.to_yaml>`, and
-:meth:`to_dict() <sqlathanor.BaseModel.to_dict>` methods on the ``ReflectedUser``
-class.
-
-When working with a reflected model class, you can configure
-serialization/deserialization using either the
-:ref:`declarative <declarative_configuration>` or :ref:`meta <meta_configuration>`
-approach as you normally would.
-
-.. warning::
-
-  In the example above, if the database table named ``users`` already has a
-  :class:`Table <sqlalchemy:sqlalchemy.schema.Table>` associated with
-  it, ``ReflectedUser`` will inherit the ``Column`` definitions from the
-  "original" :class:`Table <sqlalchemy:sqlalchemy.schema.Table>` object.
-
-  If those column definitions are defined using :class:`sqlathanor.schema.Column`
-  with :ref:`declarative <declarative_configuration>`, their
-  serialization/deserialization will *also* be reflected (inherited).
-
-  However, the ``ReflectedUser`` model class will **NOT** inherit any
-  serialization/deserialization configuration defined using the
-  :ref:`meta <meta_configuration>` approach.
-
-Just as with standard `SQLAlchemy`_ `reflection`_, you can override your
-:class:`Column <sqlathanor.schema.Column>` definitions in your reflecting class
-(``ReflectedUser``), or add additional
-:func:`relationship <sqlathanor.schema.relationship>`
-:term:`model attributes <model attribute>`, :term:`hybrid properties <hybrid property>`,
-or :term:`association proxies <association proxy>` to the reflecting class.
-
-.. warning::
-
-  **SQLAthanor** is not currently compatible with the
-  :doc:`SQLAlchemy Declarative Automap Extension <sqlalchemy:orm/extensions/automap>`.
-
-  :doc:`Automap <sqlalchemy:orm/extensions/automap>` support is planned for
-  **SQLAthanor v.0.2.0**.
-
 --------------
 
 .. _extra_processing:
@@ -1272,6 +1221,212 @@ update_from_dict()
 
 .. automethod:: sqlathanor.BaseModel.update_from_dict
 
+-------------------
+
+.. _using_reflection:
+
+Using Declarative Reflection with SQLAthanor
+=================================================
+
+`SQLAlchemy`_ supports the use of `reflection`_ with the
+:doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`.
+
+This is a process where `SQLAlchemy`_ automatically constructs a
+:doc:`Declarative <sqlalchemy:orm/extensions/declarative/index>`
+:term:`model class` based on what it reads from the table definition stored in your
+SQL database *or* a corresponding :class:`Table <sqlalchemy:sqlalchemy.schema.Table>`
+instance already defined and registered with a
+:class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>` object.
+
+.. seealso::
+
+  * **SQLAlchemy**: :doc:`Reflecting Database Objects <sqlalchemy:core/reflection>`
+  * **SQLAlchemy**: `Using Reflection with Declarative <http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/table_config.html#using-reflection-with-declarative>`_
+  * :ref:`Using Automap with SQLAthanor <using_automap>`
+
+**SQLAthanor** is *also* compatible with this pattern. In fact, it works just
+as you might expect. At a minimum:
+
+.. code-block:: python
+
+  from sqlathanor import declarative_base, Column, relationship, AttributeConfiguration
+
+  from sqlalchemy import create_engine, Integer, String, Table
+  from sqlalchemy.ext.hybrid import hybrid_property
+  from sqlalchemy.ext.associationproxy import association_proxy
+
+  engine = create_engine('... ENGINE CONFIGURATION GOES HERE ...')
+  # NOTE: Because reflection relies on a specific SQLAlchemy Engine existing, presumably
+  # you would know how to configure / instantiate your database engine using SQLAlchemy.
+  # This is just here for the sake of completeness.
+
+  BaseModel = declarative_base()
+
+  class ReflectedUser(BaseModel):
+    __table__ = Table('users',
+                      BaseModel.metadata,
+                      autoload = True,
+                      autoload_with = engine)
+
+will read the structure of your ``users`` table, and populate your ``ReflectedUser``
+model class with :term:`model attributes <model attribute>` that correspond to
+the table's columns as defined in the underlying SQL table.
+
+.. caution::
+
+  By design, `SQLAlchemy`_'s reflection **ONLY** reflects ``Column`` definitions.
+  It does **NOT** reflect :term:`relationships <relationship>` that you may
+  otherwise model using `SQLAlchemy`_.
+
+Because the ``ReflectedUser`` class inherits from the **SQLAthanor** base model,
+it establishes the ``__serialization__`` attribute, and the
+:meth:`to_csv() <sqlathanor.BaseModel.to_csv>`,
+:meth:`to_json() <sqlathanor.BaseModel.to_json>`,
+:meth:`to_yaml() <sqlathanor.BaseModel.to_yaml>`, and
+:meth:`to_dict() <sqlathanor.BaseModel.to_dict>` methods on the ``ReflectedUser``
+class.
+
+When working with a reflected model class, you can configure
+serialization/deserialization using either the
+:ref:`declarative <declarative_configuration>` or :ref:`meta <meta_configuration>`
+approach as you normally would.
+
+.. warning::
+
+  In the example above, if the database table named ``users`` already has a
+  :class:`Table <sqlalchemy:sqlalchemy.schema.Table>` associated with
+  it, ``ReflectedUser`` will inherit the ``Column`` definitions from the
+  "original" :class:`Table <sqlalchemy:sqlalchemy.schema.Table>` object.
+
+  If those column definitions are defined using :class:`sqlathanor.schema.Column`
+  with :ref:`declarative <declarative_configuration>`, their
+  serialization/deserialization will *also* be reflected (inherited).
+
+  However, the ``ReflectedUser`` model class will **NOT** inherit any
+  serialization/deserialization configuration defined using the
+  :ref:`meta <meta_configuration>` approach.
+
+Just as with standard `SQLAlchemy`_ `reflection`_, you can override your
+:class:`Column <sqlathanor.schema.Column>` definitions in your reflecting class
+(``ReflectedUser``), or add additional
+:func:`relationship <sqlathanor.schema.relationship>`
+:term:`model attributes <model attribute>`, :term:`hybrid properties <hybrid property>`,
+or :term:`association proxies <association proxy>` to the reflecting class.
+
+-------------------
+
+.. _using_automap:
+
+Using Automap with SQLAthanor
+=================================
+
+.. versionadded:: 0.2.0
+
+.. caution::
+
+  :doc:`Automap <sqlalchemy:orm/extensions/automap>` was introduced in
+  `SQLAlchemy`_ **v.0.9.1**. If you are using **SQLAthanor** with SQLAlchemy
+  v.0.9.0, then if you attempt to use
+  :func:`automap_base() <sqlathanor.automap.automap_base>` you will raise a
+  :exc:`SQLAlchemySupportError <sqlathanor.errors.SQLAlchemySupportError>`.
+
+The :doc:`Automap Extension <sqlalchemy:orm/extensions/automap>` is an incredibly
+useful tool for modeling *existing* databases with minimal effort. What it does
+is it reasd your existing database's metadata and automatically constructs
+:doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`
+:term:`model classes <model class>` populated with your tables' columns.
+
+Neat, right? Saves a ton of effort.
+
+Using **SQLAthanor** you can ensure that your automapped (automatically
+generated) models support serialization and de-serialization.
+
+First, you need to create your automapped classes. This works just like in
+:doc:`Automap <sqlalchemy:orm/extensions/automap>`, only you import
+:func:`automap_base() <sqlathanor.automap.automap_base>` from **SQLAthanor**
+instead as shown below:
+
+.. code-block:: python
+
+  from sqlathanor.automap import automap_base
+  from sqlalchemy import create_engine
+
+  # Create your Automap Base
+  Base = automap_base()
+
+  engine = create_engine('... DATABASE CONNECTION GOES HERE ...')
+
+  # Prepare your automap base. This reads your database and creates your models.
+  Base.prepare(engine, reflect = True)
+
+  # And here you can create a "User" model class and an "Address" model class.
+  User = Base.classes.users
+  Address = Base.classes.addresses
+
+In the example above, we create ``User`` and ``Address``
+:term:`model classes <model class>` which will be populated with the columns and
+:term:`relationships <relationship>` from the ``users`` and ``addresses`` tables
+in the database.
+
+Both ``User`` and ``Address`` will have all of the standard **SQLAthanor** methods
+and functionality. **BUT!** They won't have any serialization/de-serialization
+configured.
+
+Before you start working with your models, you can configure their
+serialization/de-serialization using either a
+:ref:`declarative <declarative_configuration>` approach using
+:meth:`.set_attribute_serialization_config() <sqlathanor.declarative.BaseModel.set_attribute_serialization_config>`
+or a :ref:`meta approach <meta_configuration>` by setting the ``__serialization__`` attribute directly:
+
+.. tabs::
+
+  .. tab:: Declarative Approach
+
+    .. code-block:: python
+
+      User.set_attribute_serialization_config('email_address',
+                                              supports_csv = True,
+                                              supports_json = True,
+                                              supports_yaml = True,
+                                              supports_dict = True)
+      User.set_attribute_serialization_config('password',
+                                              supports_csv = (True, False),
+                                              supports_json = (True, False),
+                                              supports_yaml = (True, False),
+                                              supports_dict = (True, False),
+                                              on_deserialize = my_encryption_function)
+
+  .. tab:: Meta Approach
+
+    .. code-block:: python
+
+      User.__serialization__ = [
+          {
+              'name': 'email_address',
+              'supports_csv': True,
+              'supports_json': True,
+              'supports_yaml': True,
+              'supports_dict': True
+          },
+          {
+              'name': 'password',
+              'supports_csv': (True, False),
+              'supports_json': (True, False),
+              'supports_yaml': (True, False),
+              'supports_dict': (True, False),
+              'on_deserialize': my_encryption_function
+          }
+      ]
+
+Both snippets of code above tell the ``User`` model to include ``users.email_address``
+in both serialized output, and to expect it in de-serialized input. It also tells
+the ``User`` model to *never* serialize the ``users.password`` column, but to
+expect it in inbound data to de-serialize.
+
+.. seealso::
+
+  * **SQLAlchemy**: :doc:`Automap Extension <sqlalchemy:orm/extensions/automap>`
+  * :ref:`Using Declarative Reflection with SQLAthanor <using_reflection>`
 
 .. _SQLAlchemy: http://www.sqlalchemy.org
 .. _Flask-SQLAlchemy:  http://flask-sqlalchemy.pocoo.org/
