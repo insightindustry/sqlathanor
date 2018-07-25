@@ -8,6 +8,7 @@ tests._fixtures
 Fixtures used by the SQLAthanor test suite.
 
 """
+import sqlite3
 
 import pytest
 
@@ -691,3 +692,33 @@ def original_hybrid_config(request):
                                      on_serialize = None,
                                      on_deserialize = None)
     return config
+
+
+@pytest.fixture(scope = 'session')
+def existing_db(request, tmpdir_factory):
+    db_filename = str(tmpdir_factory.mktemp('db').join('temporary.db'))
+    connection = sqlite3.connect(db_filename)
+
+    cursor = connection.cursor()
+
+    cursor.execute('''CREATE TABLE users
+                   (id INT PRIMARY KEY, col1 TEXT, col2 TEXT, col3 TEXT)'''
+                  )
+    cursor.execute('''CREATE TABLE addresses
+                   (id INT PRIMARY KEY, col1 TEXT, col2 TEXT)'''
+                  )
+
+    connection.commit()
+
+    users = [(1, 'row1test1', 'row1test2', 'row1test3'),
+             (2, 'row2test1', 'row1test2', 'row2test3')]
+    addresses = [(1, 'row1test1', 'row1test2'),
+                 (2, 'row2test1', 'row2test2')]
+
+    cursor.executemany('INSERT INTO users VALUES (?, ?, ?, ?)', users)
+    cursor.executemany('INSERT INTO addresses VALUES (?, ?, ?)', addresses)
+
+    connection.commit()
+    connection.close()
+
+    return db_filename
