@@ -44,6 +44,13 @@ SQLAthanorError (from :class:`ValueError <python:ValueError>`)
 
 ----------------
 
+SQLAlchemySupportError (from :class:`SQLAthanorError`)
+----------------------------------------------------------
+
+.. autoclass:: SQLAlchemySupportError
+
+----------------
+
 InvalidFormatError (from :class:`SQLAthanorError`)
 -------------------------------------------------------
 

@@ -170,6 +170,8 @@ Key SQLAthanor Features
 * Default validation for de-serialized data for every SQLAlchemy data type.
 * Customize the validation used when de-serializing particular columns to match
   your needs.
+* Works with :ref:`Declarative Reflection <using_reflection>` and the
+  :ref:`Automap Extension <using_automap>`.
 
 |
 

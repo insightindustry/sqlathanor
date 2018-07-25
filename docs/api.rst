@@ -91,7 +91,7 @@ relationship()
   .. warning::
 
     This constructor is analogous to the original
-    SQLAlchemy :func:`relationship() <sqlalchemy:sqlalchemy.ormrelationship>`
+    SQLAlchemy :func:`relationship() <sqlalchemy:sqlalchemy.orm.relationship>`
     from which it inherits. The only difference is that it supports additional
     keyword arguments which are not supported in the original, and which
     are documented below.
@@ -209,6 +209,15 @@ FlaskBaseModel
 
     For detailed explanation of functionality, please see
     :class:`BaseModel <sqlathanor.declarative.BaseModel>`.
+
+---------------------
+
+.. module:: sqlathanor.automap
+
+Automap
+======================================
+
+.. autofunction:: automap_base
 
 ---------------------
 
