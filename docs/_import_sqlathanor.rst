@@ -64,15 +64,15 @@ the same elements as you would import from :doc:`SQLAlchemy <sqlalchemy:orm/tuto
        class, and then supply it as the ``model_class`` argument when initializing
        `Flask-SQLAlchemy`_.
     #. Initialize **SQLAthanor** on your ``db`` instance using
-       :func:`initialize_sqlathanor <sqlathanor.flask_sqlathanor.initialize_sqlathanor>`.
+       :func:`initialize_flask_sqlathanor <sqlathanor.flask_sqlathanor.initialize_flask_sqlathanor>`.
 
     .. code-block:: python
 
-      from sqlathanor import FlaskBaseModel, initialize_sqlathanor
+      from sqlathanor import FlaskBaseModel, initialize_flask_sqlathanor
       from flask_sqlalchemy import SQLAlchemy
 
       db = SQLAlchemy(model_class = FlaskBaseModel)
-      db = initialize_sqlathanor(db)
+      db = initialize_flask_sqlathanor(db)
 
     And that's it! Now **SQLAthanor** serialization functionality will be supported
     by:
