@@ -19,7 +19,8 @@ from tests.fixtures import db_engine, tables, base_model, db_session, \
 
 from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple, \
     get_class_type_key, raise_UnsupportedSerializationError, \
-    raise_UnsupportedDeserializationError, iterable__to_dict, parse_yaml, parse_json
+    raise_UnsupportedDeserializationError, iterable__to_dict, parse_yaml, parse_json, \
+    is_an_attribute
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
     MaximumNestingExceededWarning, DeserializationError
@@ -247,3 +248,73 @@ def test_parse_yaml(input_value,
     else:
         with pytest.raises(error):
             result = parse_yaml(input_value)
+
+
+
+@pytest.mark.parametrize('use_instance, attribute, forbid_callable, forbid_nested, expected_result', [
+    (False, 'boolean_attribute', False, False, True),
+    (False, 'string_attribute', False, False, True),
+    (False, 'int_attribute', False, False, True),
+    (False, 'dict_attribute', False, False, True),
+    (False, 'dict_attribute', False, True, False),
+    (False, 'list_attribute', False, False, True),
+    (False, 'list_string', False, False, True),
+    (False, 'list_dict', False, False, True),
+    (False, 'list_dict', False, True, False),
+    (False, 'set_attribute', False, False, True),
+    (False, 'set_int', False, False, True),
+    (False, 'property_attribute', False, False, True),
+    (False, 'property_attribute', True, False, True),
+    (False, 'method_attribute', False, False, True),
+    (False, 'method_attribute', True, False, False),
+
+    (True, 'boolean_attribute', False, False, True),
+    (True, 'string_attribute', False, False, True),
+    (True, 'int_attribute', False, False, True),
+    (True, 'dict_attribute', False, False, True),
+    (True, 'dict_attribute', False, True, False),
+    (True, 'list_attribute', False, False, True),
+    (True, 'list_string', False, False, True),
+    (True, 'list_dict', False, False, True),
+    (True, 'list_dict', False, True, False),
+    (True, 'set_attribute', False, False, True),
+    (True, 'set_int', False, False, True),
+    (True, 'property_attribute', False, False, True),
+    (True, 'property_attribute', True, False, True),
+    (True, 'method_attribute', False, False, True),
+    (True, 'method_attribute', True, False, False),
+])
+def test_is_an_attribute(use_instance, attribute, forbid_callable, forbid_nested, expected_result):
+    class TestClass(object):
+        boolean_attribute = True
+        string_attribute = 'string'
+        int_attribute = 1
+        dict_attribute = {}
+        list_attribute = []
+        list_string = ['test', 'test']
+        list_dict = [{}, {}]
+        set_attribute = set()
+        set_int = set([1, 2, 3])
+
+        def __init__(self, *args, **kwargs):
+            pass
+
+        @property
+        def property_attribute(self):
+            pass
+
+        def method_attribute(self, value):
+            pass
+
+    if use_instance:
+        target = TestClass()
+    else:
+        target = TestClass
+
+    attribute_value = getattr(target, attribute)
+    print(attribute_value)
+
+    assert is_an_attribute(target,
+                           attribute,
+                           forbid_callable = forbid_callable,
+                           forbid_nested = forbid_nested) == expected_result

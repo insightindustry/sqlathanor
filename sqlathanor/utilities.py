@@ -460,3 +460,49 @@ def parse_json(input_data,
     from_json = json.loads(input_data, **kwargs)
 
     return from_json
+
+
+def is_an_attribute(obj,
+                    attribute,
+                    forbid_callable = True,
+                    forbid_nested = False):
+    """Indicate whether ``attribute`` is an attribute of ``obj``.
+
+    :param obj: The object to check for ``attribute``.
+    :type obj: object
+
+    :param attribute: The name of the attribute to check.
+    :type attribute: :class:`str <python:str>`
+
+    :param forbid_callable: If ``True``, will return ``False`` if ``attribute`` is
+      a callable (method). Defaults to ``True``.
+    :type forbid_callable: :class:`bool <python:bool>`
+
+    :param forbid_nested: If ``True``, will return ``False`` if ``attribute`` is
+      an arbitrarily-nestable type (such as a :term:`model class` or
+      :class:`dict <python:dict>`). Defaults to ``False``.
+    :type forbid_nested: :class:`bool <python:bool>`
+
+    :returns: ``True`` if ``attribute`` exists on ``obj``. ``False`` if not.
+    :rtype: :class:`bool <python:bool>`
+
+    """
+    if not hasattr(obj, attribute):
+        return False
+
+    attribute_value = getattr(obj, attribute)
+
+    if checkers.is_callable(attribute_value) is True and forbid_callable:
+        return False
+
+    if isinstance(attribute_value, dict) and forbid_nested:
+        return False
+    elif checkers.is_iterable(attribute_value,
+                              forbid_literals = (str,
+                                                 bytes,
+                                                 dict)):
+        for item in attribute_value:
+            if forbid_nested and isinstance(item, dict):
+                return False
+
+    return True
