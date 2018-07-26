@@ -597,8 +597,8 @@ Using SQLAthanor with Flask-SQLAlchemy
 
 .. code-block:: python
 
-  from sqlathanor import FlaskBaseModel, initialize_sqlathanor
+  from sqlathanor import FlaskBaseModel, initialize_flask_sqlathanor
   from flask_sqlalchemy import SQLAlchemy
 
   db = SQLAlchemy(model_class = FlaskBaseModel)
-  db = initialize_sqlathanor(db)
+  db = initialize_flask_sqlathanor(db)

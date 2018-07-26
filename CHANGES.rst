@@ -1,5 +1,17 @@
 -----------
 
+Release 0.2.2
+=========================================
+
+Bugs Fixed
+------------
+
+* #36: Fixed error in documentation
+  (``flask_sqlathanor.initialize_flask_sqlathanor()`` initially documented as
+  ``flask_sqlathanor.initialize_sqlathanor()``).
+
+-----------
+
 Release 0.2.1
 =========================================
 
