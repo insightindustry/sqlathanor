@@ -10,6 +10,11 @@ Bugs Fixed
   (``flask_sqlathanor.initialize_flask_sqlathanor()`` initially documented as
   ``flask_sqlathanor.initialize_sqlathanor()``).
 
+Other Changes
+---------------
+
+* 32: Added Code of Conduct.
+
 -----------
 
 Release 0.2.1
