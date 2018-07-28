@@ -20,7 +20,7 @@ from tests.fixtures import db_engine, tables, base_model, db_session, \
 from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple, \
     get_class_type_key, raise_UnsupportedSerializationError, \
     raise_UnsupportedDeserializationError, iterable__to_dict, parse_yaml, parse_json, \
-    is_an_attribute
+    get_attribute_names, is_an_attribute
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
     MaximumNestingExceededWarning, DeserializationError
@@ -250,6 +250,54 @@ def test_parse_yaml(input_value,
             result = parse_yaml(input_value)
 
 
+@pytest.mark.parametrize('use_instance, include_callable, include_nested, include_private, include_utilities, expected_result', [
+    (False, False, False, False, False, 7),
+    (False, False, False, False, True, 9),
+    (False, False, False, True, False, 15),
+    (False, False, False, True, True, 19),
+    (False, False, True, False, False, 9),
+    (False, False, True, True, False, 18),
+    (False, False, True, True, True, 22),
+    (False, True, False, False, False, 33),
+    (False, True, True, False, False, 35),
+    (False, True, True, True, False, 78),
+    (False, True, True, True, True, 82),
+
+    (True, False, False, False, False, 8),
+    (True, False, False, False, True, 10),
+    (True, False, False, True, False, 14),
+    (True, False, False, True, True, 19),
+    (True, False, True, False, False, 9),
+    (True, False, True, True, False, 17),
+    (True, False, True, True, True, 22),
+    (True, True, False, False, False, 34),
+    (True, True, True, False, False, 35),
+    (True, True, True, True, False, 78),
+    (True, True, True, True, True, 83),
+
+])
+def test_get_attribute_names(model_complex_postgresql,
+                             instance_postgresql,
+                             use_instance,
+                             include_callable,
+                             include_nested,
+                             include_private,
+                             include_utilities,
+                             expected_result):
+    if use_instance:
+        target = instance_postgresql[0][0]
+    else:
+        target = model_complex_postgresql[0]
+
+    result = get_attribute_names(target,
+                                 include_callable = include_callable,
+                                 include_nested = include_nested,
+                                 include_private = include_private,
+                                 include_utilities = include_utilities)
+
+    print(result)
+    assert len(result) == expected_result
+
 
 @pytest.mark.parametrize('use_instance, attribute, forbid_callable, forbid_nested, expected_result', [
     (False, 'boolean_attribute', False, False, True),
@@ -311,10 +359,7 @@ def test_is_an_attribute(use_instance, attribute, forbid_callable, forbid_nested
     else:
         target = TestClass
 
-    attribute_value = getattr(target, attribute)
-    print(attribute_value)
-
     assert is_an_attribute(target,
                            attribute,
-                           forbid_callable = forbid_callable,
-                           forbid_nested = forbid_nested) == expected_result
+                           include_callable = not forbid_callable,
+                           include_nested = not forbid_nested) == expected_result
