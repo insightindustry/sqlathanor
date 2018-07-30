@@ -1064,14 +1064,31 @@ valid deserializer function will:
 ====================================
 
 Once you've :ref:`configured <configuration>` your :term:`model class`, you can
-now easily serialize it to the formats you have enabled. Your :term:`model instance`
-will have one serialization method for each of the formats, named ``to_<format>``
-where ``<format>`` corresponds to ``csv``, ``json``, ``yaml``, and ``dict``:
+now easily serialize it. Your :term:`model instance` will have two serialization
+methods for each of the formats, named ``to_<format>`` and ``dump_to_<format>``
+respectively, where ``<format>`` corresponds to ``csv``, ``json``, ``yaml``, and
+``dict``:
 
   * :meth:`to_csv() <sqlathanor.BaseModel.to_csv>`
   * :meth:`to_json() <sqlathanor.BaseModel.to_json>`
   * :meth:`to_yaml() <sqlathanor.BaseModel.to_yaml>`
   * :meth:`to_dict() <sqlathanor.BaseModel.to_dict>`
+  * :meth:`dump_to_csv() <sqlathanor.BaseModel.dump_to_csv>`
+  * :meth:`dump_to_json() <sqlathanor.BaseModel.dump_to_json>`
+  * :meth:`dump_to_yaml() <sqlathanor.BaseModel.dump_to_yaml>`
+  * :meth:`dump_to_dict() <sqlathanor.BaseModel.dump_to_dict>`
+
+The ``to_<format>`` methods adhere to whatever :ref:`configuration <configuration>`
+you have set up for your :term:`model class`, while the ``dump_to_<format>`` method will
+automatically serialize all :term:`model attributes <model attribute>` defined.
+
+.. caution::
+
+  Use the the ``dump_to_<format>`` methods with caution!
+
+  Because they automatically serialize all :term:`model attributes <model attribute>`
+  defined for your :term:`model class`, they potentially expose your application
+  to security vulnerabilities.
 
 Nesting Complex Data
 ------------------------
@@ -1120,6 +1137,26 @@ to_dict()
 ------------
 
 .. automethod:: sqlathanor.BaseModel.to_dict
+
+dump_to_csv()
+---------------
+
+.. automethod:: sqlathanor.BaseModel.dump_to_csv
+
+dump_to_json()
+-----------------
+
+.. automethod:: sqlathanor.BaseModel.dump_to_json
+
+dump_to_yaml()
+----------------
+
+.. automethod:: sqlathanor.BaseModel.dump_to_yaml
+
+dump_to_dict()
+-----------------
+
+.. automethod:: sqlathanor.BaseModel.dump_to_dict
 
 ----------------------
 

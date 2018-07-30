@@ -1,5 +1,18 @@
 -----------
 
+Release 0.3.0
+=========================================
+
+New Features
+-----------------
+
+* #35: Added ``BaseModel.dump_to_csv()``
+* #35: Added ``BaseModel.dump_to_json()``
+* #35: Added ``BaseModel.dump_to_yaml()``
+* #35: Added ``BaseModel.dump_to_dict()``
+
+-----------
+
 Release 0.2.2
 =========================================
 

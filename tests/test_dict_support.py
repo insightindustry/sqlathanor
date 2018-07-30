@@ -444,6 +444,73 @@ def test_to_dict(request,
         assert are_dicts_equivalent(result, expected_result) is True
 
 
+@pytest.mark.parametrize('supports_serialization, hybrid_value, max_nesting, current_nesting, expected_result, warning, error', [
+    (False, None, 0, 0, { 'id': 1, '_hybrid': 1, 'hybrid_differentiated': 1, 'name': 'Test Name', 'hybrid': [] }, None, None),
+
+    (False, None, 0, 3, None, None, MaximumNestingExceededError),
+
+    (True, 'test value', 0, 0, {'_hybrid': 1, 'hidden': 'hidden value', 'hybrid': 'test value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2}, None, None),
+
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, None, None),
+
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, { '_hybrid': 1, 'addresses': [], 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, None, None),
+
+    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, None, None),
+    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, None, None),
+
+])
+def test_dump_to_dict(request,
+                      instance_single_pk,
+                      instance_postgresql,
+                      supports_serialization,
+                      hybrid_value,
+                      max_nesting,
+                      current_nesting,
+                      expected_result,
+                      warning,
+                      error):
+    if supports_serialization:
+        target = instance_postgresql[0][0]
+    else:
+        target = instance_single_pk[0]
+
+    target.hybrid = hybrid_value
+
+    if not error and not warning:
+        result = target.dump_to_dict(max_nesting = max_nesting,
+                                     current_nesting = current_nesting)
+
+        assert isinstance(result, dict)
+        print('RESULT:')
+        print(result)
+        print('\nEXPECTED:')
+        print(expected_result)
+        for key in result:
+            assert key in expected_result
+            assert expected_result[key] == result[key]
+        for key in expected_result:
+            assert key in result
+            assert result[key] == expected_result[key]
+        assert are_dicts_equivalent(result, expected_result) is True
+    elif not warning:
+        with pytest.raises(error):
+            result = target.dump_to_dict(max_nesting = max_nesting,
+                                         current_nesting = current_nesting)
+    elif not error:
+        with pytest.warns(warning):
+            result = target.dump_to_dict(max_nesting = max_nesting,
+                                         current_nesting = current_nesting)
+
+        assert isinstance(result, dict)
+        for key in result:
+            assert key in expected_result
+            assert expected_result[key] == result[key]
+        for key in expected_result:
+            assert key in result
+            assert result[key] == expected_result[key]
+        assert are_dicts_equivalent(result, expected_result) is True
+
+
 @pytest.mark.parametrize('hybrid_value, expected_name, extra_keys, error_on_extra_keys, drop_extra_keys, error', [
     ('test value', 'deserialized', None, True, False, None),
     (123, 'deserialized', None, True, False, None),

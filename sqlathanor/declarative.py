@@ -25,7 +25,7 @@ from sqlathanor._compat import StringIO, json
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config, \
     BLANK_ON_SERIALIZE
 from sqlathanor.utilities import format_to_tuple, iterable__to_dict, parse_yaml, \
-    parse_json
+    parse_json, get_attribute_names
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
     UnsupportedSerializationError, UnsupportedDeserializationError, DeserializationError,\
     CSVStructureError, MaximumNestingExceededError, MaximumNestingExceededWarning, \
@@ -1409,17 +1409,19 @@ class BaseModel(object):
         return [x.name for x in config]
 
     @classmethod
-    def get_csv_header(cls,
-                       deserialize = None,
-                       serialize = True,
-                       delimiter = '|',
-                       wrap_all_strings = False,
-                       null_text = 'None',
-                       wrapper_character = "'",
-                       double_wrapper_character_when_nested = False,
-                       escape_character = "\\",
-                       line_terminator = '\r\n'):
+    def _get_attribute_csv_header(cls,
+                                  attributes,
+                                  delimiter = '|',
+                                  wrap_all_strings = False,
+                                  wrapper_character = "'",
+                                  double_wrapper_character_when_nested = False,
+                                  escape_character = "\\",
+                                  line_terminator = '\r\n'):
         r"""Retrieve a header string for a CSV representation of the model.
+
+        :param attributes: List of :term:`model attributes <model attribute>` to
+          include.
+        :type attributes: :class:`list <python:list>` of :class:`str <python:str>`
 
         :param delimiter: The character(s) to utilize between columns. Defaults to
           a pipe (``|``).
@@ -1429,10 +1431,6 @@ class BaseModel(object):
           ``wrapper_character``. If ``None``, only wraps string data if it contains
           the ``delimiter``. Defaults to ``False``.
         :type wrap_all_strings: :class:`bool <python:bool>`
-
-        :param null_text: The text value to use in place of empty values. Only
-          applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
-        :type null_text: :class:`str <python:str>`
 
         :param wrapper_character: The string used to wrap string values when
           wrapping is necessary. Defaults to ``'``.
@@ -1464,8 +1462,6 @@ class BaseModel(object):
         else:
             quoting = csv.QUOTE_MINIMAL
 
-        column_names = cls.get_csv_column_names(deserialize = deserialize,
-                                                serialize = serialize)
         if 'sqlathanor' in csv.list_dialects():
             csv.unregister_dialect('sqlathanor')
 
@@ -1479,7 +1475,7 @@ class BaseModel(object):
 
         output = StringIO()
         csv_writer = csv.DictWriter(output,
-                                    fieldnames = column_names,
+                                    fieldnames = attributes,
                                     dialect = 'sqlathanor')
 
         csv_writer.writeheader()
@@ -1489,6 +1485,190 @@ class BaseModel(object):
 
         csv.unregister_dialect('sqlathanor')
 
+        return header_string
+
+    def _get_attribute_csv_data(self,
+                                attributes,
+                                is_dumping = False,
+                                delimiter = '|',
+                                wrap_all_strings = False,
+                                null_text = 'None',
+                                wrapper_character = "'",
+                                double_wrapper_character_when_nested = False,
+                                escape_character = "\\",
+                                line_terminator = '\r\n'):
+        r"""Return the CSV representation of ``attributes`` extracted from the
+        model instance (record).
+
+        :param attributes: Names of :term:`model attributes <model attribute>` to
+          include in the CSV output.
+        :type attributes: :class:`list <python:list>` of :class:`str <python:str>`
+
+        :param is_dumping: If ``True``, then allow
+          :exc:`UnsupportedSerializationError <sqlathanor.errors.UnsupportedSerializationError>`.
+          Defaults to ``False``.
+        :type is_dumping: :class:`bool <python:bool>`
+
+        :param delimiter: The delimiter used between columns. Defaults to ``|``.
+        :type delimiter: :class:`str <python:str>`
+
+        :param wrap_all_strings: If ``True``, wraps any string data in the
+          ``wrapper_character``. If ``None``, only wraps string data if it contains
+          the ``delimiter``. Defaults to ``False``.
+        :type wrap_all_strings: :class:`bool <python:bool>`
+
+        :param null_text: The text value to use in place of empty values. Only
+          applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
+        :type null_text: :class:`str <python:str>`
+
+        :param wrapper_character: The string used to wrap string values when
+          wrapping is necessary. Defaults to ``'``.
+        :type wrapper_character: :class:`str <python:str>`
+
+        :param double_wrapper_character_when_nested: If ``True``, will double the
+          ``wrapper_character`` when it is found inside a column value. If ``False``,
+          will precede the ``wrapper_character`` by the ``escape_character`` when
+          it is found inside a column value. Defaults to ``False``.
+        :type double_wrapper_character_when_nested: :class:`bool <python:bool>`
+
+        :param escape_character: The character to use when escaping nested wrapper
+          characters. Defaults to ``\``.
+        :type escape_character: :class:`str <python:str>`
+
+        :param line_terminator: The character used to mark the end of a line.
+          Defaults to ``\r\n``.
+        :type line_terminator: :class:`str <python:str>`
+
+        :returns: Data from the object in CSV format ending in ``line_terminator``.
+        :rtype: :class:`str <python:str>`
+        """
+        if not wrapper_character:
+            wrapper_character = '\''
+
+        if not attributes:
+            raise SerializableAttributeError("attributes cannot be empty")
+
+        if wrap_all_strings:
+            quoting = csv.QUOTE_NONNUMERIC
+        else:
+            quoting = csv.QUOTE_MINIMAL
+
+        if 'sqlathanor' in csv.list_dialects():
+            csv.unregister_dialect('sqlathanor')
+
+        csv.register_dialect('sqlathanor',
+                             delimiter = delimiter,
+                             doublequote = double_wrapper_character_when_nested,
+                             escapechar = escape_character,
+                             quotechar = wrapper_character,
+                             quoting = quoting,
+                             lineterminator = line_terminator)
+
+        data = []
+        for item in attributes:
+            try:
+                value = self._get_serialized_value(format = 'csv',
+                                                   attribute = item)
+            except UnsupportedSerializationError as error:
+                if is_dumping:
+                    value = getattr(self, item)
+                else:
+                    raise error
+
+            data.append(value)
+
+        for index, item in enumerate(data):
+            if item == '' or item is None or item == 'None':
+                data[index] = null_text
+            elif not checkers.is_string(item) and not checkers.is_numeric(item):
+                data[index] = str(item)
+
+        data_dict = {}
+        for index, column_name in enumerate(attributes):
+            data_dict[column_name] = data[index]
+
+        output = StringIO()
+        csv_writer = csv.DictWriter(output,
+                                    fieldnames = attributes,
+                                    dialect = 'sqlathanor')
+
+
+        csv_writer.writerow(data_dict)
+
+        data_row = output.getvalue()
+        output.close()
+
+        csv.unregister_dialect('sqlathanor')
+
+        return data_row
+
+    @classmethod
+    def get_csv_header(cls,
+                       deserialize = None,
+                       serialize = True,
+                       delimiter = '|',
+                       wrap_all_strings = False,
+                       wrapper_character = "'",
+                       double_wrapper_character_when_nested = False,
+                       escape_character = "\\",
+                       line_terminator = '\r\n'):
+        r"""Retrieve a header string for a CSV representation of the model.
+
+        :param attributes: List of :term:`model attributes <model attribute>` to
+          include.
+        :type attributes: :class:`list <python:list>` of :class:`str <python:str>`
+
+        :param delimiter: The character(s) to utilize between columns. Defaults to
+          a pipe (``|``).
+        :type delimiter: :class:`str <python:str>`
+
+        :param wrap_all_strings: If ``True``, wraps any string data in the
+          ``wrapper_character``. If ``None``, only wraps string data if it contains
+          the ``delimiter``. Defaults to ``False``.
+        :type wrap_all_strings: :class:`bool <python:bool>`
+
+        :param null_text: The text value to use in place of empty values. Only
+          applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
+        :type null_text: :class:`str <python:str>`
+
+        :param null_text: The text value to use in place of empty values. Only
+          applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
+        :type null_text: :class:`str <python:str>`
+
+        :param wrapper_character: The string used to wrap string values when
+          wrapping is necessary. Defaults to ``'``.
+        :type wrapper_character: :class:`str <python:str>`
+
+        :param double_wrapper_character_when_nested: If ``True``, will double the
+          ``wrapper_character`` when it is found inside a column value. If ``False``,
+          will precede the ``wrapper_character`` by the ``escape_character`` when
+          it is found inside a column value. Defaults to ``False``.
+        :type double_wrapper_character_when_nested: :class:`bool <python:bool>`
+
+        :param escape_character: The character to use when escaping nested wrapper
+          characters. Defaults to ``\``.
+        :type escape_character: :class:`str <python:str>`
+
+        :param line_terminator: The character used to mark the end of a line.
+          Defaults to ``\r\n``.
+        :type line_terminator: :class:`str <python:str>`
+
+        :returns: A string ending in ``line_terminator`` with the model's CSV column names
+          listed, separated by the ``delimiter``.
+        :rtype: :class:`str <python:str>`
+        """
+        # pylint: disable=line-too-long
+
+        column_names = cls.get_csv_column_names(deserialize = deserialize,
+                                                serialize = serialize)
+
+        header_string = cls._get_attribute_csv_header(column_names,
+                                                      delimiter = delimiter,
+                                                      wrap_all_strings = wrap_all_strings,
+                                                      wrapper_character = wrapper_character,
+                                                      double_wrapper_character_when_nested = double_wrapper_character_when_nested,
+                                                      escape_character = escape_character,
+                                                      line_terminator = line_terminator)
         return header_string
 
     def get_csv_data(self,
@@ -1534,9 +1714,7 @@ class BaseModel(object):
         :returns: Data from the object in CSV format ending in ``line_terminator``.
         :rtype: :class:`str <python:str>`
         """
-        if not wrapper_character:
-            wrapper_character = '\''
-
+        # pylint: disable=line-too-long
         csv_column_names = [x
                             for x in self.get_csv_column_names(deserialize = None,
                                                                serialize = True)
@@ -1545,48 +1723,15 @@ class BaseModel(object):
         if not csv_column_names:
             raise SerializableAttributeError("no 'csv' serializable attributes found")
 
-        if wrap_all_strings:
-            quoting = csv.QUOTE_NONNUMERIC
-        else:
-            quoting = csv.QUOTE_MINIMAL
-
-        if 'sqlathanor' in csv.list_dialects():
-            csv.unregister_dialect('sqlathanor')
-
-        csv.register_dialect('sqlathanor',
-                             delimiter = delimiter,
-                             doublequote = double_wrapper_character_when_nested,
-                             escapechar = escape_character,
-                             quotechar = wrapper_character,
-                             quoting = quoting,
-                             lineterminator = line_terminator)
-
-        data = [self._get_serialized_value(format = 'csv',
-                                           attribute = x)
-                for x in csv_column_names]
-
-        for index, item in enumerate(data):
-            if item == '' or item is None or item == 'None':
-                data[index] = null_text
-            elif not checkers.is_string(item) and not checkers.is_numeric(item):
-                data[index] = str(item)
-
-        data_dict = {}
-        for index, column_name in enumerate(csv_column_names):
-            data_dict[column_name] = data[index]
-
-        output = StringIO()
-        csv_writer = csv.DictWriter(output,
-                                    fieldnames = csv_column_names,
-                                    dialect = 'sqlathanor')
-
-
-        csv_writer.writerow(data_dict)
-
-        data_row = output.getvalue()
-        output.close()
-
-        csv.unregister_dialect('sqlathanor')
+        data_row = self._get_attribute_csv_data(csv_column_names,
+                                                is_dumping = False,
+                                                delimiter = delimiter,
+                                                wrap_all_strings = wrap_all_strings,
+                                                null_text = null_text,
+                                                wrapper_character = wrapper_character,
+                                                double_wrapper_character_when_nested = double_wrapper_character_when_nested,
+                                                escape_character = escape_character,
+                                                line_terminator = line_terminator)
 
         return data_row
 
@@ -1876,7 +2021,8 @@ class BaseModel(object):
     def _to_dict(self,
                  format,
                  max_nesting = 0,
-                 current_nesting = 0):
+                 current_nesting = 0,
+                 is_dumping = False):
         """Return a :class:`dict <python:dict>` representation of the object.
 
         .. warning::
@@ -1899,11 +2045,17 @@ class BaseModel(object):
           :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
         :type current_nesting: :class:`int <python:int>`
 
+        :param is_dumping: If ``True``, retrieves all attributes except callables,
+          utilities, and specials (``__<name>``). If ``False``, only retrieves
+          those that have JSON serialization enabled. Defaults to ``False``.
+        :type is_dumping: :class:`bool <python:bool>`
+
         :returns: A :class:`dict <python:dict>` representation of the object.
         :rtype: :class:`dict <python:dict>`
 
         :raises InvalidFormatError: if ``format`` is not recognized
         :raises SerializableAttributeError: if attributes is empty
+        :raises UnsupportedSerializationError: if unable to serialize a value
         :raises MaximumNestingExceededError: if ``current_nesting`` is greater
           than ``max_nesting``
         :raises MaximumNestingExceededWarning: if an attribute requires nesting
@@ -1931,10 +2083,34 @@ class BaseModel(object):
         elif format == 'dict':
             attribute_getter = self.get_dict_serialization_config
 
-        attributes = [x
-                      for x in attribute_getter(deserialize = None,
-                                                serialize = True)
-                      if hasattr(self, x.name)]
+        if not is_dumping:
+            attributes = [x
+                          for x in attribute_getter(deserialize = None,
+                                                    serialize = True)
+                          if hasattr(self, x.name)]
+        else:
+            attribute_names = [x
+                               for x in get_attribute_names(self,
+                                                            include_callable = False,
+                                                            include_nested = False,
+                                                            include_private = True,
+                                                            include_utilities = False)
+                               if x[0:2] != '__']
+            attributes = []
+            for item in attribute_names:
+                attribute_config = self.get_attribute_serialization_config(item)
+                if attribute_config is not None:
+                    on_serialize_function = attribute_config.on_serialize.get(format,
+                                                                              None)
+                else:
+                    on_serialize_function = None
+
+                attribute = AttributeConfiguration(name = item,
+                                                   supports_json = True,
+                                                   supports_yaml = True,
+                                                   supports_dict = True,
+                                                   on_serialize = on_serialize_function)
+                attributes.append(attribute)
 
         if not attributes:
             raise SerializableAttributeError(
@@ -1948,7 +2124,8 @@ class BaseModel(object):
                 try:
                     value = item._to_dict(format,                               # pylint: disable=protected-access
                                           max_nesting = max_nesting,
-                                          current_nesting = next_nesting)
+                                          current_nesting = next_nesting,
+                                          is_dumping = is_dumping)
                 except MaximumNestingExceededError:
                     warnings.warn(
                         "skipping key '%s' because maximum nesting has been exceeded" \
@@ -1961,7 +2138,8 @@ class BaseModel(object):
                     value = iterable__to_dict(item,
                                               format,
                                               max_nesting = max_nesting,
-                                              current_nesting = next_nesting)
+                                              current_nesting = next_nesting,
+                                              is_dumping = is_dumping)
                 except MaximumNestingExceededError:
                     warnings.warn(
                         "skipping key '%s' because maximum nesting has been exceeded" \
@@ -1970,8 +2148,14 @@ class BaseModel(object):
                     )
                     continue
                 except NotAnIterableError:
-                    value = self._get_serialized_value(format,
-                                                       attribute.name)
+                    try:
+                        value = self._get_serialized_value(format,
+                                                           attribute.name)
+                    except UnsupportedSerializationError as error:
+                        if is_dumping:
+                            value = getattr(self, attribute.name)
+                        else:
+                            raise error
 
             dict_object[attribute.name] = value
 
@@ -2037,7 +2221,8 @@ class BaseModel(object):
 
         as_dict = self._to_dict('json',
                                 max_nesting = max_nesting,
-                                current_nesting = current_nesting)
+                                current_nesting = current_nesting,
+                                is_dumping = False)
 
         as_json = serialize_function(as_dict, **kwargs)
 
@@ -2136,6 +2321,280 @@ class BaseModel(object):
         return self._to_dict('dict',
                              max_nesting = max_nesting,
                              current_nesting = current_nesting)
+
+    def dump_to_csv(self,
+                    include_header = False,
+                    delimiter = '|',
+                    wrap_all_strings = False,
+                    null_text = 'None',
+                    wrapper_character = "'",
+                    double_wrapper_character_when_nested = False,
+                    escape_character = "\\",
+                    line_terminator = '\r\n'):
+        r"""Retrieve a :term:`CSV <Comma-Separated Value (CSV)>` representation of
+        the object, *with all attributes* serialized regardless of configuration.
+
+        .. caution::
+
+          Nested objects (such as :term:`relationships <relationship>` or
+          :term:`association proxies <association proxy>`) will **not**
+          be serialized.
+
+        :param include_header: If ``True``, will include a header row with column
+          labels. If ``False``, will not include a header row. Defaults to ``True``.
+        :type include_header: :class:`bool <python:bool>`
+
+        :param delimiter: The delimiter used between columns. Defaults to ``|``.
+        :type delimiter: :class:`str <python:str>`
+
+        :param wrap_all_strings: If ``True``, wraps any string data in the
+          ``wrapper_character``. If ``None``, only wraps string data if it contains
+          the ``delimiter``. Defaults to ``False``.
+        :type wrap_all_strings: :class:`bool <python:bool>`
+
+        :param null_text: The text value to use in place of empty values. Only
+          applies if ``wrap_empty_values`` is ``True``. Defaults to ``'None'``.
+        :type null_text: :class:`str <python:str>`
+
+        :param wrapper_character: The string used to wrap string values when
+          wrapping is necessary. Defaults to ``'``.
+        :type wrapper_character: :class:`str <python:str>`
+
+        :param double_wrapper_character_when_nested: If ``True``, will double the
+          ``wrapper_character`` when it is found inside a column value. If ``False``,
+          will precede the ``wrapper_character`` by the ``escape_character`` when
+          it is found inside a column value. Defaults to ``False``.
+        :type double_wrapper_character_when_nested: :class:`bool <python:bool>`
+
+        :param escape_character: The character to use when escaping nested wrapper
+          characters. Defaults to ``\``.
+        :type escape_character: :class:`str <python:str>`
+
+        :param line_terminator: The character used to mark the end of a line.
+          Defaults to ``\r\n``.
+        :type line_terminator: :class:`str <python:str>`
+
+        :returns: Data from the object in CSV format ending in a newline (``\n``).
+        :rtype: :class:`str <python:str>`
+        """
+        # pylint: disable=line-too-long
+
+        attributes = [x for x in get_attribute_names(self,
+                                                     include_callable = False,
+                                                     include_nested = False,
+                                                     include_private = True,
+                                                     include_utilities = False)
+                      if x[0:2] != '__']
+
+        if include_header:
+            return self._get_attribute_csv_header(attributes,
+                                                  delimiter = delimiter) + \
+                   self._get_attribute_csv_data(attributes,
+                                                is_dumping = True,
+                                                delimiter = delimiter,
+                                                wrap_all_strings = wrap_all_strings,
+                                                null_text = null_text,
+                                                wrapper_character = wrapper_character,
+                                                double_wrapper_character_when_nested = double_wrapper_character_when_nested,
+                                                escape_character = escape_character,
+                                                line_terminator = line_terminator)
+
+
+        return self._get_attribute_csv_data(attributes,
+                                            is_dumping = True,
+                                            delimiter = delimiter,
+                                            wrap_all_strings = wrap_all_strings,
+                                            null_text = null_text,
+                                            wrapper_character = wrapper_character,
+                                            double_wrapper_character_when_nested = double_wrapper_character_when_nested,
+                                            escape_character = escape_character,
+                                            line_terminator = line_terminator)
+
+    def dump_to_json(self,
+                     max_nesting = 0,
+                     current_nesting = 0,
+                     serialize_function = None,
+                     **kwargs):
+        """Return a :term:`JSON <JavaScript Object Notation (JSON)>`
+        representation of the object, *with all attributes* regardless of
+        configuration.
+
+        .. caution::
+
+          Nested objects (such as :term:`relationships <relationship>` or
+          :term:`association proxies <association proxy>`) will **not**
+          be serialized.
+
+        :param max_nesting: The maximum number of levels that the resulting
+          JSON object can be nested. If set to ``0``, will
+          not nest other serializable objects. Defaults to ``0``.
+        :type max_nesting: :class:`int <python:int>`
+
+        :param current_nesting: The current nesting level at which the
+          :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
+        :type current_nesting: :class:`int <python:int>`
+
+        :param serialize_function: Optionally override the default JSON serializer.
+          Defaults to :obj:`None <python:None>`, which applies the default
+          :doc:`simplejson <simplejson:index>` JSON serializer.
+
+          .. note::
+
+            Use the ``serialize_function`` parameter to override the default
+            JSON serializer.
+
+            A valid ``serialize_function`` is expected to accept a single
+            :class:`dict <python:dict>` and return a :class:`str <python:str>`,
+            similar to :func:`simplejson.dumps() <simplejson:simplejson.dumps>`.
+
+            If you wish to pass additional arguments to your ``serialize_function``
+            pass them as keyword arguments (in ``kwargs``).
+
+        :type serialize_function: callable / :obj:`None <python:None>`
+
+        :param kwargs: Optional keyword parameters that are passed to the
+          JSON serializer function. By default, these are options which are passed
+          to :func:`simplejson.dumps() <simplejson:simplejson.dumps>`.
+        :type kwargs: keyword arguments
+
+        :returns: A :class:`str <python:str>` with the JSON representation of the
+          object.
+        :rtype: :class:`str <python:str>`
+
+        :raises SerializableAttributeError: if attributes is empty
+        :raises MaximumNestingExceededError: if ``current_nesting`` is greater
+          than ``max_nesting``
+        :raises MaximumNestingExceededWarning: if an attribute requires nesting
+          beyond ``max_nesting``
+
+        """
+        if serialize_function is None:
+            serialize_function = json.dumps
+        else:
+            if checkers.is_callable(serialize_function) is False:
+                raise ValueError(
+                    'serialize_function (%s) is not callable' % serialize_function
+                )
+
+        as_dict = self._to_dict('json',
+                                max_nesting = max_nesting,
+                                current_nesting = current_nesting,
+                                is_dumping = True)
+
+        as_json = serialize_function(as_dict, **kwargs)
+
+        return as_json
+
+    def dump_to_yaml(self,
+                     max_nesting = 0,
+                     current_nesting = 0,
+                     serialize_function = None,
+                     **kwargs):
+        """Return a :term:`YAML <YAML Ain't a Markup Language (YAML)>`
+        representation of the object *with all attributes*, regardless of
+        configuration.
+
+        .. caution::
+
+          Nested objects (such as :term:`relationships <relationship>` or
+          :term:`association proxies <association proxy>`) will **not**
+          be serialized.
+
+        :param max_nesting: The maximum number of levels that the resulting
+          object can be nested. If set to ``0``, will not nest other serializable
+          objects. Defaults to ``0``.
+        :type max_nesting: :class:`int <python:int>`
+
+        :param current_nesting: The current nesting level at which the
+          representation will reside. Defaults to ``0``.
+        :type current_nesting: :class:`int <python:int>`
+
+        :param serialize_function: Optionally override the default YAML serializer.
+          Defaults to :obj:`None <python:None>`, which calls the default ``yaml.dump()``
+          function from the `PyYAML <https://github.com/yaml/pyyaml>`_ library.
+
+          .. note::
+
+            Use the ``serialize_function`` parameter to override the default
+            YAML serializer.
+
+            A valid ``serialize_function`` is expected to
+            accept a single :class:`dict <python:dict>` and return a
+            :class:`str <python:str>`, similar to ``yaml.dump()``.
+
+            If you wish to pass additional arguments to your ``serialize_function``
+            pass them as keyword arguments (in ``kwargs``).
+
+        :type serialize_function: callable / :obj:`None <python:None>`
+
+        :param kwargs: Optional keyword parameters that are passed to the
+          YAML serializer function. By default, these are options which are passed
+          to ``yaml.dump()``.
+        :type kwargs: keyword arguments
+
+        :returns: A :class:`str <python:str>` with the JSON representation of the
+          object.
+        :rtype: :class:`str <python:str>`
+
+        :raises SerializableAttributeError: if attributes is empty
+        :raises MaximumNestingExceededError: if ``current_nesting`` is greater
+          than ``max_nesting``
+        :raises MaximumNestingExceededWarning: if an attribute requires nesting
+          beyond ``max_nesting``
+
+        """
+        if serialize_function is None:
+            serialize_function = yaml.dump
+        else:
+            if checkers.is_callable(serialize_function) is False:
+                raise ValueError(
+                    'serialize_function (%s) is not callable' % serialize_function
+                )
+
+        as_dict = self._to_dict('yaml',
+                                max_nesting = max_nesting,
+                                current_nesting = current_nesting,
+                                is_dumping = True)
+
+        as_yaml = serialize_function(as_dict, **kwargs)
+
+        return as_yaml
+
+    def dump_to_dict(self,
+                     max_nesting = 0,
+                current_nesting = 0):
+        """Return a :class:`dict <python:dict>` representation of the object,
+        *with all attributes* regardless of configuration.
+
+        .. caution::
+
+          Nested objects (such as :term:`relationships <relationship>` or
+          :term:`association proxies <association proxy>`) will **not**
+          be serialized.
+
+        :param max_nesting: The maximum number of levels that the resulting
+          :class:`dict <python:dict>` object can be nested. If set to ``0``, will
+          not nest other serializable objects. Defaults to ``0``.
+        :type max_nesting: :class:`int <python:int>`
+
+        :param current_nesting: The current nesting level at which the
+          :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
+        :type current_nesting: :class:`int <python:int>`
+
+        :returns: A :class:`dict <python:dict>` representation of the object.
+        :rtype: :class:`dict <python:dict>`
+
+        :raises SerializableAttributeError: if attributes is empty
+        :raises MaximumNestingExceededError: if ``current_nesting`` is greater
+          than ``max_nesting``
+        :raises MaximumNestingExceededWarning: if an attribute requires nesting
+          beyond ``max_nesting``
+
+        """
+        return self._to_dict('dict',
+                             max_nesting = max_nesting,
+                             current_nesting = current_nesting,
+                             is_dumping = True)
 
     @classmethod
     def _parse_dict(cls,

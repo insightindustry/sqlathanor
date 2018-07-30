@@ -13,6 +13,7 @@ import warnings
 import yaml
 
 from sqlalchemy.orm.collections import InstrumentedList
+from sqlalchemy.exc import InvalidRequestError as SA_InvalidRequestError
 
 from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
@@ -21,6 +22,16 @@ from sqlathanor._compat import json
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
     MaximumNestingExceededWarning, DeserializationError
+
+UTILITY_COLUMNS = [
+    'metadata',
+    'primary_key_value',
+    '__serialiation__',
+    '__tablename__',
+    '_decl_class_registry',
+    '_sa_instance_state',
+    '_sa_class_manager'
+]
 
 def bool_to_tuple(input):
     """Converts a single :class:`bool <python:bool>` value to a
@@ -178,7 +189,8 @@ def get_class_type_key(class_attribute, value = None):
 def iterable__to_dict(iterable,
                       format,
                       max_nesting = 0,
-                      current_nesting = 0):
+                      current_nesting = 0,
+                      is_dumping = False):
     """Given an iterable, traverse it and execute ``_to_dict()`` if present.
 
     :param iterable: An iterable to traverse.
@@ -198,6 +210,9 @@ def iterable__to_dict(iterable,
     :param current_nesting: The current nesting level at which the
       :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
     :type current_nesting: :class:`int <python:int>`
+
+    :param is_dumping: If ``True``, returns all attributes. Defaults to ``False``.
+    :type is_dumping: :class:`bool <python:bool>`
 
     :returns: Collection of values, possibly converted to :class:`dict <python:dict>`
       objects.
@@ -231,13 +246,15 @@ def iterable__to_dict(iterable,
         try:
             new_item = item._to_dict(format,
                                      max_nesting = max_nesting,
-                                     current_nesting = next_nesting)
+                                     current_nesting = next_nesting,
+                                     is_dumping = is_dumping)
         except AttributeError:
             try:
                 new_item = iterable__to_dict(item,
                                              format,
                                              max_nesting = max_nesting,
-                                             current_nesting = next_nesting)
+                                             current_nesting = next_nesting,
+                                             is_dumping = is_dumping)
             except NotAnIterableError:
                 new_item = item
 
@@ -460,3 +477,135 @@ def parse_json(input_data,
     from_json = json.loads(input_data, **kwargs)
 
     return from_json
+
+
+def get_attribute_names(obj,
+                        include_callable = False,
+                        include_nested = True,
+                        include_private = False,
+                        include_utilities = False):
+    """Return a list of attribute names within ``obj``.
+
+    :param include_callable: If ``True``, will include callable attributes (methods).
+      Defaults to ``False``.
+    :type include_callable: :class:`bool <python:bool>`
+
+    :param include_nested: If ``True``, will include attributes that are
+      arbitrarily-nestable types (such as a :term:`model class` or
+      :class:`dict <python:dict>`). Defaults to ``False``.
+    :type include_nested: :class:`bool <python:bool>`
+
+    :param include_private: If ``True``, will include attributes whose names
+      begin with ``_``. Defaults to ``False``.
+    :type include_private: :class:`bool <python:bool>`
+
+    :param include_utilities: If ``True``, will include utility properties
+      added by SQLAlchemy or **SQLAthanor**. Defaults to ``False``.
+    :type include_utilities: :class:`bool <python:bool>`
+
+    :returns: :term:`Model Attribute` names attached to ``obj``.
+    :rtype: :class:`list <python:list>` of :class:`str <python:str>`
+
+    """
+    attribute_names = [x for x in dir(obj)
+                       if (include_utilities and x in UTILITY_COLUMNS) or \
+                          (x not in UTILITY_COLUMNS)]
+    attributes = []
+    for attribute in attribute_names:
+        if attribute[0] == '_' and not include_private:
+            continue
+
+        try:
+            attribute_value = getattr(obj, attribute)
+        except SA_InvalidRequestError:
+            if not include_nested:
+                continue
+
+            attributes.append(attribute)
+            continue
+
+        if not include_nested:
+            if checkers.is_type(attribute_value, ('BaseModel',
+                                                  'RelationshipProperty',
+                                                  'AssociationProxy',
+                                                  dict)):
+                continue
+
+            try:
+                is_iterable = checkers.is_iterable(attribute_value,
+                                                   forbid_literals = (str,
+                                                                      bytes,
+                                                                      dict))
+            except SA_InvalidRequestError as error:
+                if not include_nested:
+                    continue
+                else:
+                    is_iterable = False
+
+            if is_iterable:
+                loop = False
+
+                for item in attribute_value:
+                    if checkers.is_type(item, ('BaseModel',
+                                               'RelationshipProperty',
+                                               'AssociationProxy',
+                                               dict)):
+                        loop = True
+                        break
+
+                if loop:
+                    continue
+
+        if not include_callable and checkers.is_callable(attribute_value):
+            continue
+
+        attributes.append(attribute)
+
+    return attributes
+
+
+def is_an_attribute(obj,
+                    attribute,
+                    include_callable = False,
+                    include_nested = True,
+                    include_private = False,
+                    include_utilities = False):
+    """Indicate whether ``attribute`` is an attribute of ``obj``.
+
+    :param obj: The object to check for ``attribute``.
+    :type obj: object
+
+    :param attribute: The name of the attribute to check.
+    :type attribute: :class:`str <python:str>`
+
+    :param include_callable: If ``True``, will include callable attributes (methods).
+      Defaults to ``False``.
+    :type include_callable: :class:`bool <python:bool>`
+
+    :param include_nested: If ``True``, will include attributes that are
+      arbitrarily-nestable types (such as a :term:`model class` or
+      :class:`dict <python:dict>`). Defaults to ``False``.
+    :type include_nested: :class:`bool <python:bool>`
+
+    :param include_private: If ``True``, will include attributes whose names
+      begin with ``_``. Defaults to ``False``.
+    :type include_private: :class:`bool <python:bool>`
+
+    :param include_utilities: If ``True``, will include utility properties
+      added by SQLAlchemy or **SQLAthanor**. Defaults to ``False``.
+    :type include_utilities: :class:`bool <python:bool>`
+
+    :returns: ``True`` if ``attribute`` exists on ``obj``. ``False`` if not.
+    :rtype: :class:`bool <python:bool>`
+
+    """
+    if not hasattr(obj, attribute):
+        return False
+
+    attributes = get_attribute_names(obj,
+                                     include_callable = include_callable,
+                                     include_nested = include_nested,
+                                     include_private = include_private,
+                                     include_utilities = include_utilities)
+
+    return attribute in attributes
