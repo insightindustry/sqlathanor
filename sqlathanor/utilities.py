@@ -29,7 +29,8 @@ UTILITY_COLUMNS = [
     '__serialiation__',
     '__tablename__',
     '_decl_class_registry',
-    '_sa_instance_state'
+    '_sa_instance_state',
+    '_sa_class_manager'
 ]
 
 def bool_to_tuple(input):
@@ -188,7 +189,8 @@ def get_class_type_key(class_attribute, value = None):
 def iterable__to_dict(iterable,
                       format,
                       max_nesting = 0,
-                      current_nesting = 0):
+                      current_nesting = 0,
+                      is_dumping = False):
     """Given an iterable, traverse it and execute ``_to_dict()`` if present.
 
     :param iterable: An iterable to traverse.
@@ -208,6 +210,9 @@ def iterable__to_dict(iterable,
     :param current_nesting: The current nesting level at which the
       :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
     :type current_nesting: :class:`int <python:int>`
+
+    :param is_dumping: If ``True``, returns all attributes. Defaults to ``False``.
+    :type is_dumping: :class:`bool <python:bool>`
 
     :returns: Collection of values, possibly converted to :class:`dict <python:dict>`
       objects.
@@ -241,13 +246,15 @@ def iterable__to_dict(iterable,
         try:
             new_item = item._to_dict(format,
                                      max_nesting = max_nesting,
-                                     current_nesting = next_nesting)
+                                     current_nesting = next_nesting,
+                                     is_dumping = is_dumping)
         except AttributeError:
             try:
                 new_item = iterable__to_dict(item,
                                              format,
                                              max_nesting = max_nesting,
-                                             current_nesting = next_nesting)
+                                             current_nesting = next_nesting,
+                                             is_dumping = is_dumping)
             except NotAnIterableError:
                 new_item = item
 

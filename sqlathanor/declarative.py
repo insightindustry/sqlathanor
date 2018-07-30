@@ -2021,7 +2021,8 @@ class BaseModel(object):
     def _to_dict(self,
                  format,
                  max_nesting = 0,
-                 current_nesting = 0):
+                 current_nesting = 0,
+                 is_dumping = False):
         """Return a :class:`dict <python:dict>` representation of the object.
 
         .. warning::
@@ -2044,11 +2045,17 @@ class BaseModel(object):
           :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
         :type current_nesting: :class:`int <python:int>`
 
+        :param is_dumping: If ``True``, retrieves all attributes except callables,
+          utilities, and specials (``__<name>``). If ``False``, only retrieves
+          those that have JSON serialization enabled. Defaults to ``False``.
+        :type is_dumping: :class:`bool <python:bool>`
+
         :returns: A :class:`dict <python:dict>` representation of the object.
         :rtype: :class:`dict <python:dict>`
 
         :raises InvalidFormatError: if ``format`` is not recognized
         :raises SerializableAttributeError: if attributes is empty
+        :raises UnsupportedSerializationError: if unable to serialize a value
         :raises MaximumNestingExceededError: if ``current_nesting`` is greater
           than ``max_nesting``
         :raises MaximumNestingExceededWarning: if an attribute requires nesting
@@ -2076,10 +2083,34 @@ class BaseModel(object):
         elif format == 'dict':
             attribute_getter = self.get_dict_serialization_config
 
-        attributes = [x
-                      for x in attribute_getter(deserialize = None,
-                                                serialize = True)
-                      if hasattr(self, x.name)]
+        if not is_dumping:
+            attributes = [x
+                          for x in attribute_getter(deserialize = None,
+                                                    serialize = True)
+                          if hasattr(self, x.name)]
+        else:
+            attribute_names = [x
+                               for x in get_attribute_names(self,
+                                                            include_callable = False,
+                                                            include_nested = False,
+                                                            include_private = True,
+                                                            include_utilities = False)
+                               if x[0:2] != '__']
+            attributes = []
+            for item in attribute_names:
+                attribute_config = self.get_attribute_serialization_config(item)
+                if attribute_config is not None:
+                    on_serialize_function = attribute_config.on_serialize.get(format,
+                                                                              None)
+                else:
+                    on_serialize_function = None
+
+                attribute = AttributeConfiguration(name = item,
+                                                   supports_json = True,
+                                                   supports_yaml = True,
+                                                   supports_dict = True,
+                                                   on_serialize = on_serialize_function)
+                attributes.append(attribute)
 
         if not attributes:
             raise SerializableAttributeError(
@@ -2093,7 +2124,8 @@ class BaseModel(object):
                 try:
                     value = item._to_dict(format,                               # pylint: disable=protected-access
                                           max_nesting = max_nesting,
-                                          current_nesting = next_nesting)
+                                          current_nesting = next_nesting,
+                                          is_dumping = is_dumping)
                 except MaximumNestingExceededError:
                     warnings.warn(
                         "skipping key '%s' because maximum nesting has been exceeded" \
@@ -2106,7 +2138,8 @@ class BaseModel(object):
                     value = iterable__to_dict(item,
                                               format,
                                               max_nesting = max_nesting,
-                                              current_nesting = next_nesting)
+                                              current_nesting = next_nesting,
+                                              is_dumping = is_dumping)
                 except MaximumNestingExceededError:
                     warnings.warn(
                         "skipping key '%s' because maximum nesting has been exceeded" \
@@ -2115,8 +2148,14 @@ class BaseModel(object):
                     )
                     continue
                 except NotAnIterableError:
-                    value = self._get_serialized_value(format,
-                                                       attribute.name)
+                    try:
+                        value = self._get_serialized_value(format,
+                                                           attribute.name)
+                    except UnsupportedSerializationError as error:
+                        if is_dumping:
+                            value = getattr(self, attribute.name)
+                        else:
+                            raise error
 
             dict_object[attribute.name] = value
 
@@ -2182,7 +2221,8 @@ class BaseModel(object):
 
         as_dict = self._to_dict('json',
                                 max_nesting = max_nesting,
-                                current_nesting = current_nesting)
+                                current_nesting = current_nesting,
+                                is_dumping = False)
 
         as_json = serialize_function(as_dict, **kwargs)
 
@@ -2295,7 +2335,8 @@ class BaseModel(object):
 
         .. caution::
 
-          Nested objects (such as :term:`relationships <relationship>`) will **not**
+          Nested objects (such as :term:`relationships <relationship>` or
+          :term:`association proxies <association proxy>`) will **not**
           be serialized.
 
         :param include_header: If ``True``, will include a header row with column
@@ -2368,6 +2409,78 @@ class BaseModel(object):
                                             escape_character = escape_character,
                                             line_terminator = line_terminator)
 
+    def dump_to_json(self,
+                     max_nesting = 0,
+                     current_nesting = 0,
+                     serialize_function = None,
+                     **kwargs):
+        """Return a JSON representation of the object.
+
+        .. caution::
+
+          Nested objects (such as :term:`relationships <relationship>` or
+          :term:`association proxies <association proxy>`) will **not**
+          be serialized.
+
+        :param max_nesting: The maximum number of levels that the resulting
+          JSON object can be nested. If set to ``0``, will
+          not nest other serializable objects. Defaults to ``0``.
+        :type max_nesting: :class:`int <python:int>`
+
+        :param current_nesting: The current nesting level at which the
+          :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
+        :type current_nesting: :class:`int <python:int>`
+
+        :param serialize_function: Optionally override the default JSON serializer.
+          Defaults to :obj:`None <python:None>`, which applies the default
+          :doc:`simplejson <simplejson:index>` JSON serializer.
+
+          .. note::
+
+            Use the ``serialize_function`` parameter to override the default
+            JSON serializer.
+
+            A valid ``serialize_function`` is expected to accept a single
+            :class:`dict <python:dict>` and return a :class:`str <python:str>`,
+            similar to :func:`simplejson.dumps() <simplejson:simplejson.dumps>`.
+
+            If you wish to pass additional arguments to your ``serialize_function``
+            pass them as keyword arguments (in ``kwargs``).
+
+        :type serialize_function: callable / :obj:`None <python:None>`
+
+        :param kwargs: Optional keyword parameters that are passed to the
+          JSON serializer function. By default, these are options which are passed
+          to :func:`simplejson.dumps() <simplejson:simplejson.dumps>`.
+        :type kwargs: keyword arguments
+
+        :returns: A :class:`str <python:str>` with the JSON representation of the
+          object.
+        :rtype: :class:`str <python:str>`
+
+        :raises SerializableAttributeError: if attributes is empty
+        :raises MaximumNestingExceededError: if ``current_nesting`` is greater
+          than ``max_nesting``
+        :raises MaximumNestingExceededWarning: if an attribute requires nesting
+          beyond ``max_nesting``
+
+        """
+        if serialize_function is None:
+            serialize_function = json.dumps
+        else:
+            if checkers.is_callable(serialize_function) is False:
+                raise ValueError(
+                    'serialize_function (%s) is not callable' % serialize_function
+                )
+
+        as_dict = self._to_dict('json',
+                                max_nesting = max_nesting,
+                                current_nesting = current_nesting,
+                                is_dumping = True)
+
+        as_json = serialize_function(as_dict, **kwargs)
+
+        return as_json
 
     @classmethod
     def _parse_dict(cls,
