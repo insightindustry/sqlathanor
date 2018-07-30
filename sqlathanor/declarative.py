@@ -2560,6 +2560,42 @@ class BaseModel(object):
 
         return as_yaml
 
+    def dump_to_dict(self,
+                     max_nesting = 0,
+                current_nesting = 0):
+        """Return a :class:`dict <python:dict>` representation of the object,
+        *with all attributes* regardless of configuration.
+
+        .. caution::
+
+          Nested objects (such as :term:`relationships <relationship>` or
+          :term:`association proxies <association proxy>`) will **not**
+          be serialized.
+
+        :param max_nesting: The maximum number of levels that the resulting
+          :class:`dict <python:dict>` object can be nested. If set to ``0``, will
+          not nest other serializable objects. Defaults to ``0``.
+        :type max_nesting: :class:`int <python:int>`
+
+        :param current_nesting: The current nesting level at which the
+          :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
+        :type current_nesting: :class:`int <python:int>`
+
+        :returns: A :class:`dict <python:dict>` representation of the object.
+        :rtype: :class:`dict <python:dict>`
+
+        :raises SerializableAttributeError: if attributes is empty
+        :raises MaximumNestingExceededError: if ``current_nesting`` is greater
+          than ``max_nesting``
+        :raises MaximumNestingExceededWarning: if an attribute requires nesting
+          beyond ``max_nesting``
+
+        """
+        return self._to_dict('dict',
+                             max_nesting = max_nesting,
+                             current_nesting = current_nesting,
+                             is_dumping = True)
+
     @classmethod
     def _parse_dict(cls,
                     input_data,
