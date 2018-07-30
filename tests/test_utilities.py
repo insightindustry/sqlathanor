@@ -140,7 +140,7 @@ class DummyClass(object):
     def __init__(self, *args, **kwargs):
         pass
 
-    def _to_dict(self, format, max_nesting = 0, current_nesting = 0):
+    def _to_dict(self, format, max_nesting = 0, current_nesting = 0, is_dumping = False):
         if format not in ['csv', 'json', 'yaml', 'dict']:
             raise InvalidFormatError()
 
@@ -256,24 +256,24 @@ def test_parse_yaml(input_value,
     (False, False, False, True, False, 15),
     (False, False, False, True, True, 19),
     (False, False, True, False, False, 9),
-    (False, False, True, True, False, 18),
+    (False, False, True, True, False, 17),
     (False, False, True, True, True, 22),
-    (False, True, False, False, False, 33),
-    (False, True, True, False, False, 35),
-    (False, True, True, True, False, 78),
-    (False, True, True, True, True, 82),
+    (False, True, False, False, False, 36),
+    (False, True, True, False, False, 38),
+    (False, True, True, True, False, 80),
+    (False, True, True, True, True, 85),
 
     (True, False, False, False, False, 8),
     (True, False, False, False, True, 10),
     (True, False, False, True, False, 14),
     (True, False, False, True, True, 19),
     (True, False, True, False, False, 9),
-    (True, False, True, True, False, 17),
+    (True, False, True, True, False, 16),
     (True, False, True, True, True, 22),
-    (True, True, False, False, False, 34),
-    (True, True, True, False, False, 35),
-    (True, True, True, True, False, 78),
-    (True, True, True, True, True, 83),
+    (True, True, False, False, False, 37),
+    (True, True, True, False, False, 38),
+    (True, True, True, True, False, 80),
+    (True, True, True, True, True, 86),
 
 ])
 def test_get_attribute_names(model_complex_postgresql,
