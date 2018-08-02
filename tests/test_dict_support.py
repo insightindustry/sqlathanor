@@ -445,18 +445,18 @@ def test_to_dict(request,
 
 
 @pytest.mark.parametrize('supports_serialization, hybrid_value, max_nesting, current_nesting, expected_result, warning, error', [
-    (False, None, 0, 0, { 'id': 1, '_hybrid': 1, 'hybrid_differentiated': 1, 'name': 'Test Name', 'hybrid': [] }, None, None),
+    (False, None, 0, 0, { 'id': 1, '_hybrid': 1, 'hybrid_differentiated': 1, 'name': 'Test Name', 'hybrid': [] }, MaximumNestingExceededWarning, None),
 
     (False, None, 0, 3, None, None, MaximumNestingExceededError),
 
-    (True, 'test value', 0, 0, {'_hybrid': 1, 'hidden': 'hidden value', 'hybrid': 'test value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2}, None, None),
+    (True, 'test value', 0, 0, {'_hybrid': 1, 'hidden': 'hidden value', 'hybrid': 'test value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2}, MaximumNestingExceededWarning, None),
 
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, None, None),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, MaximumNestingExceededWarning, None),
 
     (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, { '_hybrid': 1, 'addresses': [], 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, None, None),
 
-    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, None, None),
-    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, None, None),
+    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, MaximumNestingExceededWarning, None),
+    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, MaximumNestingExceededWarning, None),
 
 ])
 def test_dump_to_dict(request,

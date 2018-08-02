@@ -2094,8 +2094,8 @@ class BaseModel(object):
                                                             include_callable = False,
                                                             include_nested = False,
                                                             include_private = True,
-                                                            include_utilities = False)
-                               if x[0:2] != '__']
+                                                            include_special = False,
+                                                            include_utilities = False)]
             attributes = []
             for item in attribute_names:
                 attribute_config = self.get_attribute_serialization_config(item)
@@ -2157,7 +2157,7 @@ class BaseModel(object):
                         else:
                             raise error
 
-            dict_object[attribute.name] = value
+            dict_object[str(attribute.name)] = value
 
         return dict_object
 
@@ -2290,7 +2290,10 @@ class BaseModel(object):
                                 max_nesting = max_nesting,
                                 current_nesting = current_nesting)
 
-        as_yaml = serialize_function(as_dict, **kwargs)
+        print(as_dict)
+
+        as_yaml = serialize_function(as_dict,
+                                     **kwargs)
 
         return as_yaml
 
@@ -2383,6 +2386,7 @@ class BaseModel(object):
                                                      include_callable = False,
                                                      include_nested = False,
                                                      include_private = True,
+                                                     include_special = False,
                                                      include_utilities = False)
                       if x[0:2] != '__']
 
@@ -2555,8 +2559,10 @@ class BaseModel(object):
                                 max_nesting = max_nesting,
                                 current_nesting = current_nesting,
                                 is_dumping = True)
+        print(as_dict)
 
-        as_yaml = serialize_function(as_dict, **kwargs)
+        as_yaml = serialize_function(as_dict,
+                                     **kwargs)
 
         return as_yaml
 

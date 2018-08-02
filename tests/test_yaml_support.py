@@ -113,7 +113,7 @@ def test_to_yaml(request,
 
 
 @pytest.mark.parametrize('supports_serialization, hybrid_value, max_nesting, current_nesting, serialize_function, warning, error', [
-    (False, None, 0, 0, None, None, None),
+    (False, None, 0, 0, None, MaximumNestingExceededWarning, None),
 
     (False, None, 0, 3, None, None, MaximumNestingExceededError),
 

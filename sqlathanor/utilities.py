@@ -26,8 +26,6 @@ from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError,
 UTILITY_COLUMNS = [
     'metadata',
     'primary_key_value',
-    '__serialiation__',
-    '__tablename__',
     '_decl_class_registry',
     '_sa_instance_state',
     '_sa_class_manager'
@@ -483,6 +481,7 @@ def get_attribute_names(obj,
                         include_callable = False,
                         include_nested = True,
                         include_private = False,
+                        include_special = False,
                         include_utilities = False):
     """Return a list of attribute names within ``obj``.
 
@@ -496,8 +495,12 @@ def get_attribute_names(obj,
     :type include_nested: :class:`bool <python:bool>`
 
     :param include_private: If ``True``, will include attributes whose names
-      begin with ``_``. Defaults to ``False``.
+      begin with ``_`` (but *not* ``__``). Defaults to ``False``.
     :type include_private: :class:`bool <python:bool>`
+
+    :param include_special: If ``True``, will include atributes whose names begin
+      with ``__``. Defaults to ``False``.
+    :type include_special: :class:`bool <python:bool>`
 
     :param include_utilities: If ``True``, will include utility properties
       added by SQLAlchemy or **SQLAthanor**. Defaults to ``False``.
@@ -512,7 +515,10 @@ def get_attribute_names(obj,
                           (x not in UTILITY_COLUMNS)]
     attributes = []
     for attribute in attribute_names:
-        if attribute[0] == '_' and not include_private:
+        if (attribute[0] == '_' and attribute[0:2] != '__') and not include_private:
+            continue
+
+        if attribute[0:2] == '__' and not include_special:
             continue
 
         try:
