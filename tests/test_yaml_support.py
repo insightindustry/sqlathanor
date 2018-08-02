@@ -112,6 +112,95 @@ def test_to_yaml(request,
         assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
 
 
+@pytest.mark.parametrize('supports_serialization, hybrid_value, max_nesting, current_nesting, serialize_function, warning, error', [
+    (False, None, 0, 0, None, MaximumNestingExceededWarning, None),
+
+    (False, None, 0, 3, None, None, MaximumNestingExceededError),
+
+    (True, 'test value', 0, 0, 'not-callable', None, ValueError),
+
+    (True, 'test value', 0, 0, None, MaximumNestingExceededWarning, None),
+
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 0, 0, None, MaximumNestingExceededWarning, None),
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, None, None, None),
+
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 1, 0, None, None, None),
+
+    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, None, MaximumNestingExceededWarning, None),
+    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, None, MaximumNestingExceededWarning, None),
+
+])
+def test_dump_to_yaml(request,
+                      instance_single_pk,
+                      instance_postgresql,
+                      supports_serialization,
+                      hybrid_value,
+                      max_nesting,
+                      current_nesting,
+                      serialize_function,
+                      warning,
+                      error):
+    if supports_serialization:
+        target = instance_postgresql[0][0]
+    else:
+        target = instance_single_pk[0]
+
+    target.hybrid = hybrid_value
+
+    if not error:
+        if warning:
+            with pytest.warns(warning):
+                interim_dict = target._to_dict('yaml',
+                                               max_nesting = max_nesting,
+                                               current_nesting = current_nesting,
+                                               is_dumping = True)
+        else:
+            interim_dict = target._to_dict('yaml',
+                                           max_nesting = max_nesting,
+                                           current_nesting = current_nesting,
+                                           is_dumping = True)
+
+    if not error and not warning:
+        result = target.dump_to_yaml(max_nesting = max_nesting,
+                                     current_nesting = current_nesting,
+                                     serialize_function = serialize_function)
+
+        print('RESULT:')
+        print(result)
+        assert isinstance(result, str)
+
+        deserialized_dict = yaml.safe_load(result)
+        print('\nDESERIALIZED DICT:')
+        print(deserialized_dict)
+
+        assert isinstance(deserialized_dict, dict)
+
+        assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+
+    elif not warning:
+        with pytest.raises(error):
+            result = target.dump_to_yaml(max_nesting = max_nesting,
+                                         current_nesting = current_nesting,
+                                         serialize_function = serialize_function)
+    elif not error:
+        with pytest.warns(warning):
+            result = target.dump_to_yaml(max_nesting = max_nesting,
+                                         current_nesting = current_nesting,
+                                         serialize_function = serialize_function)
+
+        print('RESULT:')
+        print(result)
+        assert isinstance(result, str)
+
+        deserialized_dict = yaml.safe_load(result)
+        print('\nDESERIALIZED DICT:')
+        print(deserialized_dict)
+
+        assert isinstance(deserialized_dict, dict)
+
+        assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+
+
 @pytest.mark.parametrize('hybrid_value, expected_name, extra_keys, error_on_extra_keys, drop_extra_keys, deserialize_function, error', [
     ('test value', 'deserialized', None, True, False, None, None),
     (123, 'deserialized', None, True, False, None, None),
