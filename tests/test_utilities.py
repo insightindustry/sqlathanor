@@ -10,6 +10,7 @@ Tests for the schema extensions written in :ref:`sqlathanor.utilities`.
 """
 
 import pytest
+import sqlalchemy
 
 from validator_collection import checkers
 from validator_collection.errors import NotAnIterableError
@@ -266,10 +267,10 @@ def test_parse_yaml(input_value,
     (True, False, False, False, False, False, 8),
     (True, False, False, False, False, True, 10),
     (True, False, False, True, False, False, 9),
-    (True, False, False, True, False, True, 13),
+    (True, False, False, True, False, True, (12, 13)),
     (True, False, True, False, False, False, 9),
     (True, False, True, True, False, False, 10),
-    (True, False, True, True, False, True, 15),
+    (True, False, True, True, False, True, (14, 15)),
     (True, True, False, False, False, False, 37),
     (True, True, True, False, False, False, 38),
     (True, True, True, True, False, False, 51),
@@ -297,6 +298,11 @@ def test_get_attribute_names(model_complex_postgresql,
                                  include_utilities = include_utilities)
 
     print(result)
+    if sqlalchemy.__version__[2] == '9' and isinstance(expected_result, tuple):
+        expected_result = expected_result[0]
+    elif isinstance(expected_result, tuple):
+        expected_result = expected_result[1]
+
     assert len(result) == expected_result
 
 
