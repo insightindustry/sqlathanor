@@ -9,6 +9,7 @@ This module defines a variety of utility functions which are used throughout
 **SQLAthanor**.
 
 """
+import csv
 import warnings
 import yaml
 
@@ -21,7 +22,7 @@ from validator_collection.errors import NotAnIterableError
 from sqlathanor._compat import json
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
-    MaximumNestingExceededWarning, DeserializationError
+    MaximumNestingExceededWarning, DeserializationError, CSVStructureError
 
 UTILITY_COLUMNS = [
     'metadata',
@@ -475,6 +476,101 @@ def parse_json(input_data,
     from_json = json.loads(input_data, **kwargs)
 
     return from_json
+
+
+def parse_csv(input_data,
+              delimiter = '|',
+              wrap_all_strings = False,
+              null_text = 'None',
+              wrapper_character = "'",
+              double_wrapper_character_when_nested = False,
+              escape_character = "\\",
+              line_terminator = '\r\n'):
+    """De-serialize CSV data into a Python :class:`dict <python:dict>` object.
+
+    .. versionadded:: 0.3.0
+
+    .. tip::
+
+      Unwrapped empty column values are automatically interpreted as null
+      (:obj:`None <python:None>`).
+
+    :param input_data: The CSV data to de-serialize. Should include column headers
+      and at least **one** row of data. Will ignore any rows of data beyond the
+      first row.
+    :type input_data: :class:`str <python:str>`
+
+    :param delimiter: The delimiter used between columns. Defaults to ``|``.
+    :type delimiter: :class:`str <python:str>`
+
+    :param wrapper_character: The string used to wrap string values when
+      wrapping is applied. Defaults to ``'``.
+    :type wrapper_character: :class:`str <python:str>`
+
+    :param null_text: The string used to indicate an empty value if empty
+      values are wrapped. Defaults to `None`.
+    :type null_text: :class:`str <python:str>`
+
+    :returns: A :class:`dict <python:dict>` representation of the CSV record.
+    :rtype: :class:`dict <python:dict>`
+
+    :raises DeserializationError: if ``input_data`` is not a valid
+      :class:`str <python:str>`
+    :raises CSVStructureError: if there are less than 2 (two) rows in ``input_data``
+      or if column headers are not valid Python variable names
+
+    """
+    try:
+        input_data = validators.string(input_data, allow_empty = False)
+    except (ValueError, TypeError):
+        raise DeserializationError("input_data expects a 'str', received '%s'" \
+                                   % type(input_data))
+
+    if not wrapper_character:
+        wrapper_character = '\''
+
+    if wrap_all_strings:
+        quoting = csv.QUOTE_NONNUMERIC
+    else:
+        quoting = csv.QUOTE_MINIMAL
+
+    if 'sqlathanor' in csv.list_dialects():
+        csv.unregister_dialect('sqlathanor')
+
+    csv.register_dialect('sqlathanor',
+                         delimiter = delimiter,
+                         doublequote = double_wrapper_character_when_nested,
+                         escapechar = escape_character,
+                         quotechar = wrapper_character,
+                         quoting = quoting,
+                         lineterminator = line_terminator)
+
+    csv_reader = csv.DictReader([input_data],
+                                dialect = 'sqlathanor',
+                                restkey = None,
+                                restval = None)
+
+    rows = [x for x in csv_reader]
+
+    if len(rows) < 1:
+        raise CSVStructureError('expected 1 row of data, received 0')
+    else:
+        data = rows[0]
+
+    for key in data:
+        try:
+            validators.variable_name(key)
+        except ValueError:
+            raise CSVStructureError(
+                'column (%s) is not a valid Python variable name' % key
+            )
+
+        if data[key] == null_text:
+            data[key] = None
+
+    csv.unregister_dialect('sqlathanor')
+
+    return data
 
 
 def get_attribute_names(obj,
