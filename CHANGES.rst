@@ -10,6 +10,7 @@ New Features
 * #35: Added ``BaseModel.dump_to_json()``
 * #35: Added ``BaseModel.dump_to_yaml()``
 * #35: Added ``BaseModel.dump_to_dict()``
+* #34: Added ``BaseModel.configure_serialization()``
 
 -----------
 

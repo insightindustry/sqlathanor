@@ -1316,7 +1316,6 @@ class BaseModel(object):
 
         cls.__serialization__ = config
 
-
     @classmethod
     def does_support_serialization(cls,
                                    attribute,
