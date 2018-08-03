@@ -21,7 +21,7 @@ from sqlathanor.errors import UnsupportedSerializationError
 from tests.fixtures import db_engine, tables, base_model, db_session, \
     model_single_pk, model_composite_pk, instance_single_pk, instance_composite_pk, \
     model_complex, model_complex_meta, instance_complex, instance_complex_meta, \
-    original_hybrid_config
+    original_hybrid_config, original_config_set, new_config_set, new_argument_set
 
 def test_func():
     pass
@@ -55,7 +55,7 @@ def test_instance__serialization__(request,
 @pytest.mark.parametrize('test_index, include_private, exclude_methods, expected_length', [
     (0, False, True, 10),
     (0, True, True, 13),
-    (0, False, False, 39),
+    (0, False, False, 40),
 ])
 def test_model__get_instance_attributes(request,
                                         model_complex_meta,
@@ -602,6 +602,7 @@ def test_model_does_support_serialization(request,
             result = target.does_support_serialization(attribute,
                                                        **format_support)
 
+
 @pytest.mark.parametrize('use_meta, test_index, expected_length', [
     (False, 0, 4),
     (True, 0, 5),
@@ -651,6 +652,87 @@ def test_instance_get_attribute_serialization_config(request,
     result = target.get_attribute_serialization_config(attribute)
 
     assert (result is not None) is returns_value
+
+
+@pytest.mark.parametrize('use_meta, test_index, use_configs, use_arguments', [
+    (False, 0, True, False),
+    (False, 0, False, True),
+    (False, 0, True, True),
+    (False, 0, False, False),
+
+    (True, 0, True, False),
+    (True, 0, False, True),
+    (True, 0, True, True),
+    (True, 0, False, False),
+
+])
+def test_instance_configure_serialization(request,
+                                          model_complex,
+                                          model_complex_meta,
+                                          instance_complex,
+                                          instance_complex_meta,
+                                          original_config_set,
+                                          new_config_set,
+                                          new_argument_set,
+                                          use_meta,
+                                          test_index,
+                                          use_configs,
+                                          use_arguments):
+    if not use_meta:
+        model = model_complex[test_index]
+        target = instance_complex[0][test_index]
+    else:
+        model = model_complex_meta[test_index]
+        target = instance_complex_meta[0][test_index]
+
+    original_config = original_config_set[use_meta]
+
+    params = {}
+    expected_results = {}
+    if use_arguments:
+        for key in new_argument_set[0]:
+            params[key] = new_argument_set[0][key]
+
+        expected_results = new_argument_set[1]
+
+    if use_configs:
+        params['configs'] = new_config_set[0]
+        for key in new_config_set[1]:
+            expected_results[key] = new_config_set[1][key]
+
+    print('PARAMS: %s' % params)
+
+    target.configure_serialization(**params)
+
+    for key in expected_results:
+        print('ATTRIBUTE: %s' % key)
+        result = target.get_attribute_serialization_config(key)
+        assert result.supports_csv == expected_results[key].get('supports_csv')
+        assert result.csv_sequence == expected_results[key].get('csv_sequence')
+        assert result.supports_json == expected_results[key].get('supports_json')
+        assert result.supports_yaml == expected_results[key].get('supports_yaml')
+        assert result.supports_dict == expected_results[key].get('supports_dict')
+        assert checkers.are_dicts_equivalent(result.on_deserialize,
+                                             expected_results[key].get('on_deserialize'))
+        assert checkers.are_dicts_equivalent(result.on_serialize,
+                                             expected_results[key].get('on_serialize'))
+
+        updated_model_config = model.get_attribute_serialization_config(key)
+
+        assert updated_model_config.supports_csv == expected_results[key].get('supports_csv')
+        assert updated_model_config.csv_sequence == expected_results[key].get('csv_sequence')
+        assert updated_model_config.supports_json == expected_results[key].get('supports_json')
+        assert updated_model_config.supports_yaml == expected_results[key].get('supports_yaml')
+        assert updated_model_config.supports_dict == expected_results[key].get('supports_dict')
+        assert checkers.are_dicts_equivalent(updated_model_config.on_deserialize,
+                                             expected_results[key].get('on_deserialize'))
+        assert checkers.are_dicts_equivalent(updated_model_config.on_serialize,
+                                             expected_results[key].get('on_serialize'))
+
+    model.configure_serialization(configs = original_config)
+
+    target.configure_serialization(configs = original_config)
+
 
 @pytest.mark.parametrize('use_meta, test_index, attribute, params, expected_result_params', [
     (False, 0, 'hybrid', {
@@ -808,6 +890,73 @@ def test_instance_set_attribute_serialization_config(request,
         on_deserialize = False)
 
 
+@pytest.mark.parametrize('use_meta, test_index, use_configs, use_arguments', [
+    (False, 0, True, False),
+    (False, 0, False, True),
+    (False, 0, True, True),
+    (False, 0, False, False),
+
+    (True, 0, True, False),
+    (True, 0, False, True),
+    (True, 0, True, True),
+    (True, 0, False, False),
+
+])
+def test_model_configure_serialization(request,
+                                       model_complex,
+                                       model_complex_meta,
+                                       instance_complex,
+                                       instance_complex_meta,
+                                       original_config_set,
+                                       new_config_set,
+                                       new_argument_set,
+                                       use_meta,
+                                       test_index,
+                                       use_configs,
+                                       use_arguments):
+    if not use_meta:
+        model = model_complex
+    else:
+        model = model_complex_meta
+
+    target = model[test_index]
+
+    original_config = original_config_set[use_meta]
+
+    params = {}
+    expected_results = {}
+    if use_arguments:
+        for key in new_argument_set[0]:
+            params[key] = new_argument_set[0][key]
+
+        expected_results = new_argument_set[1]
+
+    if use_configs:
+        params['configs'] = new_config_set[0]
+        for key in new_config_set[1]:
+            expected_results[key] = new_config_set[1][key]
+
+    print('PARAMS: %s' % params)
+
+    target.configure_serialization(**params)
+
+    for key in expected_results:
+        print('ATTRIBUTE: %s' % key)
+        result = target.get_attribute_serialization_config(key)
+        assert result.supports_csv == expected_results[key].get('supports_csv')
+        assert result.csv_sequence == expected_results[key].get('csv_sequence')
+        assert result.supports_json == expected_results[key].get('supports_json')
+        assert result.supports_yaml == expected_results[key].get('supports_yaml')
+        assert result.supports_dict == expected_results[key].get('supports_dict')
+        assert checkers.are_dicts_equivalent(result.on_deserialize,
+                                             expected_results[key].get('on_deserialize'))
+        assert checkers.are_dicts_equivalent(result.on_serialize,
+                                             expected_results[key].get('on_serialize'))
+
+    target.configure_serialization(configs = original_config)
+
+
+
 @pytest.mark.parametrize('use_meta, test_index, attribute, params, expected_result_params', [
     (False, 0, 'hybrid', {
         'config': None,
@@ -947,7 +1096,7 @@ def test_model_set_attribute_serialization_config(request,
 @pytest.mark.parametrize('test_index, include_private, exclude_methods, expected_length', [
     (0, False, True, 10),
     (0, True, True, 13),
-    (0, False, False, 39),
+    (0, False, False, 40),
 ])
 def test_instance__get_instance_attributes(request,
                                            instance_complex_meta,

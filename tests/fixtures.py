@@ -694,6 +694,282 @@ def original_hybrid_config(request):
     return config
 
 
+@pytest.fixture
+def original_config_set(request):
+    """Original serialization configuration applied to the complex model class.
+
+    Dictionary key ``True`` indicates that it applies to ``complex_meta``, while
+    ``False`` indicates that it applies to just ``complex`` (non-meta).
+    """
+    config_set = {
+        True: [
+            AttributeConfiguration(name = 'id',
+                                   supports_csv = True,
+                                   csv_sequence = 1,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True),
+            AttributeConfiguration(name = 'name',
+                                   supports_csv = True,
+                                   csv_sequence = 2,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True,
+                                   on_serialize = None,
+                                   on_deserialize = None),
+            AttributeConfiguration(name = 'addresses',
+                                   supports_json = True,
+                                   supports_yaml = (True, True),
+                                   supports_dict = (True, False)),
+            AttributeConfiguration(name = 'hybrid',
+                                   supports_csv = True,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True),
+            AttributeConfiguration(name = 'password',
+                                   supports_csv = (True, False),
+                                   csv_sequence = 3,
+                                   supports_json = (True, False),
+                                   supports_yaml = (True, False),
+                                   supports_dict = (True, False))
+        ],
+        False: [
+            AttributeConfiguration(name = 'id',
+                                   supports_csv = True,
+                                   csv_sequence = 1,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True),
+            AttributeConfiguration(name = 'name',
+                                   supports_csv = True,
+                                   csv_sequence = 2,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True),
+            AttributeConfiguration(name = 'password',
+                                   supports_csv = (True, False),
+                                   csv_sequence = 3,
+                                   supports_json = (True, False),
+                                   supports_yaml = (True, False),
+                                   supports_dict = (True, False)),
+            AttributeConfiguration(name = 'addresses',
+                                   supports_json = True,
+                                   supports_yaml = (True, True),
+                                   supports_dict = (True, False))
+        ]
+    }
+
+    return config_set
+
+
+@pytest.fixture
+def new_config_set(request):
+    config_set = [
+        AttributeConfiguration(name = 'id',
+                               supports_csv = True,
+                               csv_sequence = 1,
+                               supports_json = True,
+                               supports_yaml = True,
+                               supports_dict = True),
+        AttributeConfiguration(name = 'name',
+                               supports_csv = True,
+                               csv_sequence = 2,
+                               supports_json = True,
+                               supports_yaml = True,
+                               supports_dict = True,
+                               on_serialize = None,
+                               on_deserialize = None),
+        AttributeConfiguration(name = 'addresses',
+                               supports_json = True,
+                               supports_yaml = (True, True),
+                               supports_dict = (True, False)),
+        AttributeConfiguration(name = 'hybrid',
+                               supports_csv = True,
+                               supports_json = True,
+                               supports_yaml = True,
+                               supports_dict = True),
+        AttributeConfiguration(name = 'password',
+                               supports_csv = False,
+                               supports_json = False,
+                               supports_yaml = False,
+                               supports_dict = False)
+    ]
+
+    dict_representation = {
+        'id': {
+            'supports_csv': (True, True),
+            'csv_sequence': 1,
+            'supports_json': (True, True),
+            'supports_yaml': (True, True),
+            'supports_dict': (True, True),
+            'on_serialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            },
+            'on_deserialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+        },
+        'name': {
+            'supports_csv': (True, True),
+            'csv_sequence': 2,
+            'supports_json': (True, True),
+            'supports_yaml': (True, True),
+            'supports_dict': (True, True),
+            'on_serialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            },
+            'on_deserialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+        },
+        'addresses': {
+            'supports_csv': (False, False),
+            'csv_sequence': None,
+            'supports_json': (True, True),
+            'supports_yaml': (True, True),
+            'supports_dict': (True, False),
+            'on_serialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            },
+            'on_deserialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+        },
+        'hybrid': {
+            'supports_csv': (True, True),
+            'csv_sequence': None,
+            'supports_json': (True, True),
+            'supports_yaml': (True, True),
+            'supports_dict': (True, True),
+            'on_serialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            },
+            'on_deserialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+        },
+        'password': {
+            'supports_csv': (False, False),
+            'csv_sequence': None,
+            'supports_json': (False, False),
+            'supports_yaml': (False, False),
+            'supports_dict': (False, False),
+            'on_serialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            },
+            'on_deserialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+        }
+    }
+
+    return config_set, dict_representation
+
+@pytest.fixture
+def new_argument_set(request):
+    attribute_set = {
+        'attributes': ['id',
+                       'name',
+                       'hybrid'],
+        'supports_csv': True,
+        'supports_json': True,
+        'supports_yaml': True,
+        'supports_dict': False
+    }
+
+    dict_representation = {
+        'id': {
+            'supports_csv': (True, True),
+            'csv_sequence': None,
+            'supports_json': (True, True),
+            'supports_yaml': (True, True),
+            'supports_dict': (False, False),
+            'on_serialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            },
+            'on_deserialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+        },
+        'name': {
+            'supports_csv': (True, True),
+            'csv_sequence': None,
+            'supports_json': (True, True),
+            'supports_yaml': (True, True),
+            'supports_dict': (False, False),
+            'on_serialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            },
+            'on_deserialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+        },
+        'hybrid': {
+            'supports_csv': (True, True),
+            'csv_sequence': None,
+            'supports_json': (True, True),
+            'supports_yaml': (True, True),
+            'supports_dict': (False, False),
+            'on_serialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            },
+            'on_deserialize': {
+                'csv': None,
+                'json': None,
+                'yaml': None,
+                'dict': None
+            }
+        }
+    }
+
+    return attribute_set, dict_representation
+
+
 @pytest.fixture(scope = 'session')
 def existing_db(request, tmpdir_factory):
     db_filename = str(tmpdir_factory.mktemp('db').join('temporary.db'))

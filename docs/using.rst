@@ -899,6 +899,18 @@ Why Two Configuration Approaches?
   and "data scientists", I've tried to design an interface that will feel "natural"
   to both communities.
 
+Configuring at Runtime
+-------------------------------------
+
+.. seealso::
+
+  **SQLAthanor** exposes a number of public methods that allow you to modify the
+  :term:`serialization`/:term:`de-serialization` configuration at run-time. For more
+  information, please see:
+
+  * :meth:`BaseModel.configure_serialization() <sqlathanor.declarative.BaseModel.configure_serialization>`
+  * :meth:`BaseModel.set_attribute_serialization_config() <sqlathanor.declarative.BaseModel.set_attribute_serialization_config>`
+
 --------------
 
 .. _extra_processing:
