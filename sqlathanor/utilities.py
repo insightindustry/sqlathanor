@@ -520,11 +520,14 @@ def parse_csv(input_data,
       or if column headers are not valid Python variable names
 
     """
-    try:
-        input_data = validators.string(input_data, allow_empty = False)
-    except (ValueError, TypeError):
-        raise DeserializationError("input_data expects a 'str', received '%s'" \
-                                   % type(input_data))
+    if not checkers.is_iterable(input_data):
+        try:
+            input_data = validators.string(input_data, allow_empty = False)
+        except (ValueError, TypeError):
+            raise DeserializationError("input_data expects a 'str', received '%s'" \
+                                       % type(input_data))
+
+        input_data = [input_data]
 
     if not wrapper_character:
         wrapper_character = '\''
@@ -545,7 +548,7 @@ def parse_csv(input_data,
                          quoting = quoting,
                          lineterminator = line_terminator)
 
-    csv_reader = csv.DictReader([input_data],
+    csv_reader = csv.DictReader(input_data,
                                 dialect = 'sqlathanor',
                                 restkey = None,
                                 restval = None)

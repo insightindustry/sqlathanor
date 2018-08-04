@@ -21,10 +21,10 @@ from tests.fixtures import db_engine, tables, base_model, db_session, \
 from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple, \
     get_class_type_key, raise_UnsupportedSerializationError, \
     raise_UnsupportedDeserializationError, iterable__to_dict, parse_yaml, parse_json, \
-    get_attribute_names, is_an_attribute
+    get_attribute_names, is_an_attribute, parse_csv
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
-    MaximumNestingExceededWarning, DeserializationError
+    MaximumNestingExceededWarning, DeserializationError, CSVStructureError
 
 
 
@@ -249,6 +249,31 @@ def test_parse_yaml(input_value,
     else:
         with pytest.raises(error):
             result = parse_yaml(input_value)
+
+
+@pytest.mark.parametrize('input_value, kwargs, expected_result, error', [
+    (["col1|col2|col3", "123|456|789"], None, {'col1': '123', 'col2': '456', 'col3': '789'}, None),
+    (["col1|col2|col3"], None, None, CSVStructureError),
+    (["col1|col2|col3", "123|456|789", "987|654|321"], None, {'col1': '123', 'col2': '456', 'col3': '789'}, None),
+    (["not a variable name|col2|col3", "123|456|789"], None, None, CSVStructureError),
+])
+def test_parse_csv(input_value, kwargs, expected_result, error):
+    if not error:
+        if kwargs:
+            result = parse_csv(input_value, **kwargs)
+        else:
+            result = parse_csv(input_value)
+
+        print(result)
+
+        assert isinstance(result, dict)
+        assert checkers.are_dicts_equivalent(result, expected_result)
+    else:
+        with pytest.raises(error):
+            if kwargs:
+                result = parse_csv(input_value, **kwargs)
+            else:
+                result = parse_csv(input_value)
 
 
 @pytest.mark.parametrize('use_instance, include_callable, include_nested, include_private, include_special, include_utilities, expected_result', [
