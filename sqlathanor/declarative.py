@@ -3412,6 +3412,7 @@ def as_declarative(**kw):
 
 def generate_model_from_dict(serialized_dict,
                              tablename,
+                             primary_key,
                              cls = BaseModel,
                              serialization_config = None,
                              skip_nested = True,
@@ -3436,6 +3437,10 @@ def generate_model_from_dict(serialized_dict,
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
+
+    :param primary_key: The name of the column/key that should be used as the table's
+      primary key.
+    :type primary_key: :class:`str <python:str>`
 
     :param cls: The base class to use when generating a new :term:`model class`.
       Defaults to :class:`BaseModel` to provide serialization/de-serialization
@@ -3522,6 +3527,7 @@ def generate_model_from_dict(serialized_dict,
     :raises ValueError: if ``serialized_dict`` is not a :class:`dict <python:dict>`
       or is empty
     :raises ValueError: if ``tablename`` is empty
+    :raises ValueError: if ``primary_key`` is empty
 
     """
     # pylint: disable=too-many-branches
@@ -3535,19 +3541,22 @@ def generate_model_from_dict(serialized_dict,
     if not tablename:
         raise ValueError('tablename cannot be empty')
 
+    if not primary_key:
+        raise ValueError('primary_key cannot be empty')
+
     if not type_mapping:
         type_mapping = DEFAULT_PYTHON_SQL_TYPE_MAPPING
 
-    for key, value in DEFAULT_PYTHON_SQL_TYPE_MAPPING:
+    for key in DEFAULT_PYTHON_SQL_TYPE_MAPPING:
         if key not in type_mapping:
-            type_mapping[key] = value
+            type_mapping[key] = DEFAULT_PYTHON_SQL_TYPE_MAPPING[key]
 
     serialization_config = validate_serialization_config(serialization_config)
 
     GeneratedBaseModel = declarative_base(cls = cls, **kwargs)
 
-    class GeneratedModel(GeneratedBaseModel):
-        # pylint: disable=too-few-public-methods,missing-docstring
+    class InterimGeneratedModel(object):
+        # pylint: disable=too-few-public-methods,missing-docstring,invalid-variable-name
         __tablename__ = tablename
 
     prospective_serialization_config = []
@@ -3558,7 +3567,7 @@ def generate_model_from_dict(serialized_dict,
             raise UnsupportedValueTypeError('key/column ("%s") cannot be callable' % key)
         elif checkers.is_iterable(value) and skip_nested:
             continue
-        elif checkers.is_iterable(value):
+        elif checkers.is_iterable(value) and default_to_str:
             target_type = 'str'
         elif value is None and default_to_str:
             target_type = 'str'
@@ -3569,12 +3578,12 @@ def generate_model_from_dict(serialized_dict,
                 target_type = 'int'
             else:
                 target_type = 'float'
+        elif checkers.is_time(value) and not checkers.is_datetime(value):
+            target_type = 'time'
         elif checkers.is_datetime(value):
             target_type = 'datetime'
         elif checkers.is_date(value):
             target_type = 'date'
-        elif checkers.is_time(value):
-            target_type = 'time'
         elif default_to_str:
             target_type = 'str'
         else:
@@ -3586,9 +3595,12 @@ def generate_model_from_dict(serialized_dict,
                 'key/column ("%s") is not a supported type (%s)' % (key, target_type)
             )
 
-        column = Column(name = key, type = target_type)
+        if key == primary_key:
+            column = Column(name = key, type_ = column_type, primary_key = True)
+        else:
+            column = Column(name = key, type_ = column_type)
 
-        setattr(GeneratedModel, key, column)
+        setattr(InterimGeneratedModel, key, column)
 
         attribute_config = AttributeConfiguration(name = key,
                                                   supports_csv = True,
@@ -3602,17 +3614,21 @@ def generate_model_from_dict(serialized_dict,
     if not serialization_config:
         serialization_config = prospective_serialization_config
 
-    GeneratedModel.__serialization__ = serialization_config
-
     if base_model_attrs:
-        for key, value in base_model_attrs:
-            setattr(GeneratedModel, key, value)
+        for key in base_model_attrs:
+            setattr(InterimGeneratedModel, key, base_model_attrs[key])
+
+    class GeneratedModel(GeneratedBaseModel, InterimGeneratedModel):
+        pass
+
+    GeneratedModel.configure_serialization(configs = serialization_config)
 
     return GeneratedModel
 
 
 def generate_model_from_json(serialized,
                              tablename,
+                             primary_key,
                              deserialize_function = None,
                              cls = BaseModel,
                              serialization_config = None,
@@ -3639,6 +3655,10 @@ def generate_model_from_json(serialized,
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
+
+    :param primary_key: The name of the column/key that should be used as the table's
+      primary key.
+    :type primary_key: :class:`str <python:str>`
 
     :param deserialize_function: Optionally override the default JSON deserializer.
       Defaults to :obj:`None <python:None>`, which calls the default
@@ -3750,12 +3770,17 @@ def generate_model_from_json(serialized,
 
     """
     # pylint: disable=line-too-long
-    from_json = parse_json(serialized,
-                           deserialize_function = deserialize_function,
-                           **deserialize_kwargs)
+    if deserialize_kwargs:
+        from_json = parse_json(serialized,
+                               deserialize_function = deserialize_function,
+                               **deserialize_kwargs)
+    else:
+        from_json = parse_json(serialized,
+                               deserialize_function = deserialize_function)
 
     generated_model = generate_model_from_dict(from_json,
                                                tablename,
+                                               primary_key,
                                                cls = cls,
                                                serialization_config = serialization_config,
                                                skip_nested = skip_nested,
@@ -3769,6 +3794,7 @@ def generate_model_from_json(serialized,
 
 def generate_model_from_yaml(serialized,
                              tablename,
+                             primary_key,
                              deserialize_function = None,
                              cls = BaseModel,
                              serialization_config = None,
@@ -3795,6 +3821,10 @@ def generate_model_from_yaml(serialized,
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
+
+    :param primary_key: The name of the column/key that should be used as the table's
+      primary key.
+    :type primary_key: :class:`str <python:str>`
 
     :param deserialize_function: Optionally override the default YAML deserializer.
       Defaults to :obj:`None <python:None>`, which calls the default
@@ -3906,12 +3936,17 @@ def generate_model_from_yaml(serialized,
 
     """
     # pylint: disable=line-too-long
-    from_yaml = parse_yaml(serialized,
-                           deserialize_function = deserialize_function,
-                           **deserialize_kwargs)
+    if deserialize_kwargs:
+        from_yaml = parse_yaml(serialized,
+                               deserialize_function = deserialize_function,
+                               **deserialize_kwargs)
+    else:
+        from_yaml = parse_yaml(serialized,
+                               deserialize_function = deserialize_function)
 
     generated_model = generate_model_from_dict(from_yaml,
                                                tablename,
+                                               primary_key,
                                                cls = cls,
                                                serialization_config = serialization_config,
                                                skip_nested = skip_nested,
@@ -3925,6 +3960,7 @@ def generate_model_from_yaml(serialized,
 
 def generate_model_from_csv(serialized,
                             tablename,
+                            primary_key,
                             cls = BaseModel,
                             serialization_config = None,
                             skip_nested = True,
@@ -3956,6 +3992,10 @@ def generate_model_from_csv(serialized,
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
+
+    :param primary_key: The name of the column/key that should be used as the table's
+      primary key.
+    :type primary_key: :class:`str <python:str>`
 
     :param cls: The base class to use when generating a new :term:`model class`.
       Defaults to :class:`BaseModel` to provide serialization/de-serialization
@@ -4059,7 +4099,7 @@ def generate_model_from_csv(serialized,
 
     """
     # pylint: disable=line-too-long,too-many-arguments
-    
+
     from_csv = parse_csv(serialized,
                          delimiter = delimiter,
                          wrap_all_strings = wrap_all_strings,
@@ -4071,6 +4111,7 @@ def generate_model_from_csv(serialized,
 
     generated_model = generate_model_from_dict(from_csv,
                                                tablename,
+                                               primary_key,
                                                cls = cls,
                                                serialization_config = serialization_config,
                                                skip_nested = skip_nested,
