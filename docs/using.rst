@@ -312,6 +312,61 @@ Dependencies
       * :ref:`Using Automap with SQLAthanor <using_automap>`
       * **SQLAlchemy**: :doc:`Automap Extension <sqlalchemy:orm/extensions/automap>`
 
+  .. tab:: Programmatically
+
+    .. versionadded:: 0.3.0
+
+    If you have serialized data in either :term:`CSV <Comma-Separated Value (CSV)>`,
+    :term:`JSON <JavaScript Object Notation (JSON)>`,
+    :term:`YAML <YAML Ain't a Markup Language (YAML)>`, or a Python
+    :class:`dict <python:dict>`, you can programmatically generate a
+    :doc:`SQLAlchemy Declarative <sqlalchemy:orm/extensions/declarative/index>`
+    :term:`model class` using **SQLAthanor** with the syntax
+    ``generate_model_from_<format>()`` where ``<format>`` corresponds to ``csv``,
+    ``json``, ``yaml``, or ``dict``:
+
+    .. code-block:: python
+
+      ##### FROM CSV:
+      from sqlathanor import generate_model_from_csv
+
+      # Assuming that "csv_data" contains your CSV data
+      CSVModel = generate_model_from_csv(csv_data,
+                                         tablename = 'my_table_name',
+                                         primary_key = 'id')
+
+      ##### FROM JSON:
+      from sqlathanor import generate_model_from_json
+
+      # Assuming that "json_string" contains your JSON data in a string
+      JSONModel = generate_model_from_json(json_string,
+                                           tablename = 'my_table_name',
+                                           primary_key = 'id')
+
+      ##### FROM YAML:
+      from sqlathanor import generate_model_from_yaml
+
+      # Assuming that "yaml_string" contains your YAML data in a string
+      YAMLModel = generate_model_from_yaml(yaml_string,
+                                           tablename = 'my_table_name',
+                                           primary_key = 'id')
+
+      ##### FROM DICT:
+      from sqlathanor import generate_model_from_dict
+
+      # Assuming that "yaml_string" contains your YAML data in a string
+      DictModel = generate_model_from_dict(dict_string,
+                                           tablename = 'my_table_name',
+                                           primary_key = 'id')
+
+    .. seealso::
+
+      * :func:`generate_model_from_csv() <sqlathanor.declarative.generate_model_from_csv>`
+      * :func:`generate_model_from_json() <sqlathanor.declarative.generate_model_from_json>`
+      * :func:`generate_model_from_yaml() <sqlathanor.declarative.generate_model_from_yaml>`
+      * :func:`generate_model_from_dict() <sqlathanor.declarative.generate_model_from_dict>`
+
+
 -----------------
 
 .. _configuration:

@@ -344,6 +344,69 @@ Password De-serialization
 
 ----------------------------
 
+Programmatically Generating Models
+=====================================
+
+.. versionadded:: 0.3.0
+
+.. seealso::
+
+  * :func:`generate_model_from_csv() <sqlathanor.declarative.generate_model_from_csv>`
+  * :func:`generate_model_from_json() <sqlathanor.declarative.generate_model_from_json>`
+  * :func:`generate_model_from_yaml() <sqlathanor.declarative.generate_model_from_yaml>`
+  * :func:`generate_model_from_dict() <sqlathanor.declarative.generate_model_from_dict>`
+
+.. tabs::
+
+  .. tab:: CSV
+
+    .. code-block:: python
+
+      # FROM CSV:
+      from sqlathanor import generate_model_from_csv
+
+      # Assuming that "csv_data" contains your CSV data
+      CSVModel = generate_model_from_csv(csv_data,
+                                         tablename = 'my_table_name',
+                                         primary_key = 'id')
+
+  .. tab:: JSON
+
+    .. code-block:: python
+
+       from sqlathanor import generate_model_from_json
+
+       # Assuming that "json_string" contains your JSON data in a string
+       JSONModel = generate_model_from_json(json_string,
+                                            tablename = 'my_table_name',
+                                            primary_key = 'id')
+
+  .. tab:: YAML
+
+    .. code-block:: python
+
+       from sqlathanor import generate_model_from_yaml
+
+       # Assuming that "yaml_string" contains your YAML data in a string
+       YAMLModel = generate_model_from_yaml(yaml_string,
+                                            tablename = 'my_table_name',
+                                            primary_key = 'id')
+
+  .. tab:: ``dict``
+
+    .. code-block:: python
+
+       from sqlathanor import generate_model_from_dict
+
+       # Assuming that "yaml_string" contains your YAML data in a string
+       DictModel = generate_model_from_dict(dict_string,
+                                            tablename = 'my_table_name',
+                                            primary_key = 'id')
+
+
+
+----------------------------
+
 Using SQLAthanor with SQLAlchemy Reflection
 =============================================
 

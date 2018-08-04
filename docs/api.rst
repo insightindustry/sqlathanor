@@ -50,6 +50,34 @@ declarative_base()
 
 ----------------------------------------
 
+generate_model_from_csv()
+----------------------------
+
+.. autofunction:: generate_model_from_csv
+
+----------------------------------------
+
+generate_model_from_json()
+-----------------------------
+
+.. autofunction:: generate_model_from_json
+
+----------------------------------------
+
+generate_model_from_yaml()
+----------------------------
+
+.. autofunction:: generate_model_from_yaml
+
+----------------------------------------
+
+generate_model_from_dict()
+----------------------------
+
+.. autofunction:: generate_model_from_dict
+
+----------------------------------------
+
 .. module:: sqlathanor.schema
 
 Schema
