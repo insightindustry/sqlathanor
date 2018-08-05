@@ -14,6 +14,7 @@ from sqlathanor._compat import json
 from sqlathanor.utilities import format_to_tuple, get_class_type_key, \
     raise_UnsupportedSerializationError, raise_UnsupportedDeserializationError
 
+from sqlalchemy.types import Boolean, Date, DateTime, Float, Integer, Text, Time
 
 def get_default_deserializer(class_attribute = None,
                              format = None):
@@ -751,4 +752,14 @@ DEFAULT_DESERIALIZERS = {
         'yaml': raise_UnsupportedDeserializationError,
         'dict': raise_UnsupportedDeserializationError
     }
+}
+
+DEFAULT_PYTHON_SQL_TYPE_MAPPING = {
+    'bool': Boolean,
+    'str': Text,
+    'int': Integer,
+    'float': Float,
+    'datetime': DateTime,
+    'date': Date,
+    'time': Time
 }
