@@ -388,10 +388,29 @@ class Table(SA_Table):
 
     # pylint: disable=too-many-ancestors, W0223
 
+    def __init__(self, *args, **kwargs):
+        """Construct a new ``Table`` object.
+
+        .. warning::
+
+          This method is analogous to the original SQLAlchemy
+          :meth:`Table.__init__() <sqlalchemy:sqlalchemy.schema.Table.__init__>`
+          from which it inherits. The only difference is that it supports additional
+          keyword arguments which are not supported in the original, and which
+          are documented below.
+
+          **For the original SQLAlchemy version, see:**
+
+          * **SQLAlchemy:** :class:`sqlalchemy.schema.Table <sqlalchemy:sqlalchemy.schema.Table>`
+
+        """
+        super(Table, self).__init__(*args, **kwargs)
+
     @classmethod
     def from_dict(cls,
                   serialized,
                   tablename,
+                  metadata,
                   primary_key,
                   column_kwargs = None,
                   skip_nested = True,
@@ -409,6 +428,13 @@ class Table(SA_Table):
 
         :param tablename: The name of the SQL table to which the model corresponds.
         :type tablename: :class:`str <python:str>`
+
+        :param metadata: a :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
+          object which will contain this table. The metadata is used as a point of
+          association of this table with other tables which are referenced via foreign
+          key. It also may be used to associate this table with a particular
+          :class:`Connectable <sqlalchemy:sqlalchemy.engine.Connectable>.
+        :type metadata: :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
 
         :param primary_key: The name of the column/key that should be used as the table's
           primary key.
@@ -518,12 +544,16 @@ class Table(SA_Table):
             column = Column(**column_dict)
             columns.append(column)
 
-        return cls(tablename, *columns, **kwargs)
+        return cls(tablename,
+                   metadata,
+                   *columns,
+                   **kwargs)
 
     @classmethod
     def from_json(cls,
                   serialized,
                   tablename,
+                  metadata,
                   primary_key,
                   column_kwargs = None,
                   skip_nested = True,
@@ -544,6 +574,13 @@ class Table(SA_Table):
 
         :param tablename: The name of the SQL table to which the model corresponds.
         :type tablename: :class:`str <python:str>`
+
+        :param metadata: a :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
+          object which will contain this table. The metadata is used as a point of
+          association of this table with other tables which are referenced via foreign
+          key. It also may be used to associate this table with a particular
+          :class:`Connectable <sqlalchemy:sqlalchemy.engine.Connectable>.
+        :type metadata: :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
 
         :param primary_key: The name of the column/key that should be used as the table's
           primary key.
@@ -647,6 +684,7 @@ class Table(SA_Table):
 
         table = cls.from_dict(from_json,
                               tablename,
+                              metadata,
                               primary_key,
                               column_kwargs = column_kwargs,
                               skip_nested = skip_nested,
@@ -660,6 +698,7 @@ class Table(SA_Table):
     def from_yaml(cls,
                   serialized,
                   tablename,
+                  metadata,
                   primary_key,
                   column_kwargs = None,
                   skip_nested = True,
@@ -783,6 +822,7 @@ class Table(SA_Table):
 
         table = cls.from_dict(from_yaml,
                               tablename,
+                              metadata,
                               primary_key,
                               column_kwargs = column_kwargs,
                               skip_nested = skip_nested,
@@ -796,6 +836,7 @@ class Table(SA_Table):
     def from_csv(cls,
                  serialized,
                  tablename,
+                 metadata,
                  primary_key,
                  column_kwargs = None,
                  skip_nested = True,
@@ -916,6 +957,7 @@ class Table(SA_Table):
 
         table = cls.from_dict(from_csv,
                               tablename,
+                              metadata,
                               primary_key,
                               column_kwargs = column_kwargs,
                               skip_nested = skip_nested,
