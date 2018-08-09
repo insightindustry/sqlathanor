@@ -14,6 +14,12 @@ New Features
 * #42: Added support for the programmatic generation of declarative model classes.
 * #41: Added support for the programmatic generation of ``Table`` objects.
 
+Other Changes
+---------------
+
+* #50: Updated `Validator-Collection <https://validator-collection.readthedocs.io/en/latest>`_
+  dependency.
+
 -----------
 
 Release 0.2.2

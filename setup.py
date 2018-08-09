@@ -148,7 +148,7 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'sqlalchemy>=0.9',
-        'validator-collection>=1.1.0',
+        'validator-collection>=1.2.0',
         'simplejson>=3.0',
         'PyYAML>=3.10',
     ],
