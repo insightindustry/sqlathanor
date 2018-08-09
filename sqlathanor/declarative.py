@@ -33,7 +33,7 @@ from sqlathanor.errors import ValueSerializationError, ValueDeserializationError
     ExtraKeyError, YAMLParseError, JSONParseError, UnsupportedValueTypeError
 from sqlathanor.default_serializers import get_default_serializer
 from sqlathanor.default_deserializers import get_default_deserializer, \
-    DEFAULT_PYTHON_SQL_TYPE_MAPPING
+    get_type_mapping, DEFAULT_PYTHON_SQL_TYPE_MAPPING
 from sqlathanor.schema import Column
 
 # pylint: disable=no-member
@@ -3544,13 +3544,6 @@ def generate_model_from_dict(serialized_dict,
     if not primary_key:
         raise ValueError('primary_key cannot be empty')
 
-    if not type_mapping:
-        type_mapping = DEFAULT_PYTHON_SQL_TYPE_MAPPING
-
-    for key in DEFAULT_PYTHON_SQL_TYPE_MAPPING:
-        if key not in type_mapping:
-            type_mapping[key] = DEFAULT_PYTHON_SQL_TYPE_MAPPING[key]
-
     serialization_config = validate_serialization_config(serialization_config)
 
     GeneratedBaseModel = declarative_base(cls = cls, **kwargs)
@@ -3563,37 +3556,12 @@ def generate_model_from_dict(serialized_dict,
 
     for key in serialized_dict:
         value = serialized_dict[key]
-        if checkers.is_callable(value):
-            raise UnsupportedValueTypeError('key/column ("%s") cannot be callable' % key)
-        elif checkers.is_iterable(value) and skip_nested:
+        column_type = get_type_mapping(value,
+                                       type_mapping = type_mapping,
+                                       skip_nested = skip_nested,
+                                       default_to_str = default_to_str)
+        if column_type is None:
             continue
-        elif checkers.is_iterable(value) and default_to_str:
-            target_type = 'str'
-        elif value is None and default_to_str:
-            target_type = 'str'
-        elif isinstance(value, bool):
-            target_type = 'bool'
-        elif checkers.is_numeric(value):
-            if checkers.is_integer(value):
-                target_type = 'int'
-            else:
-                target_type = 'float'
-        elif checkers.is_time(value) and not checkers.is_datetime(value):
-            target_type = 'time'
-        elif checkers.is_datetime(value):
-            target_type = 'datetime'
-        elif checkers.is_date(value):
-            target_type = 'date'
-        elif default_to_str:
-            target_type = 'str'
-        else:
-            target_type = type(value).__name__
-
-        column_type = type_mapping.get(target_type, None)
-        if not column_type:
-            raise UnsupportedValueTypeError(
-                'key/column ("%s") is not a supported type (%s)' % (key, target_type)
-            )
 
         if key == primary_key:
             column = Column(name = key, type_ = column_type, primary_key = True)
@@ -3988,7 +3956,7 @@ def generate_model_from_csv(serialized,
 
     :param serialized: The CSV string whose keys will be treated as column
       names, while value data types will determine :term:`model attribute` data types.
-    :type serialized: :class:`str <python:str>`
+    :type serialized: :class:`str <python:str>` / :class:`list <python:list>`
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
