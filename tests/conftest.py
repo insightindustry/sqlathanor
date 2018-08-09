@@ -24,8 +24,12 @@ def pytest_addoption(parser):
                        help="cli-option: help text goes here")
 
     """
-    # pylint: disable=unused-argument
-    pass
+    parser.addoption("--inputs",
+                     action="store",
+                     default="/sqlathanor/tests/input_files",
+                     help=("inputs: the absolute path to the directory where input"
+                           " files can be found"))
+
 
 
 def pytest_runtest_makereport(item, call):

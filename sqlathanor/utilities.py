@@ -10,6 +10,7 @@ This module defines a variety of utility functions which are used throughout
 
 """
 import csv
+import linecache
 import warnings
 import yaml
 
@@ -714,3 +715,51 @@ def is_an_attribute(obj,
                                      include_utilities = include_utilities)
 
     return attribute in attributes
+
+
+def read_csv_data(input_data,
+                  single_record = False,
+                  line_terminator = '\r\n'):
+    """Return the contents of ``input_data`` as a :class:`str <python:str>`.
+
+    :param input_data: The CSV data to read.
+
+      .. note::
+
+        If ``input_data`` is Path-like, then the underlying file **must** start
+        with a header row.
+
+    :type input_data: Path-like or :class:`str <python:str>`
+
+    :param single_record: If ``True``, will return only the first data record.
+      If ``False``, will return all data records (including the header row if
+      present). Defaults to ``False``.
+    :type single_record: :class:`bool <python:bool>`
+
+    :returns: ``input_data`` as a :class:`str <python:str>`
+    :rtype: :class:`str <python:str>` or Path-like object
+
+    """
+    if checkers.is_file(input_data) and not single_record:
+        with open(input_data, 'r') as input_file:
+            input_data = input_file.read()
+    elif checkers.is_file(input_data) and single_record:
+        input_data = linecache.getline(input_data, 2)
+        if input_data == '':
+            input_data = None
+    elif single_record:
+        if line_terminator in input_data:
+            parsed_data = input_data.split(line_terminator)
+        elif line_terminator == '\r\n' and '\r' in input_data:
+            parsed_data = input_data.split('\r')
+        elif line_terminator == '\r\n' and '\n' in input_data:
+            parsed_data = input_data.split('\n')
+        else:
+            parsed_data = [input_data]
+
+        if len(parsed_data) < 2:
+            input_data = None
+        else:
+            input_data = parsed_data[1]
+
+    return input_data

@@ -8,6 +8,7 @@ tests.test_utilities
 Tests for the schema extensions written in :ref:`sqlathanor.utilities`.
 
 """
+import os
 
 import pytest
 import sqlalchemy
@@ -16,12 +17,12 @@ from validator_collection import checkers
 from validator_collection.errors import NotAnIterableError
 
 from tests.fixtures import db_engine, tables, base_model, db_session, \
-    model_complex_postgresql, instance_postgresql
+    model_complex_postgresql, instance_postgresql, input_files
 
 from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple, \
     get_class_type_key, raise_UnsupportedSerializationError, \
     raise_UnsupportedDeserializationError, iterable__to_dict, parse_yaml, parse_json, \
-    get_attribute_names, is_an_attribute, parse_csv
+    get_attribute_names, is_an_attribute, parse_csv, read_csv_data
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
     MaximumNestingExceededWarning, DeserializationError, CSVStructureError
@@ -395,3 +396,43 @@ def test_is_an_attribute(use_instance, attribute, forbid_callable, forbid_nested
                            attribute,
                            include_callable = not forbid_callable,
                            include_nested = not forbid_nested) == expected_result
+
+
+@pytest.mark.parametrize('input_data, single_record, expected_result', [
+    ("col1|col2|col3\r\n123|456|789\r\n987|654|321", True, '123|456|789'),
+    ("col1|col2|col3\n123|456|789", True, '123|456|789'),
+    ("col1|col2|col3\r123|456|789", True, '123|456|789'),
+    ("col1|col2|col3", True, None),
+
+    ("CSV/input_csv1.csv", True, '123|456|789'),
+    ("CSV/input_csv2.csv", True, None),
+
+    ("col1|col2|col3\r\n123|456|789\r\n987|654|321", False, 'col1|col2|col3\r\n123|456|789\r\n987|654|321'),
+    ("col1|col2|col3\n123|456|789", False, 'col1|col2|col3\n123|456|789'),
+    ("col1|col2|col3\r123|456|789", False, 'col1|col2|col3\r123|456|789'),
+    ("col1|col2|col3", False, "col1|col2|col3"),
+
+    ("CSV/input_csv1.csv", False, 'col1|col2|col3\n123|456|789\n987|654|321'),
+    ("CSV/input_csv2.csv", False, "col1|col2|col3"),
+
+])
+def test_read_csv_data(input_files, input_data, single_record, expected_result):
+
+    inputs = os.path.abspath(input_files)
+    if not os.path.exists(input_files):
+        raise AssertionError('input directory (%s) does not exist' % inputs)
+    elif not os.path.isdir(input_files):
+        raise AssertionError('input directory (%s) is not a directory' % inputs)
+
+    input_file = os.path.join(input_files, input_data)
+
+    if checkers.is_file(input_file):
+        input_data = input_file
+
+    result = read_csv_data(input_data,
+                           single_record = single_record)
+
+    if result is None:
+        assert result == expected_result
+    else:
+        assert result.strip() == expected_result.strip()

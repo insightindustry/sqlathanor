@@ -998,3 +998,9 @@ def existing_db(request, tmpdir_factory):
     connection.close()
 
     return db_filename
+
+
+@pytest.fixture
+def input_files(request):
+    """Return the ``--inputs`` command-line option."""
+    return request.config.getoption("--inputs")
