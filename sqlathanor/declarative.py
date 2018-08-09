@@ -25,7 +25,7 @@ from sqlathanor._compat import StringIO, json
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config, \
     BLANK_ON_SERIALIZE
 from sqlathanor.utilities import format_to_tuple, iterable__to_dict, parse_yaml, \
-    parse_json, get_attribute_names, parse_csv
+    parse_json, get_attribute_names, parse_csv, read_csv_data
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
     UnsupportedSerializationError, UnsupportedDeserializationError, DeserializationError,\
     CSVStructureError, MaximumNestingExceededError, MaximumNestingExceededWarning, \
@@ -2145,9 +2145,11 @@ class BaseModel(object):
           Unwrapped empty column values are automatically interpreted as null
           (:obj:`None <python:None>`).
 
-        :param csv_data: The CSV record. Should be a single row and should **not**
-          include column headers.
-        :type csv_data: :class:`str <python:str>`
+        :param csv_data: The CSV data. If a Path-like object, will read the first
+          record from a file that is assumed to include a header row. If a
+          :class:`str <python:str>` and has more than one record (line), will assume
+          the first line is a header row.
+        :type csv_data: :class:`str <python:str>` / Path-like object
 
         :param delimiter: The delimiter used between columns. Defaults to ``|``.
         :type delimiter: :class:`str <python:str>`
@@ -2169,6 +2171,9 @@ class BaseModel(object):
           failed when executing its :term:`de-serialization function`.
 
         """
+        csv_data = read_csv_data(csv_data,
+                                 single_record = True)
+
         data = self._parse_csv(csv_data,
                                delimiter = delimiter,
                                wrap_all_strings = wrap_all_strings,
@@ -2198,9 +2203,11 @@ class BaseModel(object):
           Unwrapped empty column values are automatically interpreted as null
           (:obj:`None <python:None>`).
 
-        :param csv_data: The CSV record. Should be a single row and should **not**
-          include column headers.
-        :type csv_data: :class:`str <python:str>`
+        :param csv_data: The CSV data. If a Path-like object, will read the first
+          record from a file that is assumed to include a header row. If a
+          :class:`str <python:str>` and has more than one record (line), will assume
+          the first line is a header row.
+        :type csv_data: :class:`str <python:str>` / Path-like object
 
         :param delimiter: The delimiter used between columns. Defaults to ``|``.
         :type delimiter: :class:`str <python:str>`
@@ -2225,6 +2232,9 @@ class BaseModel(object):
           failed when executing its :term:`de-serialization function`.
 
         """
+        csv_data = read_csv_data(csv_data,
+                                 single_record = True)
+
         data = cls._parse_csv(csv_data,
                               delimiter = delimiter,
                               wrap_all_strings = wrap_all_strings,
@@ -3954,9 +3964,19 @@ def generate_model_from_csv(serialized,
       :term:`relationships <relationship>`, :term:`hybrid properties <hybrid property>`,
       or :term:`association proxies <association proxy>`.
 
-    :param serialized: The CSV string whose keys will be treated as column
-      names, while value data types will determine :term:`model attribute` data types.
-    :type serialized: :class:`str <python:str>` / :class:`list <python:list>`
+    :param serialized: The CSV data whose column headers will be treated as column
+      names, while value data types will determine :term:`model attribute` data
+      types.
+
+      .. note::
+
+      If a Path-like object, will read the file contents from a file that is assumed
+      to include a header row. If a :class:`str <python:str>` and has more than
+      one record (line), will assume the first line is a header row. If a
+      :class:`list <python:list>`, will assume the first item is the header row.
+
+    :type serialized: :class:`str <python:str>` / Path-like object /
+      :class:`list <python:list>`
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
@@ -4067,6 +4087,9 @@ def generate_model_from_csv(serialized,
 
     """
     # pylint: disable=line-too-long,too-many-arguments
+
+    if not checkers.is_file(serialized):
+        serialized = read_csv_data(serialized, single_record = False)
 
     from_csv = parse_csv(serialized,
                          delimiter = delimiter,

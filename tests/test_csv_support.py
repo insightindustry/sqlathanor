@@ -14,7 +14,7 @@ import pytest
 from validator_collection import checkers
 
 from tests.fixtures import db_engine, tables, base_model, db_session, \
-    model_complex_postgresql, instance_postgresql
+    model_complex_postgresql, instance_postgresql, input_files, check_input_file
 
 from sqlathanor.errors import CSVStructureError, DeserializationError
 from sqlathanor.utilities import get_attribute_names
@@ -261,10 +261,15 @@ def test_dump_to_csv(request,
     ('1|serialized|test-password|3|2|extra\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVStructureError),
     (123, 'deserialized', 3, 1, '1|serialized|3|2\r\n', DeserializationError),
 
+    ('CSV/update_from_csv1.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
+    ('CSV/update_from_csv2.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVStructureError),
+    ('CSV/update_from_csv3.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
+
 ])
 def test_update_from_csv(request,
                          model_complex_postgresql,
                          instance_postgresql,
+                         input_files,
                          input_value,
                          expected_name,
                          expected_smallint,
@@ -273,6 +278,8 @@ def test_update_from_csv(request,
                          error):
     model = model_complex_postgresql[0]
     target = instance_postgresql[0][0]
+
+    input_value = check_input_file(input_files, input_value)
 
     if not error:
         target.update_from_csv(input_value)
@@ -295,9 +302,14 @@ def test_update_from_csv(request,
     ('1|serialized|test-password|3|2|extra\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVStructureError),
     (123, 'deserialized', 3, 1, '1|serialized|3|2\r\n', DeserializationError),
 
+    ('CSV/update_from_csv1.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
+    ('CSV/update_from_csv2.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVStructureError),
+    ('CSV/update_from_csv3.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
+
 ])
 def test_new_from_csv(request,
                       model_complex_postgresql,
+                      input_files,
                       input_value,
                       expected_name,
                       expected_smallint,
@@ -305,6 +317,8 @@ def test_new_from_csv(request,
                       expected_serialization,
                       error):
     model = model_complex_postgresql[0]
+
+    input_value = check_input_file(input_files, input_value)
 
     if not error:
         result = model.new_from_csv(input_value)

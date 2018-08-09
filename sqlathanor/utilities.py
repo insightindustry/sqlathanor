@@ -521,7 +521,8 @@ def parse_csv(input_data,
       or if column headers are not valid Python variable names
 
     """
-    if not checkers.is_iterable(input_data):
+    use_file = False
+    if not checkers.is_file(input_data) and not checkers.is_iterable(input_data):
         try:
             input_data = validators.string(input_data, allow_empty = False)
         except (ValueError, TypeError):
@@ -529,6 +530,8 @@ def parse_csv(input_data,
                                        % type(input_data))
 
         input_data = [input_data]
+    elif checkers.is_file(input_data):
+        use_file = True
 
     if not wrapper_character:
         wrapper_character = '\''
@@ -549,15 +552,23 @@ def parse_csv(input_data,
                          quoting = quoting,
                          lineterminator = line_terminator)
 
-    csv_reader = csv.DictReader(input_data,
-                                dialect = 'sqlathanor',
-                                restkey = None,
-                                restval = None)
+    if not use_file:
+        csv_reader = csv.DictReader(input_data,
+                                    dialect = 'sqlathanor',
+                                    restkey = None,
+                                    restval = None)
+        rows = [x for x in csv_reader]
+    else:
+        with open(input_data, 'r', newline = line_terminator) as input_file:
+            csv_reader = csv.DictReader(input_file,
+                                        dialect = 'sqlathanor',
+                                        restkey = None,
+                                        restval = None)
 
-    rows = [x for x in csv_reader]
+            rows = [x for x in csv_reader]
 
     if len(rows) < 1:
-        raise CSVStructureError('expected 1 row of data, received 0')
+        raise CSVStructureError('expected 1 row of data and 1 header row, missing 1')
     else:
         data = rows[0]
 
@@ -740,25 +751,39 @@ def read_csv_data(input_data,
     :rtype: :class:`str <python:str>` or Path-like object
 
     """
+    try:
+        input_data = input_data.strip()
+    except AttributeError:
+        pass
+
+    original_input_data = input_data
+
     if checkers.is_file(input_data) and not single_record:
         with open(input_data, 'r') as input_file:
             input_data = input_file.read()
     elif checkers.is_file(input_data) and single_record:
-        input_data = linecache.getline(input_data, 2)
+        input_data = linecache.getline(original_input_data, 2)
+        if input_data == '':
+            input_data = linecache.getline(original_input_data, 1)
         if input_data == '':
             input_data = None
     elif single_record:
-        if line_terminator in input_data:
-            parsed_data = input_data.split(line_terminator)
-        elif line_terminator == '\r\n' and '\r' in input_data:
-            parsed_data = input_data.split('\r')
-        elif line_terminator == '\r\n' and '\n' in input_data:
-            parsed_data = input_data.split('\n')
-        else:
+        try:
+            if line_terminator in input_data:
+                parsed_data = input_data.split(line_terminator)
+            elif line_terminator == '\r\n' and '\r' in input_data:
+                parsed_data = input_data.split('\r')
+            elif line_terminator == '\r\n' and '\n' in input_data:
+                parsed_data = input_data.split('\n')
+            else:
+                parsed_data = [input_data]
+        except TypeError:
             parsed_data = [input_data]
 
-        if len(parsed_data) < 2:
+        if not parsed_data:
             input_data = None
+        elif len(parsed_data) == 1:
+            input_data = parsed_data[0]
         else:
             input_data = parsed_data[1]
 

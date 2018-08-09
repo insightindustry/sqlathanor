@@ -20,7 +20,9 @@ from sqlalchemy.types import Integer, Text, Float, DateTime, Date, Time, Boolean
 from sqlathanor.declarative import generate_model_from_dict, generate_model_from_json, \
     generate_model_from_yaml, generate_model_from_csv
 from sqlathanor.attributes import AttributeConfiguration
-from sqlathanor.errors import UnsupportedValueTypeError
+from sqlathanor.errors import UnsupportedValueTypeError, CSVStructureError
+
+from tests.fixtures import check_input_file, input_files
 
 # pylint: disable=line-too-long
 
@@ -519,15 +521,33 @@ def test_generate_model_from_yaml(input_data,
 @pytest.mark.parametrize('input_data, tablename, primary_key, serialization_config, skip_nested, default_to_str, type_mapping, base_model_attrs, expected_types, error', [
     (["int1|string1|float1|bool1|datetime1|date1|time1|nested1",
       "123|test|123.45|True|2018-01-01T00:00:00.00000|2018-01-01|2018-01-01T00:00:00.00000|['test','test2']"],
-     'test_table', 'int1', None, True, False, None, None, [('int1', Integer),
-                                                           ('string1', Text),
-                                                           ('float1', Float),
-                                                           ('bool1', Text),
-                                                           ('datetime1', DateTime),
-                                                           ('date1', Date),
-                                                           ('time1', DateTime)], None),
+     'test_table0', 'int1', None, True, False, None, None, [('int1', Integer),
+                                                            ('string1', Text),
+                                                            ('float1', Float),
+                                                            ('bool1', Text),
+                                                            ('datetime1', DateTime),
+                                                            ('date1', Date),
+                                                            ('time1', DateTime)], None),
+
+    ("CSV/update_from_csv1.csv", 'test_table1', 'id', None, True, False, None, None, [('id', Integer),
+                                                                                      ('name', Text),
+                                                                                      ('password', Text),
+                                                                                      ('smallint_column', Integer),
+                                                                                      ('hybrid', Integer)], CSVStructureError),
+    ("CSV/update_from_csv2.csv", 'test_table2', 'id', None, True, False, None, None, [('id', Integer),
+                                                                                      ('name', Text),
+                                                                                      ('password', Text),
+                                                                                      ('smallint_column', Integer),
+                                                                                      ('hybrid', Integer)], CSVStructureError),
+    ("CSV/update_from_csv3.csv", 'test_table3', 'id', None, True, False, None, None, [('id', Integer),
+                                                                                      ('name', Text),
+                                                                                      ('password', Text),
+                                                                                      ('smallint_column', Integer),
+                                                                                      ('hybrid', Integer)], None),
+
 ])
-def test_generate_model_from_csv(input_data,
+def test_generate_model_from_csv(input_files,
+                                 input_data,
                                  tablename,
                                  primary_key,
                                  serialization_config,
@@ -538,6 +558,9 @@ def test_generate_model_from_csv(input_data,
                                  expected_types,
                                  error):
     # pylint: disable=no-member,line-too-long
+
+    input_data = check_input_file(input_files, input_data)
+
     if error:
         with pytest.raises(error):
             result = generate_model_from_csv(input_data,

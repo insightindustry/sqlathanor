@@ -21,7 +21,9 @@ from sqlalchemy import MetaData
 from sqlalchemy.types import Integer, Text, Float, DateTime, Date, Time, Boolean
 
 from sqlathanor import Table
-from sqlathanor.errors import UnsupportedValueTypeError
+from sqlathanor.errors import UnsupportedValueTypeError, CSVStructureError
+
+from tests.fixtures import check_input_file, input_files
 
 # pylint: disable=line-too-long
 
@@ -557,15 +559,33 @@ def test_from_yaml(input_data,
 @pytest.mark.parametrize('input_data, tablename, primary_key, column_kwargs, skip_nested, default_to_str, type_mapping, expected_types, error', [
     (["int1|string1|float1|bool1|datetime1|date1|time1|nested1",
       "123|test|123.45|True|2018-01-01T00:00:00.00000|2018-01-01|2018-01-01T00:00:00.00000|['test','test2']"],
-     'test_table', 'int1', None, True, False, None, [('int1', Integer),
+     'test_table0', 'int1', None, True, False, None, [('int1', Integer),
                                                      ('string1', Text),
                                                      ('float1', Float),
                                                      ('bool1', Text),
                                                      ('datetime1', DateTime),
                                                      ('date1', Date),
                                                      ('time1', DateTime)], None),
+
+    ("CSV/update_from_csv1.csv", 'test_table1', 'id', None, True, False, None, [('id', Integer),
+                                                                                ('name', Text),
+                                                                                ('password', Text),
+                                                                                ('smallint_column', Integer),
+                                                                                ('hybrid', Integer)], CSVStructureError),
+    ("CSV/update_from_csv2.csv", 'test_table2', 'id', None, True, False, None, [('id', Integer),
+                                                                                ('name', Text),
+                                                                                ('password', Text),
+                                                                                ('smallint_column', Integer),
+                                                                                ('hybrid', Integer)], CSVStructureError),
+    ("CSV/update_from_csv3.csv", 'test_table3', 'id', None, True, False, None, [('id', Integer),
+                                                                                ('name', Text),
+                                                                                ('password', Text),
+                                                                                ('smallint_column', Integer),
+                                                                                ('hybrid', Integer)], None),
+
 ])
-def test_from_csv(input_data,
+def test_from_csv(input_files,
+                  input_data,
                   tablename,
                   primary_key,
                   column_kwargs,
@@ -574,6 +594,8 @@ def test_from_csv(input_data,
                   type_mapping,
                   expected_types,
                   error):
+    input_data = check_input_file(input_files, input_data)
+
     if column_kwargs is None:
         column_kwargs = {}
 

@@ -402,10 +402,11 @@ def test_is_an_attribute(use_instance, attribute, forbid_callable, forbid_nested
     ("col1|col2|col3\r\n123|456|789\r\n987|654|321", True, '123|456|789'),
     ("col1|col2|col3\n123|456|789", True, '123|456|789'),
     ("col1|col2|col3\r123|456|789", True, '123|456|789'),
-    ("col1|col2|col3", True, None),
+    ("col1|col2|col3", True, "col1|col2|col3"),
 
     ("CSV/input_csv1.csv", True, '123|456|789'),
-    ("CSV/input_csv2.csv", True, None),
+    ("CSV/input_csv2.csv", True, 'col1|col2|col3'),
+    ("CSV/update_from_csv1.csv", True, "1|serialized|test-password|3|2"),
 
     ("col1|col2|col3\r\n123|456|789\r\n987|654|321", False, 'col1|col2|col3\r\n123|456|789\r\n987|654|321'),
     ("col1|col2|col3\n123|456|789", False, 'col1|col2|col3\n123|456|789'),
@@ -414,10 +415,10 @@ def test_is_an_attribute(use_instance, attribute, forbid_callable, forbid_nested
 
     ("CSV/input_csv1.csv", False, 'col1|col2|col3\n123|456|789\n987|654|321'),
     ("CSV/input_csv2.csv", False, "col1|col2|col3"),
+    ("CSV/update_from_csv1.csv", False, "1|serialized|test-password|3|2"),
 
 ])
 def test_read_csv_data(input_files, input_data, single_record, expected_result):
-
     inputs = os.path.abspath(input_files)
     if not os.path.exists(input_files):
         raise AssertionError('input directory (%s) does not exist' % inputs)

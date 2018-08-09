@@ -23,7 +23,7 @@ from validator_collection import checkers, validators
 from sqlathanor import attributes
 from sqlathanor._serialization_support import SerializationMixin
 from sqlathanor.default_deserializers import get_type_mapping
-from sqlathanor.utilities import parse_json, parse_yaml, parse_csv
+from sqlathanor.utilities import parse_json, parse_yaml, parse_csv, read_csv_data
 from sqlathanor.errors import SQLAthanorError
 
 
@@ -862,9 +862,19 @@ class Table(SA_Table):
 
         .. versionadded: 0.3.0
 
-        :param serialized: The CSV string whose keys will be treated as column
-          names, while value data types will determine :term:`model attribute` data types.
-        :type serialized: :class:`str <python:str>` / :class:`list <python:list>`
+        :param serialized: The CSV data whose column headers will be treated as column
+          names, while value data types will determine :term:`model attribute` data
+          types.
+
+          .. note::
+
+          If a Path-like object, will read the file contents from a file that is assumed
+          to include a header row. If a :class:`str <python:str>` and has more than
+          one record (line), will assume the first line is a header row. If a
+          :class:`list <python:list>`, will assume the first item is the header row.
+
+        :type serialized: :class:`str <python:str>` / Path-like object /
+          :class:`list <python:list>`
 
         :param tablename: The name of the SQL table to which the model corresponds.
         :type tablename: :class:`str <python:str>`
@@ -958,6 +968,9 @@ class Table(SA_Table):
 
         """
         # pylint: disable=line-too-long,invalid-name,too-many-arguments
+
+        if not checkers.is_file(serialized):
+            serialized = read_csv_data(serialized, single_record = False)
 
         from_csv = parse_csv(serialized,
                              delimiter = delimiter,

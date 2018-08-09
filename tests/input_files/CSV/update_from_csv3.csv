@@ -1,0 +1,2 @@
+id|name|password|smallint_column|hybrid
+1|serialized|test-password|3|2
