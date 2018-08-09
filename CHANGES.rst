@@ -12,6 +12,7 @@ New Features
 * #35: Added ``BaseModel.dump_to_dict()``
 * #34: Added ``BaseModel.configure_serialization()``
 * #42: Added support for the programmatic generation of declarative model classes.
+* #41: Added support for the programmatic generation of ``Table`` objects.
 
 -----------
 

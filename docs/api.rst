@@ -181,6 +181,23 @@ relationship()
 
 ----------------
 
+Table
+--------
+
+.. autoclass:: Table
+
+  .. automethod:: Table.__init__
+
+  .. automethod:: Table.from_csv
+
+  .. automethod:: Table.from_dict
+
+  .. automethod:: Table.from_json
+
+  .. automethod:: Table.from_yaml
+
+----------------------------
+
 .. module:: sqlathanor.attributes
 
 Attribute Configuration

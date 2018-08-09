@@ -433,7 +433,7 @@ class Table(SA_Table):
           object which will contain this table. The metadata is used as a point of
           association of this table with other tables which are referenced via foreign
           key. It also may be used to associate this table with a particular
-          :class:`Connectable <sqlalchemy:sqlalchemy.engine.Connectable>.
+          :class:`Connectable <sqlalchemy:sqlalchemy.engine.Connectable>`.
         :type metadata: :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
 
         :param primary_key: The name of the column/key that should be used as the table's
@@ -579,7 +579,7 @@ class Table(SA_Table):
           object which will contain this table. The metadata is used as a point of
           association of this table with other tables which are referenced via foreign
           key. It also may be used to associate this table with a particular
-          :class:`Connectable <sqlalchemy:sqlalchemy.engine.Connectable>.
+          :class:`Connectable <sqlalchemy:sqlalchemy.engine.Connectable>`.
         :type metadata: :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
 
         :param primary_key: The name of the column/key that should be used as the table's
@@ -720,6 +720,13 @@ class Table(SA_Table):
         :param tablename: The name of the SQL table to which the model corresponds.
         :type tablename: :class:`str <python:str>`
 
+        :param metadata: a :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
+          object which will contain this table. The metadata is used as a point of
+          association of this table with other tables which are referenced via foreign
+          key. It also may be used to associate this table with a particular
+          :class:`Connectable <sqlalchemy:sqlalchemy.engine.Connectable>`.
+        :type metadata: :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
+
         :param primary_key: The name of the column/key that should be used as the table's
           primary key.
         :type primary_key: :class:`str <python:str>`
@@ -859,9 +866,15 @@ class Table(SA_Table):
           names, while value data types will determine :term:`model attribute` data types.
         :type serialized: :class:`str <python:str>` / :class:`list <python:list>`
 
-
         :param tablename: The name of the SQL table to which the model corresponds.
         :type tablename: :class:`str <python:str>`
+
+        :param metadata: a :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
+          object which will contain this table. The metadata is used as a point of
+          association of this table with other tables which are referenced via foreign
+          key. It also may be used to associate this table with a particular
+          :class:`Connectable <sqlalchemy:sqlalchemy.engine.Connectable>`.
+        :type metadata: :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
 
         :param primary_key: The name of the column/key that should be used as the table's
           primary key.

@@ -1535,3 +1535,92 @@ expect it in inbound data to de-serialize.
 .. _SQLAlchemy: http://www.sqlalchemy.org
 .. _Flask-SQLAlchemy:  http://flask-sqlalchemy.pocoo.org/
 .. _reflection: http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/table_config.html#using-reflection-with-declarative
+
+----------------------------
+
+.. _generating_tables:
+
+Generating SQLAlchemy Tables from Serialized Data
+====================================================
+
+.. versionadded:: 0.3.0
+
+If you are **not** using `SQLAlchemy`_'s :doc:`Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`
+but would like to generate SQLAlchemy :class:`Table <sqlalchemy:sqlalchemy.schema.Table>`
+objects programmatically based on serialized data, you can do so by importing the
+**SQLAthanor** :class:`Table <sqlathanor.schema.Table>` object and calling a
+``from_<format>()`` class method:
+
+.. tabs::
+
+  .. tab:: CSV
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes CSV data is in "csv_data" and a MetaData object is in "metadata"
+      csv_table = Table.from_csv(csv_data,
+                                 'tablename_goes_here',
+                                 metadata,
+                                 'primary_key_column',
+                                 column_kwargs = None,
+                                 skip_nested = True,
+                                 default_to_str = False,
+                                 type_mapping = None)
+
+  .. tab:: JSON
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes JSON string is in "json_data" and a MetaData object is in "metadata"
+      json_table = Table.from_json(json_data,
+                                   'tablename_goes_here',
+                                   metadata,
+                                   'primary_key_column',
+                                   column_kwargs = None,
+                                   skip_nested = True,
+                                   default_to_str = False,
+                                   type_mapping = None)
+
+  .. tab:: YAML
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes YAML string is in "yaml_data" and a MetaData object is in "metadata"
+      yaml_table = Table.from_yaml(yaml_data,
+                                   'tablename_goes_here',
+                                   metadata,
+                                   'primary_key_column',
+                                   column_kwargs = None,
+                                   skip_nested = True,
+                                   default_to_str = False,
+                                   type_mapping = None)
+
+  .. tab:: dict
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes dict object is in "dict_data" and a MetaData object is in "metadata"
+      dict_table = Table.from_dict(dict_data,
+                                   'tablename_goes_here',
+                                   metadata,
+                                   'primary_key_column',
+                                   column_kwargs = None,
+                                   skip_nested = True,
+                                   default_to_str = False,
+                                   type_mapping = None)
+
+.. seealso::
+
+  * :class:`Table <sqlathanor.schema.Table>`
+  * :meth:`Table.from_csv() <sqlathanor.schema.Table.from_csv>`
+  * :meth:`Table.from_json() <sqlathanor.schema.Table.from_json>`
+  * :meth:`Table.from_yaml() <sqlathanor.schema.Table.from_yaml>`
+  * :meth:`Table.from_dict() <sqlathanor.schema.Table.from_dict>`
