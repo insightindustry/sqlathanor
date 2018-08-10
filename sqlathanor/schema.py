@@ -23,7 +23,7 @@ from validator_collection import checkers, validators
 from sqlathanor import attributes
 from sqlathanor._serialization_support import SerializationMixin
 from sqlathanor.default_deserializers import get_type_mapping
-from sqlathanor.utilities import parse_json, parse_yaml, parse_csv
+from sqlathanor.utilities import parse_json, parse_yaml, parse_csv, read_csv_data
 from sqlathanor.errors import SQLAthanorError
 
 
@@ -568,9 +568,15 @@ class Table(SA_Table):
         .. versionadded: 0.3.0
 
         :param serialized: The :term:`JSON <JavaScript Object Notation (JSON)>`
-          string to use. Keys will be treated as column names, while value data
+          data to use. Keys will be treated as column names, while value data
           types will determine :class:`Column` data types.
-        :type serialized: :class:`str <python:str>`
+
+          .. note::
+
+            If providing a path to a file, and if the file contains more than one JSON
+            object, will only use the first JSON object listed.
+
+        :type serialized: :class:`str <python:str>` / Path-like object
 
         :param tablename: The name of the SQL table to which the model corresponds.
         :type tablename: :class:`str <python:str>`
@@ -682,6 +688,9 @@ class Table(SA_Table):
             from_json = parse_json(serialized,
                                    deserialize_function = deserialize_function)
 
+        if isinstance(from_json, list):
+            from_json = from_json[0]
+
         table = cls.from_dict(from_json,
                               tablename,
                               metadata,
@@ -715,7 +724,13 @@ class Table(SA_Table):
         :param serialized: The :term:`YAML <YAML Ain't a Markup Language (YAML)>`
           string to use. Keys will be treated as column names, while value data
           types will determine :class:`Column` data types.
-        :type serialized: :class:`str <python:str>`
+
+          .. note::
+
+            If providing a path to a file, and if the file contains more than one
+            object, will only use the first object listed.
+
+        :type serialized: :class:`str <python:str>` / Path-like object
 
         :param tablename: The name of the SQL table to which the model corresponds.
         :type tablename: :class:`str <python:str>`
@@ -827,6 +842,9 @@ class Table(SA_Table):
             from_yaml = parse_yaml(serialized,
                                    deserialize_function = deserialize_function)
 
+        if isinstance(from_yaml, list):
+            from_yaml = from_yaml[0]
+
         table = cls.from_dict(from_yaml,
                               tablename,
                               metadata,
@@ -862,9 +880,19 @@ class Table(SA_Table):
 
         .. versionadded: 0.3.0
 
-        :param serialized: The CSV string whose keys will be treated as column
-          names, while value data types will determine :term:`model attribute` data types.
-        :type serialized: :class:`str <python:str>` / :class:`list <python:list>`
+        :param serialized: The CSV data whose column headers will be treated as column
+          names, while value data types will determine :term:`model attribute` data
+          types.
+
+          .. note::
+
+          If a Path-like object, will read the file contents from a file that is assumed
+          to include a header row. If a :class:`str <python:str>` and has more than
+          one record (line), will assume the first line is a header row. If a
+          :class:`list <python:list>`, will assume the first item is the header row.
+
+        :type serialized: :class:`str <python:str>` / Path-like object /
+          :class:`list <python:list>`
 
         :param tablename: The name of the SQL table to which the model corresponds.
         :type tablename: :class:`str <python:str>`
@@ -958,6 +986,9 @@ class Table(SA_Table):
 
         """
         # pylint: disable=line-too-long,invalid-name,too-many-arguments
+
+        if not checkers.is_file(serialized):
+            serialized = read_csv_data(serialized, single_record = False)
 
         from_csv = parse_csv(serialized,
                              delimiter = delimiter,

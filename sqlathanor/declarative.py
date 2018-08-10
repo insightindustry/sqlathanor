@@ -25,7 +25,7 @@ from sqlathanor._compat import StringIO, json
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config, \
     BLANK_ON_SERIALIZE
 from sqlathanor.utilities import format_to_tuple, iterable__to_dict, parse_yaml, \
-    parse_json, get_attribute_names, parse_csv
+    parse_json, get_attribute_names, parse_csv, read_csv_data
 from sqlathanor.errors import ValueSerializationError, ValueDeserializationError, \
     UnsupportedSerializationError, UnsupportedDeserializationError, DeserializationError,\
     CSVStructureError, MaximumNestingExceededError, MaximumNestingExceededWarning, \
@@ -2145,9 +2145,11 @@ class BaseModel(object):
           Unwrapped empty column values are automatically interpreted as null
           (:obj:`None <python:None>`).
 
-        :param csv_data: The CSV record. Should be a single row and should **not**
-          include column headers.
-        :type csv_data: :class:`str <python:str>`
+        :param csv_data: The CSV data. If a Path-like object, will read the first
+          record from a file that is assumed to include a header row. If a
+          :class:`str <python:str>` and has more than one record (line), will assume
+          the first line is a header row.
+        :type csv_data: :class:`str <python:str>` / Path-like object
 
         :param delimiter: The delimiter used between columns. Defaults to ``|``.
         :type delimiter: :class:`str <python:str>`
@@ -2169,6 +2171,9 @@ class BaseModel(object):
           failed when executing its :term:`de-serialization function`.
 
         """
+        csv_data = read_csv_data(csv_data,
+                                 single_record = True)
+
         data = self._parse_csv(csv_data,
                                delimiter = delimiter,
                                wrap_all_strings = wrap_all_strings,
@@ -2198,9 +2203,11 @@ class BaseModel(object):
           Unwrapped empty column values are automatically interpreted as null
           (:obj:`None <python:None>`).
 
-        :param csv_data: The CSV record. Should be a single row and should **not**
-          include column headers.
-        :type csv_data: :class:`str <python:str>`
+        :param csv_data: The CSV data. If a Path-like object, will read the first
+          record from a file that is assumed to include a header row. If a
+          :class:`str <python:str>` and has more than one record (line), will assume
+          the first line is a header row.
+        :type csv_data: :class:`str <python:str>` / Path-like object
 
         :param delimiter: The delimiter used between columns. Defaults to ``|``.
         :type delimiter: :class:`str <python:str>`
@@ -2225,6 +2232,9 @@ class BaseModel(object):
           failed when executing its :term:`de-serialization function`.
 
         """
+        csv_data = read_csv_data(csv_data,
+                                 single_record = True)
+
         data = cls._parse_csv(csv_data,
                               delimiter = delimiter,
                               wrap_all_strings = wrap_all_strings,
@@ -3026,8 +3036,9 @@ class BaseModel(object):
                          **kwargs):
         """Update the model instance from data in a YAML string.
 
-        :param input_data: The YAML data to de-serialize.
-        :type input_data: :class:`str <python:str>`
+        :param input_data: The YAML data to de-serialize. May be either a
+          :class:`str <python:str>` or a Path-like object to a YAML file.
+        :type input_data: :class:`str <python:str>` / Path-like object
 
         :param deserialize_function: Optionally override the default YAML deserializer.
           Defaults to :obj:`None <python:None>`, which calls the default ``yaml.safe_load()``
@@ -3088,6 +3099,9 @@ class BaseModel(object):
                                deserialize_function = deserialize_function,
                                **kwargs)
 
+        if isinstance(from_yaml, list):
+            from_yaml = from_yaml[0]
+
         data = self._parse_dict(from_yaml,
                                 'yaml',
                                 error_on_extra_keys = error_on_extra_keys,
@@ -3105,8 +3119,9 @@ class BaseModel(object):
                       **kwargs):
         """Create a new model instance from data in YAML.
 
-        :param input_data: The input YAML data.
-        :type input_data: :class:`str <python:str>`
+        :param input_data: The YAML data to de-serialize. May be either a
+          :class:`str <python:str>` or a Path-like object to a YAML file.
+        :type input_data: :class:`str <python:str>` / Path-like object
 
         :param deserialize_function: Optionally override the default YAML deserializer.
           Defaults to :obj:`None <python:None>`, which calls the default
@@ -3162,6 +3177,9 @@ class BaseModel(object):
                                deserialize_function = deserialize_function,
                                **kwargs)
 
+        if isinstance(from_yaml, list):
+            from_yaml = from_yaml[0]
+
         data = cls._parse_dict(from_yaml,
                                'yaml',
                                error_on_extra_keys = error_on_extra_keys,
@@ -3178,7 +3196,13 @@ class BaseModel(object):
         """Update the model instance from data in a JSON string.
 
         :param input_data: The JSON data to de-serialize.
-        :type input_data: :class:`str <python:str>`
+
+          .. note::
+
+            If ``input_data`` points to a file, and the file contains a list of
+            JSON objects, the first JSON object will be considered.
+
+        :type input_data: :class:`str <python:str>` or Path-like object
 
         :param deserialize_function: Optionally override the default JSON deserializer.
           Defaults to :obj:`None <python:None>`, which calls the default
@@ -3241,6 +3265,9 @@ class BaseModel(object):
                                deserialize_function = deserialize_function,
                                **kwargs)
 
+        if isinstance(from_json, list):
+            from_json = from_json[0]
+
         data = self._parse_dict(from_json,
                                 'json',
                                 error_on_extra_keys = error_on_extra_keys,
@@ -3258,8 +3285,14 @@ class BaseModel(object):
                       **kwargs):
         """Create a new model instance from data in JSON.
 
-        :param input_data: The input JSON data.
-        :type input_data: :class:`str <python:str>`
+        :param input_data: The JSON data to de-serialize.
+
+          .. note::
+
+            If ``input_data`` points to a file, and the file contains a list of
+            JSON objects, the first JSON object will be considered.
+
+        :type input_data: :class:`str <python:str>` or Path-like object
 
         :param deserialize_function: Optionally override the default JSON deserializer.
           Defaults to :obj:`None <python:None>`, which calls the default
@@ -3319,6 +3352,9 @@ class BaseModel(object):
         from_json = parse_json(input_data,
                                deserialize_function = deserialize_function,
                                **kwargs)
+
+        if isinstance(from_json, list):
+            from_json = from_json[0]
 
         data = cls._parse_dict(from_json,
                                'json',
@@ -3617,9 +3653,17 @@ def generate_model_from_json(serialized,
       :term:`relationships <relationship>`, :term:`hybrid properties <hybrid property>`,
       or :term:`association proxies <association proxy>`.
 
-    :param serialized: The JSON string whose keys will be treated as column
-      names, while value data types will determine :term:`model attribute` data types.
-    :type serialized: :class:`str <python:str>`
+    :param serialized: The JSON data whose keys will be treated as column
+      names, while value data types will determine :term:`model attribute` data
+      types, or the path to a file whose contents will be the JSON object in
+      question.
+
+      .. note::
+
+        If providing a path to a file, and if the file contains more than one JSON
+        object, will only use the first JSON object listed.
+
+    :type serialized: :class:`str <python:str>` / Path-like object
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
@@ -3746,6 +3790,9 @@ def generate_model_from_json(serialized,
         from_json = parse_json(serialized,
                                deserialize_function = deserialize_function)
 
+    if isinstance(from_json, list):
+        from_json = from_json[0]
+
     generated_model = generate_model_from_dict(from_json,
                                                tablename,
                                                primary_key,
@@ -3783,9 +3830,11 @@ def generate_model_from_yaml(serialized,
       :term:`relationships <relationship>`, :term:`hybrid properties <hybrid property>`,
       or :term:`association proxies <association proxy>`.
 
-    :param serialized: The YAML string whose keys will be treated as column
-      names, while value data types will determine :term:`model attribute` data types.
-    :type serialized: :class:`str <python:str>`
+    :param serialized: The YAML data whose keys will be treated as column
+      names, while value data types will determine :term:`model attribute` data
+      types, or the path to a file whose contents will be the YAML object in
+      question.
+    :type serialized: :class:`str <python:str>` / Path-like object
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
@@ -3912,6 +3961,9 @@ def generate_model_from_yaml(serialized,
         from_yaml = parse_yaml(serialized,
                                deserialize_function = deserialize_function)
 
+    if isinstance(from_yaml, list):
+        from_yaml = from_yaml[0]
+
     generated_model = generate_model_from_dict(from_yaml,
                                                tablename,
                                                primary_key,
@@ -3954,9 +4006,19 @@ def generate_model_from_csv(serialized,
       :term:`relationships <relationship>`, :term:`hybrid properties <hybrid property>`,
       or :term:`association proxies <association proxy>`.
 
-    :param serialized: The CSV string whose keys will be treated as column
-      names, while value data types will determine :term:`model attribute` data types.
-    :type serialized: :class:`str <python:str>` / :class:`list <python:list>`
+    :param serialized: The CSV data whose column headers will be treated as column
+      names, while value data types will determine :term:`model attribute` data
+      types.
+
+      .. note::
+
+      If a Path-like object, will read the file contents from a file that is assumed
+      to include a header row. If a :class:`str <python:str>` and has more than
+      one record (line), will assume the first line is a header row. If a
+      :class:`list <python:list>`, will assume the first item is the header row.
+
+    :type serialized: :class:`str <python:str>` / Path-like object /
+      :class:`list <python:list>`
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
@@ -4067,6 +4129,9 @@ def generate_model_from_csv(serialized,
 
     """
     # pylint: disable=line-too-long,too-many-arguments
+
+    if not checkers.is_file(serialized):
+        serialized = read_csv_data(serialized, single_record = False)
 
     from_csv = parse_csv(serialized,
                          delimiter = delimiter,

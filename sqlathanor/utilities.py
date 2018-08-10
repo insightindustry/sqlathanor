@@ -10,6 +10,7 @@ This module defines a variety of utility functions which are used throughout
 
 """
 import csv
+import linecache
 import warnings
 import yaml
 
@@ -19,7 +20,7 @@ from sqlalchemy.exc import InvalidRequestError as SA_InvalidRequestError
 from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
 
-from sqlathanor._compat import json
+from sqlathanor._compat import json, is_py2, is_py36, is_py35
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
     MaximumNestingExceededWarning, DeserializationError, CSVStructureError
@@ -374,7 +375,7 @@ def parse_yaml(input_data,
     """De-serialize YAML data into a Python :class:`dict <python:dict>` object.
 
     :param input_data: The YAML data to de-serialize.
-    :type input_data: :class:`str <python:str>`
+    :type input_data: :class:`str <python:str>` / Path-like object
 
     :param deserialize_function: Optionally override the default YAML deserializer.
       Defaults to :obj:`None <python:None>`, which calls the default ``yaml.safe_load()``
@@ -400,7 +401,13 @@ def parse_yaml(input_data,
     :returns: A :class:`dict <python:dict>` representation of ``input_data``.
     :rtype: :class:`dict <python:dict>`
     """
-    if deserialize_function is None:
+    is_file = False
+    if checkers.is_file(input_data):
+        is_file = True
+
+    if deserialize_function is None and not is_file:
+        deserialize_function = yaml.safe_load
+    elif deserialize_function is None and is_file:
         deserialize_function = yaml.safe_load
     else:
         if checkers.is_callable(deserialize_function) is False:
@@ -417,7 +424,11 @@ def parse_yaml(input_data,
     except ValueError:
         raise DeserializationError('input_data is not a valid string')
 
-    from_yaml = yaml.safe_load(input_data, **kwargs)
+    if not is_file:
+        from_yaml = yaml.safe_load(input_data, **kwargs)
+    else:
+        with open(input_data, 'r') as input_file:
+            from_yaml = yaml.safe_load(input_file, **kwargs)
 
     return from_yaml
 
@@ -456,8 +467,14 @@ def parse_json(input_data,
     :returns: A :class:`dict <python:dict>` representation of ``input_data``.
     :rtype: :class:`dict <python:dict>`
     """
-    if deserialize_function is None:
+    is_file = False
+    if checkers.is_file(input_data):
+        is_file = True
+
+    if deserialize_function is None and not is_file:
         deserialize_function = json.loads
+    elif deserialize_function is None and is_file:
+        deserialize_function = json.load
     else:
         if checkers.is_callable(deserialize_function) is False:
             raise ValueError(
@@ -467,13 +484,17 @@ def parse_json(input_data,
     if not input_data:
         raise DeserializationError('input_data is empty')
 
-    try:
-        input_data = validators.string(input_data,
-                                       allow_empty = False)
-    except ValueError:
-        raise DeserializationError('input_data is not a valid string')
+    if not is_file:
+        try:
+            input_data = validators.string(input_data,
+                                           allow_empty = False)
+        except ValueError:
+            raise DeserializationError('input_data is not a valid string')
 
-    from_json = json.loads(input_data, **kwargs)
+        from_json = deserialize_function(input_data, **kwargs)
+    else:
+        with open(input_data, 'r') as input_file:
+            from_json = deserialize_function(input_file, **kwargs)
 
     return from_json
 
@@ -520,7 +541,8 @@ def parse_csv(input_data,
       or if column headers are not valid Python variable names
 
     """
-    if not checkers.is_iterable(input_data):
+    use_file = False
+    if not checkers.is_file(input_data) and not checkers.is_iterable(input_data):
         try:
             input_data = validators.string(input_data, allow_empty = False)
         except (ValueError, TypeError):
@@ -528,6 +550,8 @@ def parse_csv(input_data,
                                        % type(input_data))
 
         input_data = [input_data]
+    elif checkers.is_file(input_data):
+        use_file = True
 
     if not wrapper_character:
         wrapper_character = '\''
@@ -548,15 +572,31 @@ def parse_csv(input_data,
                          quoting = quoting,
                          lineterminator = line_terminator)
 
-    csv_reader = csv.DictReader(input_data,
-                                dialect = 'sqlathanor',
-                                restkey = None,
-                                restval = None)
+    if not use_file:
+        csv_reader = csv.DictReader(input_data,
+                                    dialect = 'sqlathanor',
+                                    restkey = None,
+                                    restval = None)
+        rows = [x for x in csv_reader]
+    else:
+        if not is_py2:
+            with open(input_data, 'r', newline = '') as input_file:
+                csv_reader = csv.DictReader(input_file,
+                                            dialect = 'sqlathanor',
+                                            restkey = None,
+                                            restval = None)
+                rows = [x for x in csv_reader]
+        else:
+            with open(input_data, 'r') as input_file:
+                csv_reader = csv.DictReader(input_file,
+                                            dialect = 'sqlathanor',
+                                            restkey = None,
+                                            restval = None)
 
-    rows = [x for x in csv_reader]
+                rows = [x for x in csv_reader]
 
     if len(rows) < 1:
-        raise CSVStructureError('expected 1 row of data, received 0')
+        raise CSVStructureError('expected 1 row of data and 1 header row, missing 1')
     else:
         data = rows[0]
 
@@ -714,3 +754,65 @@ def is_an_attribute(obj,
                                      include_utilities = include_utilities)
 
     return attribute in attributes
+
+
+def read_csv_data(input_data,
+                  single_record = False,
+                  line_terminator = '\r\n'):
+    """Return the contents of ``input_data`` as a :class:`str <python:str>`.
+
+    :param input_data: The CSV data to read.
+
+      .. note::
+
+        If ``input_data`` is Path-like, then the underlying file **must** start
+        with a header row.
+
+    :type input_data: Path-like or :class:`str <python:str>`
+
+    :param single_record: If ``True``, will return only the first data record.
+      If ``False``, will return all data records (including the header row if
+      present). Defaults to ``False``.
+    :type single_record: :class:`bool <python:bool>`
+
+    :returns: ``input_data`` as a :class:`str <python:str>`
+    :rtype: :class:`str <python:str>` or Path-like object
+
+    """
+    try:
+        input_data = input_data.strip()
+    except AttributeError:
+        pass
+
+    original_input_data = input_data
+
+    if checkers.is_file(input_data) and not single_record:
+        with open(input_data, 'r') as input_file:
+            input_data = input_file.read()
+    elif checkers.is_file(input_data) and single_record:
+        input_data = linecache.getline(original_input_data, 2)
+        if input_data == '':
+            input_data = linecache.getline(original_input_data, 1)
+        if input_data == '':
+            input_data = None
+    elif single_record:
+        try:
+            if line_terminator in input_data:
+                parsed_data = input_data.split(line_terminator)
+            elif line_terminator == '\r\n' and '\r' in input_data:
+                parsed_data = input_data.split('\r')
+            elif line_terminator == '\r\n' and '\n' in input_data:
+                parsed_data = input_data.split('\n')
+            else:
+                parsed_data = [input_data]
+        except TypeError:
+            parsed_data = [input_data]
+
+        if not parsed_data:
+            input_data = None
+        elif len(parsed_data) == 1:
+            input_data = parsed_data[0]
+        else:
+            input_data = parsed_data[1]
+
+    return input_data

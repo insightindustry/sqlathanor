@@ -13,6 +13,8 @@ New Features
 * #34: Added ``BaseModel.configure_serialization()``
 * #42: Added support for the programmatic generation of declarative model classes.
 * #41: Added support for the programmatic generation of ``Table`` objects.
+* #51: All ``*from_<format>()`` methods and functions now accept Path-like objects
+  as inputs to load serialized data from a file.
 
 Other Changes
 ---------------

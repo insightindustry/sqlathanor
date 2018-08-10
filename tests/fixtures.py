@@ -8,6 +8,7 @@ tests._fixtures
 Fixtures used by the SQLAthanor test suite.
 
 """
+import os
 import sqlite3
 
 import pytest
@@ -24,7 +25,7 @@ from sqlalchemy.dialects import sqlite
 
 from flask import Flask
 
-from validator_collection import validators
+from validator_collection import validators, checkers
 
 class State(object):
     """Class to hold incremental test state."""
@@ -998,3 +999,27 @@ def existing_db(request, tmpdir_factory):
     connection.close()
 
     return db_filename
+
+
+@pytest.fixture
+def input_files(request):
+    """Return the ``--inputs`` command-line option."""
+    return request.config.getoption("--inputs")
+
+
+def check_input_file(input_directory, input_value):
+    inputs = os.path.abspath(input_directory)
+    if not os.path.exists(input_directory):
+        raise AssertionError('input directory (%s) does not exist' % inputs)
+    elif not os.path.isdir(input_directory):
+        raise AssertionError('input directory (%s) is not a directory' % inputs)
+
+    try:
+        input_file = os.path.join(input_directory, input_value)
+    except (TypeError, AttributeError):
+        input_file = None
+
+    if input_file is not None and checkers.is_file(input_file):
+        input_value = input_file
+
+    return input_value
