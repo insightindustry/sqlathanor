@@ -26,7 +26,7 @@ def pytest_addoption(parser):
     """
     parser.addoption("--inputs",
                      action="store",
-                     default="/insightindustry/sqlathanor/tests/input_files",
+                     default="/home/travis/build/insightindustry/sqlathanor/tests/input_files",
                      help=("inputs: the absolute path to the directory where input"
                            " files can be found"))
 
