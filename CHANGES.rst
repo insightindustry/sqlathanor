@@ -19,6 +19,7 @@ New Features
 Other Changes
 ---------------
 
+* #43: Refactored declarative classes and functions.
 * #50: Updated `Validator-Collection <https://validator-collection.readthedocs.io/en/latest>`_
   dependency.
 
