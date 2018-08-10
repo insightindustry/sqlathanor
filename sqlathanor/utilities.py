@@ -580,14 +580,7 @@ def parse_csv(input_data,
         rows = [x for x in csv_reader]
     else:
         if not is_py2:
-            if is_py36:
-                newline = line_terminator
-            elif is_py35:
-                newline = ''
-            else:
-                newline = ''
-
-            with open(input_data, 'r', newline = newline) as input_file:
+            with open(input_data, 'r', newline = '') as input_file:
                 csv_reader = csv.DictReader(input_file,
                                             dialect = 'sqlathanor',
                                             restkey = None,
