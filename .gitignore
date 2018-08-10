@@ -24,6 +24,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+build-deploy-test.ps1
+build-deploy-production.ps1
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
