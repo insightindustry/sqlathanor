@@ -20,7 +20,7 @@ from sqlalchemy.exc import InvalidRequestError as SA_InvalidRequestError
 from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
 
-from sqlathanor._compat import json, is_py2
+from sqlathanor._compat import json, is_py2, is_py36, is_py35
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
     MaximumNestingExceededWarning, DeserializationError, CSVStructureError
@@ -580,7 +580,14 @@ def parse_csv(input_data,
         rows = [x for x in csv_reader]
     else:
         if not is_py2:
-            with open(input_data, 'r', newline = line_terminator) as input_file:
+            if is_py36:
+                newline = line_terminator
+            elif is_py35:
+                newline = ''
+            else:
+                newline = ''
+
+            with open(input_data, 'r', newline = newline) as input_file:
                 csv_reader = csv.DictReader(input_file,
                                             dialect = 'sqlathanor',
                                             restkey = None,
