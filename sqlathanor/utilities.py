@@ -20,7 +20,7 @@ from sqlalchemy.exc import InvalidRequestError as SA_InvalidRequestError
 from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
 
-from sqlathanor._compat import json
+from sqlathanor._compat import json, is_py2
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
     MaximumNestingExceededWarning, DeserializationError, CSVStructureError
@@ -579,13 +579,21 @@ def parse_csv(input_data,
                                     restval = None)
         rows = [x for x in csv_reader]
     else:
-        with open(input_data, 'r', newline = line_terminator) as input_file:
-            csv_reader = csv.DictReader(input_file,
-                                        dialect = 'sqlathanor',
-                                        restkey = None,
-                                        restval = None)
+        if not is_py2:
+            with open(input_data, 'r', newline = line_terminator) as input_file:
+                csv_reader = csv.DictReader(input_file,
+                                            dialect = 'sqlathanor',
+                                            restkey = None,
+                                            restval = None)
+                rows = [x for x in csv_reader]
+        else:
+            with open(input_data, 'r') as input_file:
+                csv_reader = csv.DictReader(input_file,
+                                            dialect = 'sqlathanor',
+                                            restkey = None,
+                                            restval = None)
 
-            rows = [x for x in csv_reader]
+                rows = [x for x in csv_reader]
 
     if len(rows) < 1:
         raise CSVStructureError('expected 1 row of data and 1 header row, missing 1')

@@ -1016,7 +1016,7 @@ def check_input_file(input_directory, input_value):
 
     try:
         input_file = os.path.join(input_directory, input_value)
-    except TypeError:
+    except (TypeError, AttributeError):
         input_file = None
 
     if input_file is not None and checkers.is_file(input_file):
