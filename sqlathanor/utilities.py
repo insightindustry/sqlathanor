@@ -457,8 +457,14 @@ def parse_json(input_data,
     :returns: A :class:`dict <python:dict>` representation of ``input_data``.
     :rtype: :class:`dict <python:dict>`
     """
-    if deserialize_function is None:
+    is_file = False
+    if checkers.is_file(input_data):
+        is_file = True
+
+    if deserialize_function is None and not is_file:
         deserialize_function = json.loads
+    elif deserialize_function is None and is_file:
+        deserialize_function = json.load
     else:
         if checkers.is_callable(deserialize_function) is False:
             raise ValueError(
@@ -468,13 +474,17 @@ def parse_json(input_data,
     if not input_data:
         raise DeserializationError('input_data is empty')
 
-    try:
-        input_data = validators.string(input_data,
-                                       allow_empty = False)
-    except ValueError:
-        raise DeserializationError('input_data is not a valid string')
+    if not is_file:
+        try:
+            input_data = validators.string(input_data,
+                                           allow_empty = False)
+        except ValueError:
+            raise DeserializationError('input_data is not a valid string')
 
-    from_json = json.loads(input_data, **kwargs)
+        from_json = deserialize_function(input_data, **kwargs)
+    else:
+        with open(input_data, 'r') as input_file:
+            from_json = deserialize_function(input_file, **kwargs)
 
     return from_json
 

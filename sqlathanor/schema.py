@@ -568,9 +568,15 @@ class Table(SA_Table):
         .. versionadded: 0.3.0
 
         :param serialized: The :term:`JSON <JavaScript Object Notation (JSON)>`
-          string to use. Keys will be treated as column names, while value data
+          data to use. Keys will be treated as column names, while value data
           types will determine :class:`Column` data types.
-        :type serialized: :class:`str <python:str>`
+
+          .. note::
+
+            If providing a path to a file, and if the file contains more than one JSON
+            object, will only use the first JSON object listed.
+
+        :type serialized: :class:`str <python:str>` / Path-like object
 
         :param tablename: The name of the SQL table to which the model corresponds.
         :type tablename: :class:`str <python:str>`
@@ -681,6 +687,9 @@ class Table(SA_Table):
         else:
             from_json = parse_json(serialized,
                                    deserialize_function = deserialize_function)
+
+        if isinstance(from_json, list):
+            from_json = from_json[0]
 
         table = cls.from_dict(from_json,
                               tablename,

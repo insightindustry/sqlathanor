@@ -17,7 +17,7 @@ from validator_collection import checkers
 from validator_collection.errors import NotAnIterableError
 
 from tests.fixtures import db_engine, tables, base_model, db_session, \
-    model_complex_postgresql, instance_postgresql, input_files
+    model_complex_postgresql, instance_postgresql, input_files, check_input_file
 
 from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple, \
     get_class_type_key, raise_UnsupportedSerializationError, \
@@ -214,17 +214,26 @@ def test_iterable__to_dict(input_value,
     (None, None, None, DeserializationError),
     (None, 'not-callable', None, ValueError),
 
+    ('JSON/input_json1.json', None, { 'test': 123, 'second_test': 'this is a test' }, None),
+    ('JSON/input_json2.json', None, [{ 'test': 123, 'second_test': 'this is a test' },
+                                     { 'test': 123, 'second_test': 'this is another test' }], None),
 ])
-def test_parse_json(input_value,
+def test_parse_json(input_files,
+                    input_value,
                     deserialize_function,
                     expected_result,
                     error):
+    input_value = check_input_file(input_files, input_value)
+
     if not error:
         result = parse_json(input_value,
                             deserialize_function = deserialize_function)
 
-        assert isinstance(result, dict)
-        assert checkers.are_dicts_equivalent(result, expected_result)
+        assert isinstance(result, (dict, list))
+        if isinstance(result, list):
+            assert result == expected_result
+        else:
+            assert checkers.are_dicts_equivalent(result, expected_result)
     else:
         with pytest.raises(error):
             result = parse_json(input_value)

@@ -3188,7 +3188,13 @@ class BaseModel(object):
         """Update the model instance from data in a JSON string.
 
         :param input_data: The JSON data to de-serialize.
-        :type input_data: :class:`str <python:str>`
+
+          .. note::
+
+            If ``input_data`` points to a file, and the file contains a list of
+            JSON objects, the first JSON object will be considered.
+
+        :type input_data: :class:`str <python:str>` or Path-like object
 
         :param deserialize_function: Optionally override the default JSON deserializer.
           Defaults to :obj:`None <python:None>`, which calls the default
@@ -3251,6 +3257,9 @@ class BaseModel(object):
                                deserialize_function = deserialize_function,
                                **kwargs)
 
+        if isinstance(from_json, list):
+            from_json = from_json[0]
+
         data = self._parse_dict(from_json,
                                 'json',
                                 error_on_extra_keys = error_on_extra_keys,
@@ -3268,8 +3277,14 @@ class BaseModel(object):
                       **kwargs):
         """Create a new model instance from data in JSON.
 
-        :param input_data: The input JSON data.
-        :type input_data: :class:`str <python:str>`
+        :param input_data: The JSON data to de-serialize.
+
+          .. note::
+
+            If ``input_data`` points to a file, and the file contains a list of
+            JSON objects, the first JSON object will be considered.
+
+        :type input_data: :class:`str <python:str>` or Path-like object
 
         :param deserialize_function: Optionally override the default JSON deserializer.
           Defaults to :obj:`None <python:None>`, which calls the default
@@ -3329,6 +3344,9 @@ class BaseModel(object):
         from_json = parse_json(input_data,
                                deserialize_function = deserialize_function,
                                **kwargs)
+
+        if isinstance(from_json, list):
+            from_json = from_json[0]
 
         data = cls._parse_dict(from_json,
                                'json',
@@ -3627,9 +3645,17 @@ def generate_model_from_json(serialized,
       :term:`relationships <relationship>`, :term:`hybrid properties <hybrid property>`,
       or :term:`association proxies <association proxy>`.
 
-    :param serialized: The JSON string whose keys will be treated as column
-      names, while value data types will determine :term:`model attribute` data types.
-    :type serialized: :class:`str <python:str>`
+    :param serialized: The JSON data whose keys will be treated as column
+      names, while value data types will determine :term:`model attribute` data
+      types, or the path to a file whose contents will be the JSON object in
+      question.
+
+      .. note::
+
+        If providing a path to a file, and if the file contains more than one JSON
+        object, will only use the first JSON object listed.
+
+    :type serialized: :class:`str <python:str>` / Path-like object
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
@@ -3755,6 +3781,9 @@ def generate_model_from_json(serialized,
     else:
         from_json = parse_json(serialized,
                                deserialize_function = deserialize_function)
+
+    if isinstance(from_json, list):
+        from_json = from_json[0]
 
     generated_model = generate_model_from_dict(from_json,
                                                tablename,
