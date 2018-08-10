@@ -33,6 +33,7 @@ BaseModel
 
 .. autoclass:: BaseModel
   :members:
+  :inherited-members:
 
 ------------------------
 
@@ -47,6 +48,34 @@ declarative_base()
 --------------------
 
 .. autofunction:: as_declarative
+
+----------------------------------------
+
+generate_model_from_csv()
+----------------------------
+
+.. autofunction:: generate_model_from_csv
+
+----------------------------------------
+
+generate_model_from_json()
+-----------------------------
+
+.. autofunction:: generate_model_from_json
+
+----------------------------------------
+
+generate_model_from_yaml()
+----------------------------
+
+.. autofunction:: generate_model_from_yaml
+
+----------------------------------------
+
+generate_model_from_dict()
+----------------------------
+
+.. autofunction:: generate_model_from_dict
 
 ----------------------------------------
 
@@ -152,6 +181,23 @@ relationship()
     form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
 ----------------
+
+Table
+--------
+
+.. autoclass:: Table
+
+  .. automethod:: Table.__init__
+
+  .. automethod:: Table.from_csv
+
+  .. automethod:: Table.from_dict
+
+  .. automethod:: Table.from_json
+
+  .. automethod:: Table.from_yaml
+
+----------------------------
 
 .. module:: sqlathanor.attributes
 

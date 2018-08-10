@@ -172,6 +172,9 @@ Key SQLAthanor Features
   your needs.
 * Works with :ref:`Declarative Reflection <using_reflection>` and the
   :ref:`Automap Extension <using_automap>`.
+* Programmatically :ref:`generate Declarative Base Models from serialized data <defining_models>`.
+* Programmatically create :ref:`SQLAlchemy Table objects <generating_tables>` from
+  serialized data.
 
 |
 

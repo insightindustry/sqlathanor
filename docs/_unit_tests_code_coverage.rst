@@ -18,7 +18,21 @@
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=latest
          :alt: Documentation Status (ReadTheDocs)
 
-   * - `v.0.2.2 <https://github.com/insightindustry/sqlathanor/tree/v.0.2.2>`_
+   * - `v.0.3 <https://github.com/insightindustry/sqlathanor/tree/v.0.3.0>`_
+     -
+       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.3.0
+         :target: https://travis-ci.org/insightindustry/sqlathanor
+         :alt: Build Status (Travis CI)
+
+       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.3.0/graph/badge.svg
+         :target: https://codecov.io/gh/insightindustry/sqlathanor
+         :alt: Code Coverage Status (Codecov)
+
+       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.3.0
+         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.3.0
+         :alt: Documentation Status (ReadTheDocs)
+
+   * - `v.0.2 <https://github.com/insightindustry/sqlathanor/tree/v.0.2.2>`_
      -
        .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.2.2
          :target: https://travis-ci.org/insightindustry/sqlathanor
@@ -32,35 +46,7 @@
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.2.2
          :alt: Documentation Status (ReadTheDocs)
 
-   * - `v.0.2.1 <https://github.com/insightindustry/sqlathanor/tree/v.0.2.1>`_
-     -
-       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.2.1
-         :target: https://travis-ci.org/insightindustry/sqlathanor
-         :alt: Build Status (Travis CI)
-
-       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.2.1/graph/badge.svg
-         :target: https://codecov.io/gh/insightindustry/sqlathanor
-         :alt: Code Coverage Status (Codecov)
-
-       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.2.1
-         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.2.1
-         :alt: Documentation Status (ReadTheDocs)
-
-   * - `v.0.2.0 <https://github.com/insightindustry/sqlathanor/tree/v.0.2.0>`_
-     -
-       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.2.0
-         :target: https://travis-ci.org/insightindustry/sqlathanor
-         :alt: Build Status (Travis CI)
-
-       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.2.0/graph/badge.svg
-         :target: https://codecov.io/gh/insightindustry/sqlathanor
-         :alt: Code Coverage Status (Codecov)
-
-       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.2.0
-         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.2.0
-         :alt: Documentation Status (ReadTheDocs)
-
-   * - `v.0.1.1 <https://github.com/insightindustry/sqlathanor/tree/v.0.1.1>`_
+   * - `v.0.1 <https://github.com/insightindustry/sqlathanor/tree/v.0.1.1>`_
      -
        .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.1.1
          :target: https://travis-ci.org/insightindustry/sqlathanor
@@ -72,20 +58,6 @@
 
        .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.1.1
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.1.1
-         :alt: Documentation Status (ReadTheDocs)
-
-   * - `v.0.1.0 <https://github.com/insightindustry/sqlathanor/tree/v.0.1.0>`_
-     -
-       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.1.0
-         :target: https://travis-ci.org/insightindustry/sqlathanor
-         :alt: Build Status (Travis CI)
-
-       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.1.0/graph/badge.svg
-         :target: https://codecov.io/gh/insightindustry/sqlathanor
-         :alt: Code Coverage Status (Codecov)
-
-       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.1.0
-         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.1.0
          :alt: Documentation Status (ReadTheDocs)
 
    * - `develop <https://github.com/insightindustry/sqlathanor/tree/develop>`_

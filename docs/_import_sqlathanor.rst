@@ -69,9 +69,13 @@ the same elements as you would import from :doc:`SQLAlchemy <sqlalchemy:orm/tuto
     .. code-block:: python
 
       from sqlathanor import FlaskBaseModel, initialize_flask_sqlathanor
+      from flask import Flask
       from flask_sqlalchemy import SQLAlchemy
 
-      db = SQLAlchemy(model_class = FlaskBaseModel)
+      app = Flask(__name__)
+      app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+
+      db = SQLAlchemy(app, model_class = FlaskBaseModel)
       db = initialize_flask_sqlathanor(db)
 
     And that's it! Now **SQLAthanor** serialization functionality will be supported

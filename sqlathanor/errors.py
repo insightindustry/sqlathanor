@@ -89,3 +89,7 @@ class ExtraKeyError(DeserializationError):
     """Error raised when an inbound object being de-serialized has extra (unrecognized)
     keys."""
     pass
+
+class UnsupportedValueTypeError(DeserializationError):
+    """Error raised when a value type found in a serialized string is not supported."""
+    pass

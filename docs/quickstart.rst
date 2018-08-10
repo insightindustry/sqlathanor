@@ -344,6 +344,69 @@ Password De-serialization
 
 ----------------------------
 
+Programmatically Generating Models
+=====================================
+
+.. versionadded:: 0.3.0
+
+.. seealso::
+
+  * :func:`generate_model_from_csv() <sqlathanor.declarative.generate_model_from_csv>`
+  * :func:`generate_model_from_json() <sqlathanor.declarative.generate_model_from_json>`
+  * :func:`generate_model_from_yaml() <sqlathanor.declarative.generate_model_from_yaml>`
+  * :func:`generate_model_from_dict() <sqlathanor.declarative.generate_model_from_dict>`
+
+.. tabs::
+
+  .. tab:: CSV
+
+    .. code-block:: python
+
+      # FROM CSV:
+      from sqlathanor import generate_model_from_csv
+
+      # Assuming that "csv_data" contains your CSV data
+      CSVModel = generate_model_from_csv(csv_data,
+                                         tablename = 'my_table_name',
+                                         primary_key = 'id')
+
+  .. tab:: JSON
+
+    .. code-block:: python
+
+       from sqlathanor import generate_model_from_json
+
+       # Assuming that "json_string" contains your JSON data in a string
+       JSONModel = generate_model_from_json(json_string,
+                                            tablename = 'my_table_name',
+                                            primary_key = 'id')
+
+  .. tab:: YAML
+
+    .. code-block:: python
+
+       from sqlathanor import generate_model_from_yaml
+
+       # Assuming that "yaml_string" contains your YAML data in a string
+       YAMLModel = generate_model_from_yaml(yaml_string,
+                                            tablename = 'my_table_name',
+                                            primary_key = 'id')
+
+  .. tab:: ``dict``
+
+    .. code-block:: python
+
+       from sqlathanor import generate_model_from_dict
+
+       # Assuming that "yaml_string" contains your YAML data in a string
+       DictModel = generate_model_from_dict(dict_string,
+                                            tablename = 'my_table_name',
+                                            primary_key = 'id')
+
+
+
+----------------------------
+
 Using SQLAthanor with SQLAlchemy Reflection
 =============================================
 
@@ -598,7 +661,91 @@ Using SQLAthanor with Flask-SQLAlchemy
 .. code-block:: python
 
   from sqlathanor import FlaskBaseModel, initialize_flask_sqlathanor
+  from flask import Flask
   from flask_sqlalchemy import SQLAlchemy
 
-  db = SQLAlchemy(model_class = FlaskBaseModel)
+  app = Flask(__name__)
+  app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+
+  db = SQLAlchemy(app, model_class = FlaskBaseModel)
   db = initialize_flask_sqlathanor(db)
+
+----------------------------
+
+Generating SQLAlchemy Tables from Serialized Data
+====================================================
+
+.. versionadded:: 0.3.0
+
+.. seealso::
+
+  * :meth:`Table.from_csv() <sqlathanor.schema.Table.from_csv>`
+  * :meth:`Table.from_json() <sqlathanor.schema.Table.from_json>`
+  * :meth:`Table.from_yaml() <sqlathanor.schema.Table.from_yaml>`
+  * :meth:`Table.from_dict() <sqlathanor.schema.Table.from_dict>`
+
+.. tabs::
+
+  .. tab:: CSV
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes CSV data is in "csv_data" and a MetaData object is in "metadata"
+      csv_table = Table.from_csv(csv_data,
+                                 'tablename_goes_here',
+                                 metadata,
+                                 'primary_key_column',
+                                 column_kwargs = None,
+                                 skip_nested = True,
+                                 default_to_str = False,
+                                 type_mapping = None)
+
+  .. tab:: JSON
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes JSON string is in "json_data" and a MetaData object is in "metadata"
+      json_table = Table.from_json(json_data,
+                                   'tablename_goes_here',
+                                   metadata,
+                                   'primary_key_column',
+                                   column_kwargs = None,
+                                   skip_nested = True,
+                                   default_to_str = False,
+                                   type_mapping = None)
+
+  .. tab:: YAML
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes YAML string is in "yaml_data" and a MetaData object is in "metadata"
+      yaml_table = Table.from_yaml(yaml_data,
+                                   'tablename_goes_here',
+                                   metadata,
+                                   'primary_key_column',
+                                   column_kwargs = None,
+                                   skip_nested = True,
+                                   default_to_str = False,
+                                   type_mapping = None)
+
+  .. tab:: dict
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes dict object is in "dict_data" and a MetaData object is in "metadata"
+      dict_table = Table.from_dict(dict_data,
+                                   'tablename_goes_here',
+                                   metadata,
+                                   'primary_key_column',
+                                   column_kwargs = None,
+                                   skip_nested = True,
+                                   default_to_str = False,
+                                   type_mapping = None)

@@ -135,6 +135,13 @@ ValueDeserializationError (from :class:`DeserializationError`)
 
 ----------------
 
+UnsupportedValueTypeError (from :class:`DeserializationError`)
+-----------------------------------------------------------------
+
+.. autoclass:: UnsupportedValueTypeError
+
+----------------
+
 UnsupportedDeserializationError (from :class:`DeserializationError`)
 -----------------------------------------------------------------------
 

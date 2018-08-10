@@ -8,21 +8,24 @@ tests.test_utilities
 Tests for the schema extensions written in :ref:`sqlathanor.utilities`.
 
 """
+import os
 
 import pytest
+import sqlalchemy
 
 from validator_collection import checkers
 from validator_collection.errors import NotAnIterableError
 
 from tests.fixtures import db_engine, tables, base_model, db_session, \
-    model_complex_postgresql, instance_postgresql
+    model_complex_postgresql, instance_postgresql, input_files, check_input_file
 
 from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple, \
     get_class_type_key, raise_UnsupportedSerializationError, \
-    raise_UnsupportedDeserializationError, iterable__to_dict, parse_yaml, parse_json
+    raise_UnsupportedDeserializationError, iterable__to_dict, parse_yaml, parse_json, \
+    get_attribute_names, is_an_attribute, parse_csv, read_csv_data
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
-    MaximumNestingExceededWarning, DeserializationError
+    MaximumNestingExceededWarning, DeserializationError, CSVStructureError
 
 
 
@@ -139,7 +142,7 @@ class DummyClass(object):
     def __init__(self, *args, **kwargs):
         pass
 
-    def _to_dict(self, format, max_nesting = 0, current_nesting = 0):
+    def _to_dict(self, format, max_nesting = 0, current_nesting = 0, is_dumping = False):
         if format not in ['csv', 'json', 'yaml', 'dict']:
             raise InvalidFormatError()
 
@@ -211,17 +214,23 @@ def test_iterable__to_dict(input_value,
     (None, None, None, DeserializationError),
     (None, 'not-callable', None, ValueError),
 
+    ('JSON/input_json1.json', None, { 'test': 123, 'second_test': 'this is a test' }, None),
+    ('JSON/input_json2.json', None, [{ 'test': 123, 'second_test': 'this is a test' },
+                                     { 'test': 123, 'second_test': 'this is another test' }], None),
 ])
-def test_parse_json(input_value,
+def test_parse_json(input_files,
+                    input_value,
                     deserialize_function,
                     expected_result,
                     error):
+    input_value = check_input_file(input_files, input_value)
+
     if not error:
         result = parse_json(input_value,
                             deserialize_function = deserialize_function)
 
-        assert isinstance(result, dict)
-        assert checkers.are_dicts_equivalent(result, expected_result)
+        assert isinstance(result, (dict, list))
+        assert checkers.are_equivalent(result, expected_result)
     else:
         with pytest.raises(error):
             result = parse_json(input_value)
@@ -233,17 +242,211 @@ def test_parse_json(input_value,
     (None, None, None, DeserializationError),
     (None, 'not-callable', None, ValueError),
 
+    ('JSON/input_json1.json', None, { 'test': 123, 'second_test': 'this is a test' }, None),
+    ('JSON/input_json2.json', None, [{ 'test': 123, 'second_test': 'this is a test' },
+                                     { 'test': 123, 'second_test': 'this is another test' }], None),
+
 ])
-def test_parse_yaml(input_value,
+def test_parse_yaml(input_files,
+                    input_value,
                     deserialize_function,
                     expected_result,
                     error):
+    input_value = check_input_file(input_files, input_value)
+
     if not error:
         result = parse_yaml(input_value,
                             deserialize_function = deserialize_function)
+
+        assert isinstance(result, (dict, list))
+        assert checkers.are_equivalent(result, expected_result)
+    else:
+        with pytest.raises(error):
+            result = parse_yaml(input_value)
+
+
+@pytest.mark.parametrize('input_value, kwargs, expected_result, error', [
+    (["col1|col2|col3", "123|456|789"], None, {'col1': '123', 'col2': '456', 'col3': '789'}, None),
+    (["col1|col2|col3"], None, None, CSVStructureError),
+    (["col1|col2|col3", "123|456|789", "987|654|321"], None, {'col1': '123', 'col2': '456', 'col3': '789'}, None),
+    (["not a variable name|col2|col3", "123|456|789"], None, None, CSVStructureError),
+])
+def test_parse_csv(input_value, kwargs, expected_result, error):
+    if not error:
+        if kwargs:
+            result = parse_csv(input_value, **kwargs)
+        else:
+            result = parse_csv(input_value)
+
+        print(result)
 
         assert isinstance(result, dict)
         assert checkers.are_dicts_equivalent(result, expected_result)
     else:
         with pytest.raises(error):
-            result = parse_yaml(input_value)
+            if kwargs:
+                result = parse_csv(input_value, **kwargs)
+            else:
+                result = parse_csv(input_value)
+
+
+@pytest.mark.parametrize('use_instance, include_callable, include_nested, include_private, include_special, include_utilities, expected_result', [
+    (False, False, False, False, False, False, 7),
+    (False, False, False, False, False, True, 9),
+    (False, False, False, True, False, False, 8),
+    (False, False, False, True, False, True, 11),
+    (False, False, True, False, False, False, 9),
+    (False, False, True, True, False, False, 10),
+    (False, False, True, True, False, True, 14),
+    (False, True, False, False, False, False, 37),
+    (False, True, True, False, False, False, 39),
+    (False, True, True, True, False, False, 52),
+    (False, True, True, True, False, True, 56),
+
+    (True, False, False, False, False, False, 8),
+    (True, False, False, False, False, True, 10),
+    (True, False, False, True, False, False, 9),
+    (True, False, False, True, False, True, (12, 13)),
+    (True, False, True, False, False, False, 9),
+    (True, False, True, True, False, False, 10),
+    (True, False, True, True, False, True, (14, 15)),
+    (True, True, False, False, False, False, 38),
+    (True, True, True, False, False, False, 39),
+    (True, True, True, True, False, False, 52),
+    (True, True, True, True, False, True, 57),
+
+])
+def test_get_attribute_names(model_complex_postgresql,
+                             instance_postgresql,
+                             use_instance,
+                             include_callable,
+                             include_nested,
+                             include_private,
+                             include_special,
+                             include_utilities,
+                             expected_result):
+    if use_instance:
+        target = instance_postgresql[0][0]
+    else:
+        target = model_complex_postgresql[0]
+
+    result = get_attribute_names(target,
+                                 include_callable = include_callable,
+                                 include_nested = include_nested,
+                                 include_private = include_private,
+                                 include_utilities = include_utilities)
+
+    print(result)
+    if sqlalchemy.__version__[2] == '9' and isinstance(expected_result, tuple):
+        expected_result = expected_result[0]
+    elif isinstance(expected_result, tuple):
+        expected_result = expected_result[1]
+
+    assert len(result) == expected_result
+
+
+@pytest.mark.parametrize('use_instance, attribute, forbid_callable, forbid_nested, expected_result', [
+    (False, 'boolean_attribute', False, False, True),
+    (False, 'string_attribute', False, False, True),
+    (False, 'int_attribute', False, False, True),
+    (False, 'dict_attribute', False, False, True),
+    (False, 'dict_attribute', False, True, False),
+    (False, 'list_attribute', False, False, True),
+    (False, 'list_string', False, False, True),
+    (False, 'list_dict', False, False, True),
+    (False, 'list_dict', False, True, False),
+    (False, 'set_attribute', False, False, True),
+    (False, 'set_int', False, False, True),
+    (False, 'property_attribute', False, False, True),
+    (False, 'property_attribute', True, False, True),
+    (False, 'method_attribute', False, False, True),
+    (False, 'method_attribute', True, False, False),
+
+    (True, 'boolean_attribute', False, False, True),
+    (True, 'string_attribute', False, False, True),
+    (True, 'int_attribute', False, False, True),
+    (True, 'dict_attribute', False, False, True),
+    (True, 'dict_attribute', False, True, False),
+    (True, 'list_attribute', False, False, True),
+    (True, 'list_string', False, False, True),
+    (True, 'list_dict', False, False, True),
+    (True, 'list_dict', False, True, False),
+    (True, 'set_attribute', False, False, True),
+    (True, 'set_int', False, False, True),
+    (True, 'property_attribute', False, False, True),
+    (True, 'property_attribute', True, False, True),
+    (True, 'method_attribute', False, False, True),
+    (True, 'method_attribute', True, False, False),
+])
+def test_is_an_attribute(use_instance, attribute, forbid_callable, forbid_nested, expected_result):
+    class TestClass(object):
+        boolean_attribute = True
+        string_attribute = 'string'
+        int_attribute = 1
+        dict_attribute = {}
+        list_attribute = []
+        list_string = ['test', 'test']
+        list_dict = [{}, {}]
+        set_attribute = set()
+        set_int = set([1, 2, 3])
+
+        def __init__(self, *args, **kwargs):
+            pass
+
+        @property
+        def property_attribute(self):
+            pass
+
+        def method_attribute(self, value):
+            pass
+
+    if use_instance:
+        target = TestClass()
+    else:
+        target = TestClass
+
+    assert is_an_attribute(target,
+                           attribute,
+                           include_callable = not forbid_callable,
+                           include_nested = not forbid_nested) == expected_result
+
+
+@pytest.mark.parametrize('input_data, single_record, expected_result', [
+    ("col1|col2|col3\r\n123|456|789\r\n987|654|321", True, '123|456|789'),
+    ("col1|col2|col3\n123|456|789", True, '123|456|789'),
+    ("col1|col2|col3\r123|456|789", True, '123|456|789'),
+    ("col1|col2|col3", True, "col1|col2|col3"),
+
+    ("CSV/input_csv1.csv", True, '123|456|789'),
+    ("CSV/input_csv2.csv", True, 'col1|col2|col3'),
+    ("CSV/update_from_csv1.csv", True, "1|serialized|test-password|3|2"),
+
+    ("col1|col2|col3\r\n123|456|789\r\n987|654|321", False, 'col1|col2|col3\r\n123|456|789\r\n987|654|321'),
+    ("col1|col2|col3\n123|456|789", False, 'col1|col2|col3\n123|456|789'),
+    ("col1|col2|col3\r123|456|789", False, 'col1|col2|col3\r123|456|789'),
+    ("col1|col2|col3", False, "col1|col2|col3"),
+
+    ("CSV/input_csv1.csv", False, 'col1|col2|col3\n123|456|789\n987|654|321'),
+    ("CSV/input_csv2.csv", False, "col1|col2|col3"),
+    ("CSV/update_from_csv1.csv", False, "1|serialized|test-password|3|2"),
+
+])
+def test_read_csv_data(input_files, input_data, single_record, expected_result):
+    inputs = os.path.abspath(input_files)
+    if not os.path.exists(input_files):
+        raise AssertionError('input directory (%s) does not exist' % inputs)
+    elif not os.path.isdir(input_files):
+        raise AssertionError('input directory (%s) is not a directory' % inputs)
+
+    input_file = os.path.join(input_files, input_data)
+
+    if checkers.is_file(input_file):
+        input_data = input_file
+
+    result = read_csv_data(input_data,
+                           single_record = single_record)
+
+    if result is None:
+        assert result == expected_result
+    else:
+        assert result.strip() == expected_result.strip()

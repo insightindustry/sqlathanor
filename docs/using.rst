@@ -312,6 +312,61 @@ Dependencies
       * :ref:`Using Automap with SQLAthanor <using_automap>`
       * **SQLAlchemy**: :doc:`Automap Extension <sqlalchemy:orm/extensions/automap>`
 
+  .. tab:: Programmatically
+
+    .. versionadded:: 0.3.0
+
+    If you have serialized data in either :term:`CSV <Comma-Separated Value (CSV)>`,
+    :term:`JSON <JavaScript Object Notation (JSON)>`,
+    :term:`YAML <YAML Ain't a Markup Language (YAML)>`, or a Python
+    :class:`dict <python:dict>`, you can programmatically generate a
+    :doc:`SQLAlchemy Declarative <sqlalchemy:orm/extensions/declarative/index>`
+    :term:`model class` using **SQLAthanor** with the syntax
+    ``generate_model_from_<format>()`` where ``<format>`` corresponds to ``csv``,
+    ``json``, ``yaml``, or ``dict``:
+
+    .. code-block:: python
+
+      ##### FROM CSV:
+      from sqlathanor import generate_model_from_csv
+
+      # Assuming that "csv_data" contains your CSV data
+      CSVModel = generate_model_from_csv(csv_data,
+                                         tablename = 'my_table_name',
+                                         primary_key = 'id')
+
+      ##### FROM JSON:
+      from sqlathanor import generate_model_from_json
+
+      # Assuming that "json_string" contains your JSON data in a string
+      JSONModel = generate_model_from_json(json_string,
+                                           tablename = 'my_table_name',
+                                           primary_key = 'id')
+
+      ##### FROM YAML:
+      from sqlathanor import generate_model_from_yaml
+
+      # Assuming that "yaml_string" contains your YAML data in a string
+      YAMLModel = generate_model_from_yaml(yaml_string,
+                                           tablename = 'my_table_name',
+                                           primary_key = 'id')
+
+      ##### FROM DICT:
+      from sqlathanor import generate_model_from_dict
+
+      # Assuming that "yaml_string" contains your YAML data in a string
+      DictModel = generate_model_from_dict(dict_string,
+                                           tablename = 'my_table_name',
+                                           primary_key = 'id')
+
+    .. seealso::
+
+      * :func:`generate_model_from_csv() <sqlathanor.declarative.generate_model_from_csv>`
+      * :func:`generate_model_from_json() <sqlathanor.declarative.generate_model_from_json>`
+      * :func:`generate_model_from_yaml() <sqlathanor.declarative.generate_model_from_yaml>`
+      * :func:`generate_model_from_dict() <sqlathanor.declarative.generate_model_from_dict>`
+
+
 -----------------
 
 .. _configuration:
@@ -899,6 +954,18 @@ Why Two Configuration Approaches?
   and "data scientists", I've tried to design an interface that will feel "natural"
   to both communities.
 
+Configuring at Runtime
+-------------------------------------
+
+.. seealso::
+
+  **SQLAthanor** exposes a number of public methods that allow you to modify the
+  :term:`serialization`/:term:`de-serialization` configuration at run-time. For more
+  information, please see:
+
+  * :meth:`BaseModel.configure_serialization() <sqlathanor.declarative.BaseModel.configure_serialization>`
+  * :meth:`BaseModel.set_attribute_serialization_config() <sqlathanor.declarative.BaseModel.set_attribute_serialization_config>`
+
 --------------
 
 .. _extra_processing:
@@ -1064,14 +1131,31 @@ valid deserializer function will:
 ====================================
 
 Once you've :ref:`configured <configuration>` your :term:`model class`, you can
-now easily serialize it to the formats you have enabled. Your :term:`model instance`
-will have one serialization method for each of the formats, named ``to_<format>``
-where ``<format>`` corresponds to ``csv``, ``json``, ``yaml``, and ``dict``:
+now easily serialize it. Your :term:`model instance` will have two serialization
+methods for each of the formats, named ``to_<format>`` and ``dump_to_<format>``
+respectively, where ``<format>`` corresponds to ``csv``, ``json``, ``yaml``, and
+``dict``:
 
   * :meth:`to_csv() <sqlathanor.BaseModel.to_csv>`
   * :meth:`to_json() <sqlathanor.BaseModel.to_json>`
   * :meth:`to_yaml() <sqlathanor.BaseModel.to_yaml>`
   * :meth:`to_dict() <sqlathanor.BaseModel.to_dict>`
+  * :meth:`dump_to_csv() <sqlathanor.BaseModel.dump_to_csv>`
+  * :meth:`dump_to_json() <sqlathanor.BaseModel.dump_to_json>`
+  * :meth:`dump_to_yaml() <sqlathanor.BaseModel.dump_to_yaml>`
+  * :meth:`dump_to_dict() <sqlathanor.BaseModel.dump_to_dict>`
+
+The ``to_<format>`` methods adhere to whatever :ref:`configuration <configuration>`
+you have set up for your :term:`model class`, while the ``dump_to_<format>`` method will
+automatically serialize all :term:`model attributes <model attribute>` defined.
+
+.. caution::
+
+  Use the the ``dump_to_<format>`` methods with caution!
+
+  Because they automatically serialize all :term:`model attributes <model attribute>`
+  defined for your :term:`model class`, they potentially expose your application
+  to security vulnerabilities.
 
 Nesting Complex Data
 ------------------------
@@ -1120,6 +1204,26 @@ to_dict()
 ------------
 
 .. automethod:: sqlathanor.BaseModel.to_dict
+
+dump_to_csv()
+---------------
+
+.. automethod:: sqlathanor.BaseModel.dump_to_csv
+
+dump_to_json()
+-----------------
+
+.. automethod:: sqlathanor.BaseModel.dump_to_json
+
+dump_to_yaml()
+----------------
+
+.. automethod:: sqlathanor.BaseModel.dump_to_yaml
+
+dump_to_dict()
+-----------------
+
+.. automethod:: sqlathanor.BaseModel.dump_to_dict
 
 ----------------------
 
@@ -1431,3 +1535,92 @@ expect it in inbound data to de-serialize.
 .. _SQLAlchemy: http://www.sqlalchemy.org
 .. _Flask-SQLAlchemy:  http://flask-sqlalchemy.pocoo.org/
 .. _reflection: http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/table_config.html#using-reflection-with-declarative
+
+----------------------------
+
+.. _generating_tables:
+
+Generating SQLAlchemy Tables from Serialized Data
+====================================================
+
+.. versionadded:: 0.3.0
+
+If you are **not** using `SQLAlchemy`_'s :doc:`Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`
+but would like to generate SQLAlchemy :class:`Table <sqlalchemy:sqlalchemy.schema.Table>`
+objects programmatically based on serialized data, you can do so by importing the
+**SQLAthanor** :class:`Table <sqlathanor.schema.Table>` object and calling a
+``from_<format>()`` class method:
+
+.. tabs::
+
+  .. tab:: CSV
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes CSV data is in "csv_data" and a MetaData object is in "metadata"
+      csv_table = Table.from_csv(csv_data,
+                                 'tablename_goes_here',
+                                 metadata,
+                                 'primary_key_column',
+                                 column_kwargs = None,
+                                 skip_nested = True,
+                                 default_to_str = False,
+                                 type_mapping = None)
+
+  .. tab:: JSON
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes JSON string is in "json_data" and a MetaData object is in "metadata"
+      json_table = Table.from_json(json_data,
+                                   'tablename_goes_here',
+                                   metadata,
+                                   'primary_key_column',
+                                   column_kwargs = None,
+                                   skip_nested = True,
+                                   default_to_str = False,
+                                   type_mapping = None)
+
+  .. tab:: YAML
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes YAML string is in "yaml_data" and a MetaData object is in "metadata"
+      yaml_table = Table.from_yaml(yaml_data,
+                                   'tablename_goes_here',
+                                   metadata,
+                                   'primary_key_column',
+                                   column_kwargs = None,
+                                   skip_nested = True,
+                                   default_to_str = False,
+                                   type_mapping = None)
+
+  .. tab:: dict
+
+    .. code-block:: python
+
+      from sqlathanor import Table
+
+      # Assumes dict object is in "dict_data" and a MetaData object is in "metadata"
+      dict_table = Table.from_dict(dict_data,
+                                   'tablename_goes_here',
+                                   metadata,
+                                   'primary_key_column',
+                                   column_kwargs = None,
+                                   skip_nested = True,
+                                   default_to_str = False,
+                                   type_mapping = None)
+
+.. seealso::
+
+  * :class:`Table <sqlathanor.schema.Table>`
+  * :meth:`Table.from_csv() <sqlathanor.schema.Table.from_csv>`
+  * :meth:`Table.from_json() <sqlathanor.schema.Table.from_json>`
+  * :meth:`Table.from_yaml() <sqlathanor.schema.Table.from_yaml>`
+  * :meth:`Table.from_dict() <sqlathanor.schema.Table.from_dict>`

@@ -9,18 +9,29 @@ This module defines a variety of utility functions which are used throughout
 **SQLAthanor**.
 
 """
+import csv
+import linecache
 import warnings
 import yaml
 
 from sqlalchemy.orm.collections import InstrumentedList
+from sqlalchemy.exc import InvalidRequestError as SA_InvalidRequestError
 
 from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
 
-from sqlathanor._compat import json
+from sqlathanor._compat import json, is_py2, is_py36, is_py35
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
-    MaximumNestingExceededWarning, DeserializationError
+    MaximumNestingExceededWarning, DeserializationError, CSVStructureError
+
+UTILITY_COLUMNS = [
+    'metadata',
+    'primary_key_value',
+    '_decl_class_registry',
+    '_sa_instance_state',
+    '_sa_class_manager'
+]
 
 def bool_to_tuple(input):
     """Converts a single :class:`bool <python:bool>` value to a
@@ -178,7 +189,8 @@ def get_class_type_key(class_attribute, value = None):
 def iterable__to_dict(iterable,
                       format,
                       max_nesting = 0,
-                      current_nesting = 0):
+                      current_nesting = 0,
+                      is_dumping = False):
     """Given an iterable, traverse it and execute ``_to_dict()`` if present.
 
     :param iterable: An iterable to traverse.
@@ -198,6 +210,9 @@ def iterable__to_dict(iterable,
     :param current_nesting: The current nesting level at which the
       :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
     :type current_nesting: :class:`int <python:int>`
+
+    :param is_dumping: If ``True``, returns all attributes. Defaults to ``False``.
+    :type is_dumping: :class:`bool <python:bool>`
 
     :returns: Collection of values, possibly converted to :class:`dict <python:dict>`
       objects.
@@ -231,13 +246,15 @@ def iterable__to_dict(iterable,
         try:
             new_item = item._to_dict(format,
                                      max_nesting = max_nesting,
-                                     current_nesting = next_nesting)
+                                     current_nesting = next_nesting,
+                                     is_dumping = is_dumping)
         except AttributeError:
             try:
                 new_item = iterable__to_dict(item,
                                              format,
                                              max_nesting = max_nesting,
-                                             current_nesting = next_nesting)
+                                             current_nesting = next_nesting,
+                                             is_dumping = is_dumping)
             except NotAnIterableError:
                 new_item = item
 
@@ -358,7 +375,7 @@ def parse_yaml(input_data,
     """De-serialize YAML data into a Python :class:`dict <python:dict>` object.
 
     :param input_data: The YAML data to de-serialize.
-    :type input_data: :class:`str <python:str>`
+    :type input_data: :class:`str <python:str>` / Path-like object
 
     :param deserialize_function: Optionally override the default YAML deserializer.
       Defaults to :obj:`None <python:None>`, which calls the default ``yaml.safe_load()``
@@ -384,7 +401,13 @@ def parse_yaml(input_data,
     :returns: A :class:`dict <python:dict>` representation of ``input_data``.
     :rtype: :class:`dict <python:dict>`
     """
-    if deserialize_function is None:
+    is_file = False
+    if checkers.is_file(input_data):
+        is_file = True
+
+    if deserialize_function is None and not is_file:
+        deserialize_function = yaml.safe_load
+    elif deserialize_function is None and is_file:
         deserialize_function = yaml.safe_load
     else:
         if checkers.is_callable(deserialize_function) is False:
@@ -401,7 +424,11 @@ def parse_yaml(input_data,
     except ValueError:
         raise DeserializationError('input_data is not a valid string')
 
-    from_yaml = yaml.safe_load(input_data, **kwargs)
+    if not is_file:
+        from_yaml = yaml.safe_load(input_data, **kwargs)
+    else:
+        with open(input_data, 'r') as input_file:
+            from_yaml = yaml.safe_load(input_file, **kwargs)
 
     return from_yaml
 
@@ -440,8 +467,14 @@ def parse_json(input_data,
     :returns: A :class:`dict <python:dict>` representation of ``input_data``.
     :rtype: :class:`dict <python:dict>`
     """
-    if deserialize_function is None:
+    is_file = False
+    if checkers.is_file(input_data):
+        is_file = True
+
+    if deserialize_function is None and not is_file:
         deserialize_function = json.loads
+    elif deserialize_function is None and is_file:
+        deserialize_function = json.load
     else:
         if checkers.is_callable(deserialize_function) is False:
             raise ValueError(
@@ -451,12 +484,335 @@ def parse_json(input_data,
     if not input_data:
         raise DeserializationError('input_data is empty')
 
-    try:
-        input_data = validators.string(input_data,
-                                       allow_empty = False)
-    except ValueError:
-        raise DeserializationError('input_data is not a valid string')
+    if not is_file:
+        try:
+            input_data = validators.string(input_data,
+                                           allow_empty = False)
+        except ValueError:
+            raise DeserializationError('input_data is not a valid string')
 
-    from_json = json.loads(input_data, **kwargs)
+        from_json = deserialize_function(input_data, **kwargs)
+    else:
+        with open(input_data, 'r') as input_file:
+            from_json = deserialize_function(input_file, **kwargs)
 
     return from_json
+
+
+def parse_csv(input_data,
+              delimiter = '|',
+              wrap_all_strings = False,
+              null_text = 'None',
+              wrapper_character = "'",
+              double_wrapper_character_when_nested = False,
+              escape_character = "\\",
+              line_terminator = '\r\n'):
+    """De-serialize CSV data into a Python :class:`dict <python:dict>` object.
+
+    .. versionadded:: 0.3.0
+
+    .. tip::
+
+      Unwrapped empty column values are automatically interpreted as null
+      (:obj:`None <python:None>`).
+
+    :param input_data: The CSV data to de-serialize. Should include column headers
+      and at least **one** row of data. Will ignore any rows of data beyond the
+      first row.
+    :type input_data: :class:`str <python:str>`
+
+    :param delimiter: The delimiter used between columns. Defaults to ``|``.
+    :type delimiter: :class:`str <python:str>`
+
+    :param wrapper_character: The string used to wrap string values when
+      wrapping is applied. Defaults to ``'``.
+    :type wrapper_character: :class:`str <python:str>`
+
+    :param null_text: The string used to indicate an empty value if empty
+      values are wrapped. Defaults to `None`.
+    :type null_text: :class:`str <python:str>`
+
+    :returns: A :class:`dict <python:dict>` representation of the CSV record.
+    :rtype: :class:`dict <python:dict>`
+
+    :raises DeserializationError: if ``input_data`` is not a valid
+      :class:`str <python:str>`
+    :raises CSVStructureError: if there are less than 2 (two) rows in ``input_data``
+      or if column headers are not valid Python variable names
+
+    """
+    use_file = False
+    if not checkers.is_file(input_data) and not checkers.is_iterable(input_data):
+        try:
+            input_data = validators.string(input_data, allow_empty = False)
+        except (ValueError, TypeError):
+            raise DeserializationError("input_data expects a 'str', received '%s'" \
+                                       % type(input_data))
+
+        input_data = [input_data]
+    elif checkers.is_file(input_data):
+        use_file = True
+
+    if not wrapper_character:
+        wrapper_character = '\''
+
+    if wrap_all_strings:
+        quoting = csv.QUOTE_NONNUMERIC
+    else:
+        quoting = csv.QUOTE_MINIMAL
+
+    if 'sqlathanor' in csv.list_dialects():
+        csv.unregister_dialect('sqlathanor')
+
+    csv.register_dialect('sqlathanor',
+                         delimiter = delimiter,
+                         doublequote = double_wrapper_character_when_nested,
+                         escapechar = escape_character,
+                         quotechar = wrapper_character,
+                         quoting = quoting,
+                         lineterminator = line_terminator)
+
+    if not use_file:
+        csv_reader = csv.DictReader(input_data,
+                                    dialect = 'sqlathanor',
+                                    restkey = None,
+                                    restval = None)
+        rows = [x for x in csv_reader]
+    else:
+        if not is_py2:
+            with open(input_data, 'r', newline = '') as input_file:
+                csv_reader = csv.DictReader(input_file,
+                                            dialect = 'sqlathanor',
+                                            restkey = None,
+                                            restval = None)
+                rows = [x for x in csv_reader]
+        else:
+            with open(input_data, 'r') as input_file:
+                csv_reader = csv.DictReader(input_file,
+                                            dialect = 'sqlathanor',
+                                            restkey = None,
+                                            restval = None)
+
+                rows = [x for x in csv_reader]
+
+    if len(rows) < 1:
+        raise CSVStructureError('expected 1 row of data and 1 header row, missing 1')
+    else:
+        data = rows[0]
+
+    for key in data:
+        try:
+            validators.variable_name(key)
+        except ValueError:
+            raise CSVStructureError(
+                'column (%s) is not a valid Python variable name' % key
+            )
+
+        if data[key] == null_text:
+            data[key] = None
+
+    csv.unregister_dialect('sqlathanor')
+
+    return data
+
+
+def get_attribute_names(obj,
+                        include_callable = False,
+                        include_nested = True,
+                        include_private = False,
+                        include_special = False,
+                        include_utilities = False):
+    """Return a list of attribute names within ``obj``.
+
+    :param include_callable: If ``True``, will include callable attributes (methods).
+      Defaults to ``False``.
+    :type include_callable: :class:`bool <python:bool>`
+
+    :param include_nested: If ``True``, will include attributes that are
+      arbitrarily-nestable types (such as a :term:`model class` or
+      :class:`dict <python:dict>`). Defaults to ``False``.
+    :type include_nested: :class:`bool <python:bool>`
+
+    :param include_private: If ``True``, will include attributes whose names
+      begin with ``_`` (but *not* ``__``). Defaults to ``False``.
+    :type include_private: :class:`bool <python:bool>`
+
+    :param include_special: If ``True``, will include atributes whose names begin
+      with ``__``. Defaults to ``False``.
+    :type include_special: :class:`bool <python:bool>`
+
+    :param include_utilities: If ``True``, will include utility properties
+      added by SQLAlchemy or **SQLAthanor**. Defaults to ``False``.
+    :type include_utilities: :class:`bool <python:bool>`
+
+    :returns: :term:`Model Attribute` names attached to ``obj``.
+    :rtype: :class:`list <python:list>` of :class:`str <python:str>`
+
+    """
+    attribute_names = [x for x in dir(obj)
+                       if (include_utilities and x in UTILITY_COLUMNS) or \
+                          (x not in UTILITY_COLUMNS)]
+    attributes = []
+    for attribute in attribute_names:
+        if (attribute[0] == '_' and attribute[0:2] != '__') and not include_private:
+            continue
+
+        if attribute[0:2] == '__' and not include_special:
+            continue
+
+        try:
+            attribute_value = getattr(obj, attribute)
+        except SA_InvalidRequestError:
+            if not include_nested:
+                continue
+
+            attributes.append(attribute)
+            continue
+
+        if not include_nested:
+            if checkers.is_type(attribute_value, ('BaseModel',
+                                                  'RelationshipProperty',
+                                                  'AssociationProxy',
+                                                  dict)):
+                continue
+
+            try:
+                is_iterable = checkers.is_iterable(attribute_value,
+                                                   forbid_literals = (str,
+                                                                      bytes,
+                                                                      dict))
+            except SA_InvalidRequestError as error:
+                if not include_nested:
+                    continue
+                else:
+                    is_iterable = False
+
+            if is_iterable:
+                loop = False
+
+                for item in attribute_value:
+                    if checkers.is_type(item, ('BaseModel',
+                                               'RelationshipProperty',
+                                               'AssociationProxy',
+                                               dict)):
+                        loop = True
+                        break
+
+                if loop:
+                    continue
+
+        if not include_callable and checkers.is_callable(attribute_value):
+            continue
+
+        attributes.append(attribute)
+
+    return attributes
+
+
+def is_an_attribute(obj,
+                    attribute,
+                    include_callable = False,
+                    include_nested = True,
+                    include_private = False,
+                    include_utilities = False):
+    """Indicate whether ``attribute`` is an attribute of ``obj``.
+
+    :param obj: The object to check for ``attribute``.
+    :type obj: object
+
+    :param attribute: The name of the attribute to check.
+    :type attribute: :class:`str <python:str>`
+
+    :param include_callable: If ``True``, will include callable attributes (methods).
+      Defaults to ``False``.
+    :type include_callable: :class:`bool <python:bool>`
+
+    :param include_nested: If ``True``, will include attributes that are
+      arbitrarily-nestable types (such as a :term:`model class` or
+      :class:`dict <python:dict>`). Defaults to ``False``.
+    :type include_nested: :class:`bool <python:bool>`
+
+    :param include_private: If ``True``, will include attributes whose names
+      begin with ``_``. Defaults to ``False``.
+    :type include_private: :class:`bool <python:bool>`
+
+    :param include_utilities: If ``True``, will include utility properties
+      added by SQLAlchemy or **SQLAthanor**. Defaults to ``False``.
+    :type include_utilities: :class:`bool <python:bool>`
+
+    :returns: ``True`` if ``attribute`` exists on ``obj``. ``False`` if not.
+    :rtype: :class:`bool <python:bool>`
+
+    """
+    if not hasattr(obj, attribute):
+        return False
+
+    attributes = get_attribute_names(obj,
+                                     include_callable = include_callable,
+                                     include_nested = include_nested,
+                                     include_private = include_private,
+                                     include_utilities = include_utilities)
+
+    return attribute in attributes
+
+
+def read_csv_data(input_data,
+                  single_record = False,
+                  line_terminator = '\r\n'):
+    """Return the contents of ``input_data`` as a :class:`str <python:str>`.
+
+    :param input_data: The CSV data to read.
+
+      .. note::
+
+        If ``input_data`` is Path-like, then the underlying file **must** start
+        with a header row.
+
+    :type input_data: Path-like or :class:`str <python:str>`
+
+    :param single_record: If ``True``, will return only the first data record.
+      If ``False``, will return all data records (including the header row if
+      present). Defaults to ``False``.
+    :type single_record: :class:`bool <python:bool>`
+
+    :returns: ``input_data`` as a :class:`str <python:str>`
+    :rtype: :class:`str <python:str>` or Path-like object
+
+    """
+    try:
+        input_data = input_data.strip()
+    except AttributeError:
+        pass
+
+    original_input_data = input_data
+
+    if checkers.is_file(input_data) and not single_record:
+        with open(input_data, 'r') as input_file:
+            input_data = input_file.read()
+    elif checkers.is_file(input_data) and single_record:
+        input_data = linecache.getline(original_input_data, 2)
+        if input_data == '':
+            input_data = linecache.getline(original_input_data, 1)
+        if input_data == '':
+            input_data = None
+    elif single_record:
+        try:
+            if line_terminator in input_data:
+                parsed_data = input_data.split(line_terminator)
+            elif line_terminator == '\r\n' and '\r' in input_data:
+                parsed_data = input_data.split('\r')
+            elif line_terminator == '\r\n' and '\n' in input_data:
+                parsed_data = input_data.split('\n')
+            else:
+                parsed_data = [input_data]
+        except TypeError:
+            parsed_data = [input_data]
+
+        if not parsed_data:
+            input_data = None
+        elif len(parsed_data) == 1:
+            input_data = parsed_data[0]
+        else:
+            input_data = parsed_data[1]
+
+    return input_data

@@ -29,7 +29,21 @@ SQLAthanor
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=latest
          :alt: Documentation Status (ReadTheDocs)
 
-   * - `v.0.2.2 <https://github.com/insightindustry/sqlathanor/tree/v.0.2.2>`_
+   * - `v.0.3 <https://github.com/insightindustry/sqlathanor/tree/v.0.3.0>`_
+     -
+       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.3.0
+         :target: https://travis-ci.org/insightindustry/sqlathanor
+         :alt: Build Status (Travis CI)
+
+       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.3.0/graph/badge.svg
+         :target: https://codecov.io/gh/insightindustry/sqlathanor
+         :alt: Code Coverage Status (Codecov)
+
+       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.3.0
+         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.3.0
+         :alt: Documentation Status (ReadTheDocs)
+
+   * - `v.0.2 <https://github.com/insightindustry/sqlathanor/tree/v.0.2.2>`_
      -
        .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.2.2
          :target: https://travis-ci.org/insightindustry/sqlathanor
@@ -43,35 +57,7 @@ SQLAthanor
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.2.2
          :alt: Documentation Status (ReadTheDocs)
 
-   * - `v.0.2.1 <https://github.com/insightindustry/sqlathanor/tree/v.0.2.1>`_
-     -
-       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.2.1
-         :target: https://travis-ci.org/insightindustry/sqlathanor
-         :alt: Build Status (Travis CI)
-
-       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.2.1/graph/badge.svg
-         :target: https://codecov.io/gh/insightindustry/sqlathanor
-         :alt: Code Coverage Status (Codecov)
-
-       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.2.1
-         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.2.1
-         :alt: Documentation Status (ReadTheDocs)
-
-   * - `v.0.2.0 <https://github.com/insightindustry/sqlathanor/tree/v.0.2.1>`_
-     -
-       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.2.0
-         :target: https://travis-ci.org/insightindustry/sqlathanor
-         :alt: Build Status (Travis CI)
-
-       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.2.0/graph/badge.svg
-         :target: https://codecov.io/gh/insightindustry/sqlathanor
-         :alt: Code Coverage Status (Codecov)
-
-       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.2.0
-         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.2.0
-         :alt: Documentation Status (ReadTheDocs)
-
-   * - `v.0.1.1 <https://github.com/insightindustry/sqlathanor/tree/v.0.1.1>`_
+   * - `v.0.1 <https://github.com/insightindustry/sqlathanor/tree/v.0.1.1>`_
      -
        .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.1.1
          :target: https://travis-ci.org/insightindustry/sqlathanor
@@ -83,20 +69,6 @@ SQLAthanor
 
        .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.1.1
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.1.1
-         :alt: Documentation Status (ReadTheDocs)
-
-   * - `v.0.1.0 <https://github.com/insightindustry/sqlathanor/tree/v.0.1.0>`_
-     -
-       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.1.0
-         :target: https://travis-ci.org/insightindustry/sqlathanor
-         :alt: Build Status (Travis CI)
-
-       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.1.0/graph/badge.svg
-         :target: https://codecov.io/gh/insightindustry/sqlathanor
-         :alt: Code Coverage Status (Codecov)
-
-       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.1.0
-         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.1.0
          :alt: Documentation Status (ReadTheDocs)
 
    * - `develop <https://github.com/insightindustry/sqlathanor/tree/develop>`_
@@ -157,11 +129,11 @@ Dependencies
    * - | * `SQLAlchemy v.0.9 <https://www.sqlalchemy.org>`_ or higher
        | * `PyYAML v3.10 <https://github.com/yaml/pyyaml>`_ or higher
        | * `simplejson v3.0 <https://simplejson.readthedocs.io/en/latest/>`_ or higher
-       | * `Validator-Collection v1.1.0 <https://github.com/insightindustry/validator-collection>`_ or higher
+       | * `Validator-Collection v1.2.0 <https://github.com/insightindustry/validator-collection>`_ or higher
      - | * `SQLAlchemy v.0.9 <https://www.sqlalchemy.org>`_ or higher
        | * `PyYAML v3.10 <https://github.com/yaml/pyyaml>`_ or higher
        | * `simplejson v3.0 <https://simplejson.readthedocs.io/en/latest/>`_ or higher
-       | * `Validator-Collection v1.1.0 <https://github.com/insightindustry/validator-collection>`_ or higher
+       | * `Validator-Collection v1.2.0 <https://github.com/insightindustry/validator-collection>`_ or higher
 
 -------------
 
@@ -237,6 +209,8 @@ Key SQLAthanor Features
 * Customize the validation used when de-serializing particular columns to match
   your needs.
 * Works with Declarative Reflection and the SQLAlchemy Automap extension.
+* Programmatically generate Declarative Base Models from serialized data.
+* Programmatically generate SQLAlchemy ``Table`` objects from serialized data.
 
 
 **SQLAthanor** vs Alternatives

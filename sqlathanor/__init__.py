@@ -16,9 +16,11 @@ with open(os.path.join(os.path.dirname(__file__), '__version__.py')) as version_
 
 __version__ = version_dict.get('__version__')
 
-from sqlathanor.declarative import BaseModel, declarative_base, as_declarative
+from sqlathanor.declarative import BaseModel, declarative_base, as_declarative, \
+    generate_model_from_csv, generate_model_from_json, generate_model_from_yaml, \
+    generate_model_from_dict
 from sqlathanor.flask_sqlathanor import FlaskBaseModel, initialize_flask_sqlathanor
-from sqlathanor.schema import Column, relationship
+from sqlathanor.schema import Column, relationship, Table
 from sqlathanor.attributes import AttributeConfiguration
 
 BaseModel = declarative_base(cls = BaseModel)
@@ -27,9 +29,14 @@ __all__ = [
     'BaseModel',
     'Column',
     'relationship',
+    'Table',
     'AttributeConfiguration',
     'declarative_base',
     'as_declarative',
+    'generate_model_from_csv',
+    'generate_model_from_json',
+    'generate_model_from_yaml',
+    'generate_model_from_dict',
     'FlaskBaseModel',
     'initialize_flask_sqlathanor',
 ]

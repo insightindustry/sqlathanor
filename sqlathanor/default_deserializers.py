@@ -8,12 +8,24 @@
 import datetime
 import io
 
-from validator_collection import validators
+from validator_collection import validators, checkers
 
 from sqlathanor._compat import json
 from sqlathanor.utilities import format_to_tuple, get_class_type_key, \
     raise_UnsupportedSerializationError, raise_UnsupportedDeserializationError
+from sqlathanor.errors import UnsupportedValueTypeError
 
+from sqlalchemy.types import Boolean, Date, DateTime, Float, Integer, Text, Time
+
+DEFAULT_PYTHON_SQL_TYPE_MAPPING = {
+    'bool': Boolean,
+    'str': Text,
+    'int': Integer,
+    'float': Float,
+    'datetime': DateTime,
+    'date': Date,
+    'time': Time
+}
 
 def get_default_deserializer(class_attribute = None,
                              format = None):
@@ -113,6 +125,110 @@ def from_json(value):
         return None
 
     return json.dumps(value)
+
+
+def get_type_mapping(value,
+                     type_mapping = None,
+                     skip_nested = True,
+                     default_to_str = False):
+    """Retrieve the SQL type mapping for ``value``.
+
+    :param value: The value whose SQL type will be returned.
+
+    :param type_mapping: Determines how the value type of ``value`` map to
+      SQL column data types. To add a new mapping or override a default, set a
+      key to the name of the value type in Python, and set the value to a
+      :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>`. The following are the
+      default mappings applied:
+
+      .. list-table::
+         :widths: 30 30
+         :header-rows: 1
+
+         * - Python Literal
+           - SQL Column Type
+         * - ``bool``
+           - :class:`Boolean <sqlalchemy:sqlalchemy.types.Boolean>`
+         * - ``str``
+           - :class:`Text <sqlalchemy:sqlalchemy.types.Text>`
+         * - ``int``
+           - :class:`Integer <sqlalchemy:sqlalchemy.types.Integer>`
+         * - ``float``
+           - :class:`Float <sqlalchemy:sqlalchemy.types.Float>`
+         * - ``date``
+           - :class:`Date <sqlalchemy:sqlalchemy.types.Date>`
+         * - ``datetime``
+           - :class:`DateTime <sqlalchemy:sqlalchemy.types.DateTime>`
+         * - ``time``
+           - :class:`Time <sqlalchemy:sqlalchemy.types.Time>`
+
+    :type type_mapping: :class:`dict <python:dict>` with type names as keys and
+      column data types as values / :obj:`None <python:None>`
+
+    :param skip_nested: If ``True`` then if ``value`` is a nested item (e.g.
+      iterable, :class:`dict <python:dict>` objects, etc.) it will return
+      :obj:`None <python:None>`. If ``False``, will treat nested items as
+      :class:`str <python:str>`. Defaults to ``True``.
+    :type skip_nested: :class:`bool <python:bool>`
+
+    :param default_to_str: If ``True``, will automatically set a ``value`` whose
+      value type cannot be determined to ``str``
+      (:class:`Text <sqlalchemy:sqlalchemy.types.Text>`). If ``False``, will
+      use the value type's ``__name__`` attribute and attempt to find a mapping.
+      Defaults to ``False``.
+    :type default_to_str: :class:`bool <python:bool>`
+
+    :returns: The :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>` for ``value``, or
+      :obj:`None <python:None>` if the value should be skipped
+    :rtype: :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>` / :obj:`None`
+
+    :raises UnsupportedValueTypeError: when ``value`` does not have corresponding
+      :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>`
+
+    """
+    if not type_mapping:
+        type_mapping = DEFAULT_PYTHON_SQL_TYPE_MAPPING
+
+    for key in DEFAULT_PYTHON_SQL_TYPE_MAPPING:
+        if key not in type_mapping:
+            type_mapping[key] = DEFAULT_PYTHON_SQL_TYPE_MAPPING[key]
+
+    if checkers.is_callable(value):
+        raise UnsupportedValueTypeError('value ("%s") cannot be callable' % value)
+    elif checkers.is_iterable(value) and skip_nested:
+        return None
+    elif checkers.is_iterable(value) and default_to_str:
+        target_type = 'str'
+    elif value is None and default_to_str:
+        target_type = 'str'
+    elif isinstance(value, bool):
+        target_type = 'bool'
+    elif checkers.is_numeric(value):
+        if checkers.is_integer(value):
+            target_type = 'int'
+        else:
+            target_type = 'float'
+    elif checkers.is_time(value) and not checkers.is_datetime(value):
+        target_type = 'time'
+    elif checkers.is_datetime(value):
+        target_type = 'datetime'
+    elif checkers.is_date(value):
+        target_type = 'date'
+    elif default_to_str:
+        target_type = 'str'
+    else:
+        target_type = type(value).__name__
+
+    column_type = type_mapping.get(target_type, None)
+    if not column_type:
+        raise UnsupportedValueTypeError(
+            'value ("%s") is not a supported type (%s)' % (value, target_type)
+        )
+
+    return column_type
+
+
+
 
 DEFAULT_DESERIALIZERS = {
     'NONE': {
