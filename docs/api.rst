@@ -33,6 +33,7 @@ BaseModel
 
 .. autoclass:: BaseModel
   :members:
+  :inherited-members:
 
 ------------------------
 

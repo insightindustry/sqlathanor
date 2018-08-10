@@ -581,10 +581,10 @@ def generate_model_from_csv(serialized,
 
       .. note::
 
-      If a Path-like object, will read the file contents from a file that is assumed
-      to include a header row. If a :class:`str <python:str>` and has more than
-      one record (line), will assume the first line is a header row. If a
-      :class:`list <python:list>`, will assume the first item is the header row.
+        If a Path-like object, will read the file contents from a file that is assumed
+        to include a header row. If a :class:`str <python:str>` and has more than
+        one record (line), will assume the first line is a header row. If a
+        :class:`list <python:list>`, will assume the first item is the header row.
 
     :type serialized: :class:`str <python:str>` / Path-like object /
       :class:`list <python:list>`

@@ -178,6 +178,7 @@ class Column(SerializationMixin, SA_Column):
         """
         super(Column, self).__init__(*args, **kwargs)
 
+
 class RelationshipProperty(SA_RelationshipProperty):
     """Describes an object property that holds a single item or list of items that
     correspond to a related database table.
@@ -271,6 +272,7 @@ class RelationshipProperty(SA_RelationshipProperty):
           form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
         """
+        # pylint: disable=too-many-branches
         if on_serialize is not None and not isinstance(on_serialize, dict):
             on_serialize = {
                 'csv': on_serialize,
@@ -359,6 +361,7 @@ class RelationshipProperty(SA_RelationshipProperty):
                                                    **kwargs)
 
     class Comparator(SA_RelationshipProperty.Comparator):
+        # pylint: disable=missing-docstring,abstract-method
         @property
         def supports_csv(self):
             return self.prop.supports_csv
@@ -379,7 +382,9 @@ class RelationshipProperty(SA_RelationshipProperty):
         def supports_dict(self):
             return self.prop.supports_dict
 
+
 relationship = public_factory(RelationshipProperty, ".orm.relationship")
+
 
 class Table(SA_Table):
     """Represents a table in a database. Inherits from
@@ -886,10 +891,10 @@ class Table(SA_Table):
 
           .. note::
 
-          If a Path-like object, will read the file contents from a file that is assumed
-          to include a header row. If a :class:`str <python:str>` and has more than
-          one record (line), will assume the first line is a header row. If a
-          :class:`list <python:list>`, will assume the first item is the header row.
+            If a Path-like object, will read the file contents from a file that is assumed
+            to include a header row. If a :class:`str <python:str>` and has more than
+            one record (line), will assume the first line is a header row. If a
+            :class:`list <python:list>`, will assume the first item is the header row.
 
         :type serialized: :class:`str <python:str>` / Path-like object /
           :class:`list <python:list>`
