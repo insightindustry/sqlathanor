@@ -375,7 +375,7 @@ def parse_yaml(input_data,
     """De-serialize YAML data into a Python :class:`dict <python:dict>` object.
 
     :param input_data: The YAML data to de-serialize.
-    :type input_data: :class:`str <python:str>`
+    :type input_data: :class:`str <python:str>` / Path-like object
 
     :param deserialize_function: Optionally override the default YAML deserializer.
       Defaults to :obj:`None <python:None>`, which calls the default ``yaml.safe_load()``
@@ -401,7 +401,13 @@ def parse_yaml(input_data,
     :returns: A :class:`dict <python:dict>` representation of ``input_data``.
     :rtype: :class:`dict <python:dict>`
     """
-    if deserialize_function is None:
+    is_file = False
+    if checkers.is_file(input_data):
+        is_file = True
+
+    if deserialize_function is None and not is_file:
+        deserialize_function = yaml.safe_load
+    elif deserialize_function is None and is_file:
         deserialize_function = yaml.safe_load
     else:
         if checkers.is_callable(deserialize_function) is False:
@@ -418,7 +424,11 @@ def parse_yaml(input_data,
     except ValueError:
         raise DeserializationError('input_data is not a valid string')
 
-    from_yaml = yaml.safe_load(input_data, **kwargs)
+    if not is_file:
+        from_yaml = yaml.safe_load(input_data, **kwargs)
+    else:
+        with open(input_data, 'r') as input_file:
+            from_yaml = yaml.safe_load(input_file, **kwargs)
 
     return from_yaml
 

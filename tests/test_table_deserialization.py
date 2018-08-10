@@ -501,8 +501,23 @@ def test_from_json(input_files,
                                                          ('date1', Date),
                                                          ('time1', Text)], None),
 
+    ("JSON/input_json1.json", 'test_table7', 'test', None, True, False, None, [('test', Integer),
+                                                                               ('second_test', Text)], None),
+    ("JSON/input_json2.json", 'test_table8', 'test', None, True, False, None, [('test', Integer),
+                                                                               ('second_test', Text)], None),
+    ("JSON/update_from_json1.json", 'test_table9', 'id', None, True, False, None, [('id', Integer),
+                                                                                   ('name', Text),
+                                                                                   ('hybrid', Text)], None),
+    ("JSON/update_from_json2.json", 'test_table10', 'id', None, True, False, None, [('id', Integer),
+                                                                                    ('name', Text),
+                                                                                    ('hybrid', Text)], None),
+    ("JSON/update_from_json3.json", 'test_table11', 'id', None, True, False, None, [('id', Integer),
+                                                                                    ('name', Text),
+                                                                                    ('hybrid', Text)], ValueError),
+
 ])
-def test_from_yaml(input_data,
+def test_from_yaml(input_files,
+                   input_data,
                    tablename,
                    primary_key,
                    column_kwargs,
@@ -512,7 +527,11 @@ def test_from_yaml(input_data,
                    expected_types,
                    error):
     # pylint: disable=no-member,line-too-long
-    input_data = yaml.dump(input_data)
+
+    input_data = check_input_file(input_files, input_data)
+
+    if not checkers.is_file(input_data):
+        input_data = yaml.dump(input_data)
 
     # pylint: disable=no-member,line-too-long
     if column_kwargs is None:

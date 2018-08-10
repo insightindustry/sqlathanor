@@ -724,7 +724,13 @@ class Table(SA_Table):
         :param serialized: The :term:`YAML <YAML Ain't a Markup Language (YAML)>`
           string to use. Keys will be treated as column names, while value data
           types will determine :class:`Column` data types.
-        :type serialized: :class:`str <python:str>`
+
+          .. note::
+
+            If providing a path to a file, and if the file contains more than one
+            object, will only use the first object listed.
+
+        :type serialized: :class:`str <python:str>` / Path-like object
 
         :param tablename: The name of the SQL table to which the model corresponds.
         :type tablename: :class:`str <python:str>`
@@ -835,6 +841,9 @@ class Table(SA_Table):
         else:
             from_yaml = parse_yaml(serialized,
                                    deserialize_function = deserialize_function)
+
+        if isinstance(from_yaml, list):
+            from_yaml = from_yaml[0]
 
         table = cls.from_dict(from_yaml,
                               tablename,

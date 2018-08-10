@@ -3036,8 +3036,9 @@ class BaseModel(object):
                          **kwargs):
         """Update the model instance from data in a YAML string.
 
-        :param input_data: The YAML data to de-serialize.
-        :type input_data: :class:`str <python:str>`
+        :param input_data: The YAML data to de-serialize. May be either a
+          :class:`str <python:str>` or a Path-like object to a YAML file.
+        :type input_data: :class:`str <python:str>` / Path-like object
 
         :param deserialize_function: Optionally override the default YAML deserializer.
           Defaults to :obj:`None <python:None>`, which calls the default ``yaml.safe_load()``
@@ -3098,6 +3099,9 @@ class BaseModel(object):
                                deserialize_function = deserialize_function,
                                **kwargs)
 
+        if isinstance(from_yaml, list):
+            from_yaml = from_yaml[0]
+
         data = self._parse_dict(from_yaml,
                                 'yaml',
                                 error_on_extra_keys = error_on_extra_keys,
@@ -3115,8 +3119,9 @@ class BaseModel(object):
                       **kwargs):
         """Create a new model instance from data in YAML.
 
-        :param input_data: The input YAML data.
-        :type input_data: :class:`str <python:str>`
+        :param input_data: The YAML data to de-serialize. May be either a
+          :class:`str <python:str>` or a Path-like object to a YAML file.
+        :type input_data: :class:`str <python:str>` / Path-like object
 
         :param deserialize_function: Optionally override the default YAML deserializer.
           Defaults to :obj:`None <python:None>`, which calls the default
@@ -3171,6 +3176,9 @@ class BaseModel(object):
         from_yaml = parse_yaml(input_data,
                                deserialize_function = deserialize_function,
                                **kwargs)
+
+        if isinstance(from_yaml, list):
+            from_yaml = from_yaml[0]
 
         data = cls._parse_dict(from_yaml,
                                'yaml',
@@ -3822,9 +3830,11 @@ def generate_model_from_yaml(serialized,
       :term:`relationships <relationship>`, :term:`hybrid properties <hybrid property>`,
       or :term:`association proxies <association proxy>`.
 
-    :param serialized: The YAML string whose keys will be treated as column
-      names, while value data types will determine :term:`model attribute` data types.
-    :type serialized: :class:`str <python:str>`
+    :param serialized: The YAML data whose keys will be treated as column
+      names, while value data types will determine :term:`model attribute` data
+      types, or the path to a file whose contents will be the YAML object in
+      question.
+    :type serialized: :class:`str <python:str>` / Path-like object
 
     :param tablename: The name of the SQL table to which the model corresponds.
     :type tablename: :class:`str <python:str>`
@@ -3950,6 +3960,9 @@ def generate_model_from_yaml(serialized,
     else:
         from_yaml = parse_yaml(serialized,
                                deserialize_function = deserialize_function)
+
+    if isinstance(from_yaml, list):
+        from_yaml = from_yaml[0]
 
     generated_model = generate_model_from_dict(from_yaml,
                                                tablename,

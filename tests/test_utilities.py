@@ -230,10 +230,7 @@ def test_parse_json(input_files,
                             deserialize_function = deserialize_function)
 
         assert isinstance(result, (dict, list))
-        if isinstance(result, list):
-            assert result == expected_result
-        else:
-            assert checkers.are_dicts_equivalent(result, expected_result)
+        assert checkers.are_equivalent(result, expected_result)
     else:
         with pytest.raises(error):
             result = parse_json(input_value)
@@ -245,17 +242,24 @@ def test_parse_json(input_files,
     (None, None, None, DeserializationError),
     (None, 'not-callable', None, ValueError),
 
+    ('JSON/input_json1.json', None, { 'test': 123, 'second_test': 'this is a test' }, None),
+    ('JSON/input_json2.json', None, [{ 'test': 123, 'second_test': 'this is a test' },
+                                     { 'test': 123, 'second_test': 'this is another test' }], None),
+
 ])
-def test_parse_yaml(input_value,
+def test_parse_yaml(input_files,
+                    input_value,
                     deserialize_function,
                     expected_result,
                     error):
+    input_value = check_input_file(input_files, input_value)
+
     if not error:
         result = parse_yaml(input_value,
                             deserialize_function = deserialize_function)
 
-        assert isinstance(result, dict)
-        assert checkers.are_dicts_equivalent(result, expected_result)
+        assert isinstance(result, (dict, list))
+        assert checkers.are_equivalent(result, expected_result)
     else:
         with pytest.raises(error):
             result = parse_yaml(input_value)
