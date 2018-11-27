@@ -150,7 +150,8 @@ setup(
         'sqlalchemy>=0.9',
         'validator-collection>=1.2.0',
         'simplejson>=3.0',
-        'PyYAML>=3.10',
+        'PyYAML>=3.10;python_version<"3.7"',
+        'PyYAML>=3.13;python_version>"3.6"'
     ],
 
     # List additional groups of dependencies here (e.g. development
