@@ -229,8 +229,7 @@ class DictSupportMixin(object):
 
         for attribute in attributes:
             item = getattr(self, attribute.name, None)
-
-            try:
+            if hasattr(item, '_to_dict'):
                 try:
                     value = item._to_dict(format,                               # pylint: disable=protected-access
                                           max_nesting = max_nesting,
@@ -243,7 +242,11 @@ class DictSupportMixin(object):
                         MaximumNestingExceededWarning
                     )
                     continue
-            except AttributeError:
+            else:
+                if attribute.on_serialize[format]:
+                    on_serialize_function = attribute.on_serialize[format]
+                    item = on_serialize_function(item)
+
                 if checkers.is_iterable(item,
                                         forbid_literals = (str, bytes, dict)):
                     try:
