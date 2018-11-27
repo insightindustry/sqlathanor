@@ -96,7 +96,7 @@ easy-to-use record serialization/de-serialization with support for:
 
 The library works as a drop-in extension - change one line of existing code, and
 it should just work. Furthermore, it has been extensively tested on Python 2.7,
-3.4, 3.5, and 3.6 using `SQLAlchemy <http://www.sqlalchemy.org>`_ 0.9 and higher.
+3.4, 3.5, 3.6, and 3.7 using `SQLAlchemy <http://www.sqlalchemy.org>`_ 0.9 and higher.
 
 **COMPLETE DOCUMENTATION:** http://sqlathanor.readthedocs.org/en/latest/index.html
 
