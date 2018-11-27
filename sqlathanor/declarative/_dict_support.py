@@ -114,7 +114,9 @@ class DictSupportMixin(object):
 
             value = cls._get_deserialized_value(value,
                                                 format,
-                                                attribute.name)
+                                                attribute.name,
+                                                error_on_extra_keys = error_on_extra_keys,
+                                                drop_extra_keys = drop_extra_keys)
 
             dict_object[key] = value
 
