@@ -147,7 +147,8 @@ setup(
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'sqlalchemy>=0.9',
+        'sqlalchemy>=0.9;python_version<"3.7"',
+        'sqlalchemy>=0.10;python_version>"3.6"',
         'validator-collection>=1.2.0',
         'simplejson>=3.0',
         'PyYAML>=3.10;python_version<"3.7"',

@@ -342,98 +342,98 @@ matrix:
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson30
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson30
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson31
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson31
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson32
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson32
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson33
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson33
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson34
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson34
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson35
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson35
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson36
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson36
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson37
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson37
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson38
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson38
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson39
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson39
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson310
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson310
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson311
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson311
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson312
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson312
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson313
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson313
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson314
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson314
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson315
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson315
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson316
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson316
 # PYYAML
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml313-simplejson316
+        - TOXENV=.python37-sqlalchemy10-pyyaml313-simplejson316
     - python: '3.7'
       dist: xenial
       sudo: true
       env:
-        - TOXENV=.python37-sqlalchemy09-pyyaml42b2-simplejson316
+        - TOXENV=.python37-sqlalchemy10-pyyaml42b2-simplejson316
 #### SQLALCHEMY
     - python: '3.7'
       dist: xenial
