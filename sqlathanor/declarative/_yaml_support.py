@@ -75,8 +75,6 @@ class YAMLSupportMixin(object):
                                 max_nesting = max_nesting,
                                 current_nesting = current_nesting)
 
-        print(as_dict)
-
         as_yaml = serialize_function(as_dict,
                                      **kwargs)
 
@@ -152,7 +150,6 @@ class YAMLSupportMixin(object):
                                 max_nesting = max_nesting,
                                 current_nesting = current_nesting,
                                 is_dumping = True)
-        print(as_dict)
 
         as_yaml = serialize_function(as_dict,
                                      **kwargs)
