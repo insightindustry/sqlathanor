@@ -42,6 +42,10 @@ from sqlathanor.utilities import are_dicts_equivalent
     (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, None, MaximumNestingExceededWarning, None),
     (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, None, MaximumNestingExceededWarning, None),
 
+    (True, None, 0, 0, None, MaximumNestingExceededWarning, None),
+    (True, [], 0, 0, None, MaximumNestingExceededWarning, None),
+    (True, [], 1, 0, None, None, None),
+
 ])
 def test_to_json(request,
                  instance_single_pk,
@@ -70,6 +74,11 @@ def test_to_json(request,
             interim_dict = target._to_dict('json',
                                            max_nesting = max_nesting,
                                            current_nesting = current_nesting)
+
+        if hybrid_value is None:
+            assert interim_dict.get('hybrid') is None
+        if hybrid_value == [] and max_nesting == 1:
+            assert interim_dict.get('hybrid') == []
 
     if not error and not warning:
         result = target.to_json(max_nesting = max_nesting,
