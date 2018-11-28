@@ -1,5 +1,35 @@
 -----------
 
+Release 0.3.1
+=========================================
+
+.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.3.1
+  :target: https://travis-ci.org/insightindustry/sqlathanor
+  :alt: Build Status (Travis CI)
+
+.. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.3.1/graph/badge.svg
+  :target: https://codecov.io/gh/insightindustry/sqlathanor
+  :alt: Code Coverage Status (Codecov)
+
+.. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.3.1
+  :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.3.1
+  :alt: Documentation Status (ReadTheDocs)
+
+Bug Fixes
+-----------------
+
+* #58: Fixed problem where ``None`` values are mistakenly serialized to empty lists.
+* #57: Fixed problem where ``on_serialize`` functions were ignored for relationships.
+* #56: Fixed problem where relationships were not properly deserialized.
+
+Other Changes
+------------------
+
+* #26: Added Python 3.7 to test matrix.
+* Removed some unnecessary print statements.
+
+-----------
+
 Release 0.3.0
 =========================================
 
