@@ -24,6 +24,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+build-deploy-test.ps1
+build-deploy-production.ps1
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -91,6 +93,7 @@ celerybeat-schedule
 # virtualenv
 .venv
 venv/
+.python37
 .python36
 .python27
 .clean

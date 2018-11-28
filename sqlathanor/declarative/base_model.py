@@ -174,7 +174,8 @@ class BaseModel(PrimaryKeyMixin,
     def _get_deserialized_value(cls,
                                 value,
                                 format,
-                                attribute):
+                                attribute,
+                                **kwargs):
         """Retrieve the value of ``attribute`` after applying the attribute's
         ``on_deserialize`` function for the format indicated by ``format``.
 
@@ -233,14 +234,29 @@ class BaseModel(PrimaryKeyMixin,
                                                       format = format)
 
         if on_deserialize is None:
-            return value
+            item = getattr(class_obj, attribute)
+            class_resolver = getattr(getattr(item, 'property', None), 'argument', None)
+            if class_resolver:
+                resolved_class = class_resolver()
+            else:
+                resolved_class = None
+            if resolved_class:
+                # pylint: disable=W0212
+                return_value = [resolved_class(
+                    **resolved_class._parse_dict(x,
+                                                 format,
+                                                 **kwargs)) for x in value]
+                #pylint: enable=W0212
+            else:
+                return_value = value
+        else:
+            try:
+                return_value = on_deserialize(value)
+            except Exception:
+                raise ValueDeserializationError(
+                    "attribute '%s' failed de-serialization to format '%s'" % (attribute,
+                                                                               format)
+                )
 
-        try:
-            return_value = on_deserialize(value)
-        except Exception:
-            raise ValueDeserializationError(
-                "attribute '%s' failed de-serialization to format '%s'" % (attribute,
-                                                                           format)
-            )
 
         return return_value

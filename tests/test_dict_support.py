@@ -445,7 +445,7 @@ def test_to_dict(request,
 
 
 @pytest.mark.parametrize('supports_serialization, hybrid_value, max_nesting, current_nesting, expected_result, warning, error', [
-    (False, None, 0, 0, { 'id': 1, '_hybrid': 1, 'hybrid_differentiated': 1, 'name': 'Test Name', 'hybrid': [] }, MaximumNestingExceededWarning, None),
+    (False, None, 0, 0, { 'id': 1, '_hybrid': 1, 'hybrid_differentiated': 1, 'name': 'Test Name', 'hybrid': None }, MaximumNestingExceededWarning, None),
 
     (False, None, 0, 3, None, None, MaximumNestingExceededError),
 

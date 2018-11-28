@@ -29,17 +29,17 @@ SQLAthanor
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=latest
          :alt: Documentation Status (ReadTheDocs)
 
-   * - `v.0.3 <https://github.com/insightindustry/sqlathanor/tree/v.0.3.0>`_
+   * - `v.0.3 <https://github.com/insightindustry/sqlathanor/tree/v.0.3.1>`_
      -
-       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.3.0
+       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.3.1
          :target: https://travis-ci.org/insightindustry/sqlathanor
          :alt: Build Status (Travis CI)
 
-       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.3.0/graph/badge.svg
+       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.3.1/graph/badge.svg
          :target: https://codecov.io/gh/insightindustry/sqlathanor
          :alt: Code Coverage Status (Codecov)
 
-       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.3.0
+       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.3.1
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.3.0
          :alt: Documentation Status (ReadTheDocs)
 
@@ -96,7 +96,7 @@ easy-to-use record serialization/de-serialization with support for:
 
 The library works as a drop-in extension - change one line of existing code, and
 it should just work. Furthermore, it has been extensively tested on Python 2.7,
-3.4, 3.5, and 3.6 using `SQLAlchemy <http://www.sqlalchemy.org>`_ 0.9 and higher.
+3.4, 3.5, 3.6, and 3.7 using `SQLAlchemy <http://www.sqlalchemy.org>`_ 0.9 and higher.
 
 **COMPLETE DOCUMENTATION:** http://sqlathanor.readthedocs.org/en/latest/index.html
 

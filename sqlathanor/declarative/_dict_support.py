@@ -7,7 +7,7 @@
 
 import warnings
 
-from validator_collection import validators
+from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
 
 from sqlathanor._compat import json
@@ -114,7 +114,9 @@ class DictSupportMixin(object):
 
             value = cls._get_deserialized_value(value,
                                                 format,
-                                                attribute.name)
+                                                attribute.name,
+                                                error_on_extra_keys = error_on_extra_keys,
+                                                drop_extra_keys = drop_extra_keys)
 
             dict_object[key] = value
 
@@ -169,7 +171,7 @@ class DictSupportMixin(object):
           beyond ``max_nesting``
         """
         # pylint: disable=too-many-branches
-        
+
         next_nesting = current_nesting + 1
 
         if format not in ['csv', 'json', 'yaml', 'dict']:
@@ -229,7 +231,7 @@ class DictSupportMixin(object):
 
         for attribute in attributes:
             item = getattr(self, attribute.name, None)
-            try:
+            if hasattr(item, '_to_dict'):
                 try:
                     value = item._to_dict(format,                               # pylint: disable=protected-access
                                           max_nesting = max_nesting,
@@ -242,21 +244,36 @@ class DictSupportMixin(object):
                         MaximumNestingExceededWarning
                     )
                     continue
-            except AttributeError:
-                try:
-                    value = iterable__to_dict(item,
-                                              format,
-                                              max_nesting = max_nesting,
-                                              current_nesting = next_nesting,
-                                              is_dumping = is_dumping)
-                except MaximumNestingExceededError:
-                    warnings.warn(
-                        "skipping key '%s' because maximum nesting has been exceeded" \
-                            % attribute.name,
-                        MaximumNestingExceededWarning
-                    )
-                    continue
-                except NotAnIterableError:
+            else:
+                if attribute.on_serialize[format]:
+                    on_serialize_function = attribute.on_serialize[format]
+                    item = on_serialize_function(item)
+
+                if checkers.is_iterable(item,
+                                        forbid_literals = (str, bytes, dict)):
+                    try:
+                        value = iterable__to_dict(item,
+                                                  format,
+                                                  max_nesting = max_nesting,
+                                                  current_nesting = next_nesting,
+                                                  is_dumping = is_dumping)
+                    except MaximumNestingExceededError:
+                        warnings.warn(
+                            "skipping key '%s' because maximum nesting has been exceeded" \
+                                % attribute.name,
+                            MaximumNestingExceededWarning
+                        )
+                        continue
+                    except NotAnIterableError:
+                        try:
+                            value = self._get_serialized_value(format,
+                                                               attribute.name)
+                        except UnsupportedSerializationError as error:
+                            if is_dumping:
+                                value = getattr(self, attribute.name)
+                            else:
+                                raise error
+                else:
                     try:
                         value = self._get_serialized_value(format,
                                                            attribute.name)

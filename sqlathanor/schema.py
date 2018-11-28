@@ -382,6 +382,14 @@ class RelationshipProperty(SA_RelationshipProperty):
         def supports_dict(self):
             return self.prop.supports_dict
 
+        @property
+        def on_serialize(self):
+            return self.prop.on_serialize
+
+        @property
+        def on_deserialize(self):
+            return self.prop.on_deserialize
+
 
 relationship = public_factory(RelationshipProperty, ".orm.relationship")
 
