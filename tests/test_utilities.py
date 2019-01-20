@@ -300,8 +300,8 @@ def test_parse_csv(input_value, kwargs, expected_result, error):
     (False, False, True, True, False, True, 14),
     (False, True, False, False, False, False, 37),
     (False, True, True, False, False, False, 39),
-    (False, True, True, True, False, False, 52),
-    (False, True, True, True, False, True, 56),
+    (False, True, True, True, False, False, 54),
+    (False, True, True, True, False, True, 58),
 
     (True, False, False, False, False, False, 8),
     (True, False, False, False, False, True, 10),
@@ -312,8 +312,8 @@ def test_parse_csv(input_value, kwargs, expected_result, error):
     (True, False, True, True, False, True, (14, 15)),
     (True, True, False, False, False, False, 38),
     (True, True, True, False, False, False, 39),
-    (True, True, True, True, False, False, 52),
-    (True, True, True, True, False, True, 57),
+    (True, True, True, True, False, False, 54),
+    (True, True, True, True, False, True, 59),
 
 ])
 def test_get_attribute_names(model_complex_postgresql,
