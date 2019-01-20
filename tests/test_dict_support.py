@@ -36,23 +36,23 @@ from sqlathanor.utilities import are_dicts_equivalent
     (False, None, 'yaml', 0, 3, None, None, MaximumNestingExceededError),
     (False, None, 'csv', 0, 3, None, None, MaximumNestingExceededError),
 
-    (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': 'test value' }, None, None),
-    (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': 'test value' }, MaximumNestingExceededWarning, None),
-    (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': 'test value' }, MaximumNestingExceededWarning, None),
-    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'serialized', 'smallint_column': 2, 'hybrid': 'test value' }, None, None),
+    (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': 'test value' }, None, None),
+    (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': 'test value' }, MaximumNestingExceededWarning, None),
+    (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': 'test value' }, MaximumNestingExceededWarning, None),
+    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'serialized', 'smallint_column': 2, 'hybrid_value': 'test value' }, None, None),
 
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, None),
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'json', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, MaximumNestingExceededWarning, None),
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'yaml', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, MaximumNestingExceededWarning, None),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, None),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'json', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': { 'nested_key': 'test', 'nested_key2': 'test2' } }, MaximumNestingExceededWarning, None),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'yaml', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': { 'nested_key': 'test', 'nested_key2': 'test2' } }, MaximumNestingExceededWarning, None),
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 0, 0, { 'id': 1, 'name': 'serialized', 'smallint_column': 2 }, None, ValueSerializationError),
 
-    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 'dict', 1, 0, { 'id': 1, 'name': 'serialized', 'hybrid': [{ 'nested_key': 'test', 'nested_key2': 'test2' }] }, None, None),
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'json', 1, 0, { 'id': 1, 'name': 'serialized', 'addresses': [], 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, None),
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'yaml', 1, 0, { 'id': 1, 'name': 'serialized', 'addresses': [], 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, None),
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 1, 0, { 'id': 1, 'name': 'serialized', 'smallint_column': 2, 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, ValueSerializationError),
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 'dict', 1, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': [{ 'nested_key': 'test', 'nested_key2': 'test2' }] }, None, None),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'json', 1, 0, { 'id': 1, 'name': 'serialized', 'addresses': [], 'hybrid_value': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, None),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'yaml', 1, 0, { 'id': 1, 'name': 'serialized', 'addresses': [], 'hybrid_value': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, None),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 1, 0, { 'id': 1, 'name': 'serialized', 'smallint_column': 2, 'hybrid_value': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, ValueSerializationError),
 
-    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' } }, None, None),
-    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' } }, None, None),
+    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' } }, None, None),
+    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' } }, None, None),
 
 ])
 def test__to_dict(request,
@@ -382,14 +382,14 @@ def test_instance__parse_dict(request,
 
     (False, None, 0, 3, None, None, MaximumNestingExceededError),
 
-    (True, 'test value', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': 'test value' }, None, None),
+    (True, 'test value', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': 'test value' }, None, None),
 
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, None),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, None),
 
-    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, { 'id': 1, 'name': 'serialized', 'hybrid': [{ 'nested_key': 'test', 'nested_key2': 'test2' }] }, None, None),
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': [{ 'nested_key': 'test', 'nested_key2': 'test2' }] }, None, None),
 
-    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' } }, None, None),
-    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid': { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' } }, None, None),
+    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' } }, None, None),
+    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' } }, None, None),
 
 ])
 def test_to_dict(request,
@@ -535,7 +535,7 @@ def test_update_from_dict(request,
     input_data = target.to_dict(max_nesting = 5,
                                 current_nesting = 0)
 
-    input_data['hybrid'] = hybrid_value
+    input_data['hybrid_value'] = hybrid_value
 
     if extra_keys:
         for key in extra_keys:
@@ -587,7 +587,7 @@ def test_new_from_dict(request,
     input_data = source.to_dict(max_nesting = 5,
                                 current_nesting = 0)
 
-    input_data['hybrid'] = hybrid_value
+    input_data['hybrid_value'] = hybrid_value
 
     if extra_keys:
         for key in extra_keys:
