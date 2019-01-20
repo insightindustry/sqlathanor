@@ -16,6 +16,7 @@ import yaml
 
 from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.exc import InvalidRequestError as SA_InvalidRequestError
+from sqlalchemy.exc import UnsupportedCompilationError as SA_UnsupportedCompilationError
 
 from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
@@ -178,8 +179,11 @@ def get_class_type_key(class_attribute, value = None):
     if class_type is not None:
         try:
             class_type_key = class_type.__name__
-        except AttributeError:
-            class_type_key = str(class_type)
+        except (AttributeError, SA_UnsupportedCompilationError):
+            try:
+                class_type_key = str(class_type)
+            except (AttributeError, SA_UnsupportedCompilationError):
+                class_type_key = class_type.__class__.__name__
     else:
         class_type_key = 'NONE'
 
