@@ -32,6 +32,7 @@ class SerializationMixin(object):
             'yaml': None,
             'dict': None
         }
+        self._display_name = None
 
         self.supports_csv = kwargs.pop('supports_csv', (False, False))
         self.csv_sequence = kwargs.pop('csv_sequence', None)
@@ -40,6 +41,7 @@ class SerializationMixin(object):
         self.supports_dict = kwargs.pop('supports_dict', (False, False))
         self.on_serialize = kwargs.pop('on_serialize', None)
         self.on_deserialize = kwargs.pop('on_deserialize', None)
+        self.display_name = kwargs.pop('display_name', None)
 
         super(SerializationMixin, self).__init__(*args, **kwargs)
 
@@ -214,3 +216,22 @@ class SerializationMixin(object):
                 raise SQLAthanorError('on_deserialize for %s must be callable' % key)
 
         self._on_deserialize = value
+
+    @property
+    def display_name(self):
+        """The property name to apply when serializing the attribute or to expect when
+        de-serializing.
+
+        .. note::
+
+          If :obj:`None <python:None>`, will default to the attribute name in the Python
+          model class.
+
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`.
+        """
+        return self._display_name
+
+    @display_name.setter
+    def display_name(self, value):
+        value = validators.string(value, allow_empty = True)
+        self._display_name = value
