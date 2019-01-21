@@ -249,11 +249,11 @@ class BaseModel(PrimaryKeyMixin,
         on_deserialize = config.on_deserialize[format]
         if on_deserialize is None:
             on_deserialize = get_default_deserializer(getattr(class_obj,
-                                                              attribute),
+                                                              config.name),
                                                       format = format)
 
         if on_deserialize is None:
-            item = getattr(class_obj, attribute)
+            item = getattr(class_obj, config.name)
             class_resolver = getattr(getattr(item, 'property', None), 'argument', None)
             if class_resolver:
                 resolved_class = class_resolver()
@@ -279,3 +279,28 @@ class BaseModel(PrimaryKeyMixin,
 
 
         return return_value
+
+    @classmethod
+    def _get_attribute_name(cls, display_name):
+        """Retrieve the model class attribute name that corresponds to ``display_name``.
+
+        :param display_name: The purported attribute name (or the ``display_name``) to check
+          against.
+        :type display_name: :class:`str <python:str>`
+
+        .. note::
+
+          Will return :obj:`None <python:None>` if ``display_name`` is not found.
+
+        :returns: The model class attribute name that corresponds to ``display_name``.
+        :rtype: :class:`str <python:str>` / :obj:`None <python:None>`
+
+        """
+        if hasattr(cls, display_name):
+            return display_name
+
+        config = cls.get_attribute_serialization_config(display_name)
+        if config.display_name == display_name:
+            return config.name
+
+        return None

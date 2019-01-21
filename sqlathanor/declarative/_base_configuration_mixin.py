@@ -641,6 +641,8 @@ class ConfigurationMixin(object):
         for config in attributes:
             if config.name == attribute:
                 return config.copy()
+            if config.display_name == attribute:
+                return config.copy()
 
         return None
 

@@ -236,7 +236,7 @@ def test_update_from_yaml(request,
     as_dict = target.to_dict(max_nesting = 5,
                              current_nesting = 0)
 
-    as_dict['hybrid'] = hybrid_value
+    as_dict['hybrid_value'] = hybrid_value
 
     if extra_keys:
         for key in extra_keys:
@@ -298,7 +298,7 @@ def test_new_from_yaml(request,
     input_data = source.to_dict(max_nesting = 5,
                                 current_nesting = 0)
 
-    input_data['hybrid'] = hybrid_value
+    input_data['hybrid_value'] = hybrid_value
 
     if extra_keys:
         for key in extra_keys:

@@ -76,9 +76,9 @@ def test_to_json(request,
                                            current_nesting = current_nesting)
 
         if hybrid_value is None:
-            assert interim_dict.get('hybrid') is None
+            assert interim_dict.get('hybrid_value') is None
         if hybrid_value == [] and max_nesting == 1:
-            assert interim_dict.get('hybrid') == []
+            assert interim_dict.get('hybrid_value') == []
 
     if not error and not warning:
         result = target.to_json(max_nesting = max_nesting,
@@ -242,7 +242,7 @@ def test_update_from_json(request,
     as_dict = target.to_dict(max_nesting = 5,
                              current_nesting = 0)
 
-    as_dict['hybrid'] = hybrid_value
+    as_dict['hybrid_value'] = hybrid_value
 
     if extra_keys:
         for key in extra_keys:
@@ -313,7 +313,7 @@ def test_new_from_json(request,
     as_dict = source.to_dict(max_nesting = 5,
                              current_nesting = 0)
 
-    as_dict['hybrid'] = hybrid_value
+    as_dict['hybrid_value'] = hybrid_value
 
     if extra_keys:
         for key in extra_keys:

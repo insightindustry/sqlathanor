@@ -105,14 +105,14 @@ class DictSupportMixin(object):
                                                                  format)
             )
 
-        attribute_names = [x.name for x in attributes]
+        attribute_names = [x.display_name or x.name for x in attributes]
         extra_keys = [x for x in input_data.keys()
                       if x not in attribute_names]
         if extra_keys and error_on_extra_keys:
             raise ExtraKeyError("input data had extra keys: %s" % extra_keys)
 
         for attribute in attributes:
-            key = attribute.name
+            key = attribute.display_name or attribute.name
             try:
                 value = input_data.pop(key)
             except KeyError:
@@ -120,12 +120,12 @@ class DictSupportMixin(object):
 
             value = cls._get_deserialized_value(value,
                                                 format,
-                                                attribute.name,
+                                                key,
                                                 error_on_extra_keys = error_on_extra_keys,
                                                 drop_extra_keys = drop_extra_keys,
                                                 config_set = config_set)
 
-            dict_object[key] = value
+            dict_object[attribute.name] = value
 
         if input_data and not drop_extra_keys:
             for key in input_data:
@@ -301,7 +301,9 @@ class DictSupportMixin(object):
                         else:
                             raise error
 
-            dict_object[str(attribute.name)] = value
+            serialized_key = attribute.display_name or attribute.name
+
+            dict_object[str(serialized_key)] = value
 
         return dict_object
 

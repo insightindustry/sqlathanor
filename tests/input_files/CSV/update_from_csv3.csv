@@ -1,2 +1,2 @@
-id|name|password|smallint_column|hybrid
+id|name|password|smallint_column|hybrid_value
 1|serialized|test-password|3|2
