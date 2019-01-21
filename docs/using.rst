@@ -140,6 +140,8 @@ SQLAthanor Features
   :term:`hybrid properties <hybrid property>`,
   :term:`association proxies <association proxy>`, or standard Python
   :class:`@property <python:property>`.
+* Simultaneously support different configurations for different serialization or
+  de-serialization requirements.
 * Maintain all of the existing APIs, methods, functions, and functionality of
   :doc:`SQLAlchemy Core <sqlalchemy:core/api_basics>`.
 * Maintain all of the existing APIs, methods, functions, and functionality of
@@ -444,7 +446,8 @@ Here's a super-simplified example of how it works:
                 supports_yaml = True,
                 supports_dict = True,
                 on_serialize = None,
-                on_deserialize = None)
+                on_deserialize = None,
+                display_name = None)
 
 This example defines a :term:`model class` called ``User`` which corresponds
 to a SQL database table named ``users``. The ``User`` class defines one
@@ -598,6 +601,13 @@ Here's what these arguments do:
   :type on_serialize: callable or :class:`dict <python:dict>` with formats
     as keys and values as callables
 
+  :param display_name: If not :obj:`None <python:None>`, a :class:`str <python:str>` that
+    will replace your model attribute's name in your serialized object (or where your
+    model attribute's name will be sought when de-serializing). Defaults to
+    :obj:`None <python:None>`
+
+  :type display_name: :class:`str <python:str>` / :obj:`None <python:None>`
+
 When using Declarative Configuration, the exact same arguments can be applied
 when defining a :term:`relationship` using
 :func:`relationship() <sqlathanor.schema.relationship>` as shown in the expanded
@@ -623,7 +633,8 @@ example below. Let's look at a somewhat more complicated example:
                 supports_yaml = True,
                 supports_dict = True,
                 on_serialize = None,
-                on_deserialize = None)
+                on_deserialize = None,
+                display_name = None)
 
     addresses = relationship('Address',
                              backref = 'user',
@@ -631,7 +642,8 @@ example below. Let's look at a somewhat more complicated example:
                              supports_yaml = (True, True),
                              supports_dict = (True, False),
                              on_serialize = None,
-                             on_deserialize = None)
+                             on_deserialize = None,
+                             display_name = None)
 
 This example is (obviously) very similar to the previous one. But now we have
 added a :term:`relationship` defined using the **SQLAthanor**
@@ -658,16 +670,20 @@ called ``Address``, and assign that relationship to the :term:`model attribute`
 Meta Configuration
 ------------------------
 
-The :term:`Meta Configuration` approach is a bit more robust than the
+The :term:`Meta Configuration` approach is more robust than the
 :ref:`Declarative <declarative_configuration>` approach. That's because it
-supports more :term:`model attribute` types, including
-:term:`hybrid properties <hybrid property>`,
-:term:`association proxies <association proxy>`, and Python :class:`@property`
-:term:`instance attributes <instance attribute>`.
+supports:
+
+#. More :term:`model attribute` types, including
+   :term:`hybrid properties <hybrid property>`,
+   :term:`association proxies <association proxy>`, and Python :class:`@property`
+   :term:`instance attributes <instance attribute>`
+#. The definition of multiple named configuration sets for different serialization and
+   de-serialization rules.
 
 The Meta Configuration approach relies on a special :term:`model attribute` that
 you define for your :term:`model class`: ``__serialization__``. This attribute
-should contain a list of
+contains one or more lists of
 :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` objects,
 which are used to indicate the explicit :term:`serialization`/:term:`de-serialization`
 configuration for your :term:`model attributes <model attribute>`.
@@ -675,50 +691,134 @@ configuration for your :term:`model attributes <model attribute>`.
 Here's how you would configure an example ``User`` model using the Meta Configuration
 approach:
 
-.. code-block:: python
+.. tabs::
 
-  from sqlathanor import declarative_base, Column, relationship, AttributeConfiguration
+  .. tab:: Standard Configuration
 
-  from sqlalchemy import Integer, String
+    .. code-block:: python
 
-  BaseModel = declarative_base()
+      from sqlathanor import declarative_base, Column, relationship, AttributeConfiguration
 
-  class User(BaseModel):
-    __tablename__ = 'users'
+      from sqlalchemy import Integer, String
 
-    __serialization__ = [AttributeConfiguration(name = 'id',
-                                                supports_csv = True,
-                                                csv_sequence = 1,
-                                                supports_json = True,
-                                                supports_yaml = True,
-                                                supports_dict = True,
-                                                on_serialize = None,
-                                                on_deserialize = None),
-                         AttributeConfiguration(name = 'addresses',
-                                                supports_json = True,
-                                                supports_yaml = (True, True),
-                                                supports_dict = (True, False),
-                                                on_serialize = None,
-                                                on_deserialize = None)]
+      BaseModel = declarative_base()
 
-    id = Column('id',
-                Integer,
-                primary_key = True)
+      class User(BaseModel):
+        __tablename__ = 'users'
 
-    addresses = relationship('Address',
-                             backref = 'user')
+        __serialization__ = [AttributeConfiguration(name = 'id',
+                                                    supports_csv = True,
+                                                    csv_sequence = 1,
+                                                    supports_json = True,
+                                                    supports_yaml = True,
+                                                    supports_dict = True,
+                                                    on_serialize = None,
+                                                    on_deserialize = None),
+                             AttributeConfiguration(name = 'addresses',
+                                                    supports_json = True,
+                                                    supports_yaml = (True, True),
+                                                    supports_dict = (True, False),
+                                                    on_serialize = None,
+                                                    on_deserialize = None)]
 
-The ``__serialization__`` attribute contains an explicit configuration for both
-the ``id`` and ``addresses`` column. Each
-:class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` object
-supports the same configuration arguments as are used by the
-:ref:`declarative <declarative_configuration>` approach, with one addition: It needs
-a ``name`` argument that explicitly indicates the name of the :term:`model attribute`
-that is being configured.
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+
+        addresses = relationship('Address',
+                                 backref = 'user')
+
+    The ``__serialization__`` attribute contains an explicit configuration for both
+    the ``id`` and ``addresses`` column. Each
+    :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` object
+    supports the same configuration arguments as are used by the
+    :ref:`declarative <declarative_configuration>` approach, with one addition: It needs
+    a ``name`` argument that explicitly indicates the name of the :term:`model attribute`
+    that is being configured.
+
+  .. tab:: Multiple Configuration Sets
+
+    .. code-block:: python
+
+      from sqlathanor import declarative_base, Column, relationship, AttributeConfiguration
+
+      from sqlalchemy import Integer, String
+
+      BaseModel = declarative_base()
+
+      class User(BaseModel):
+        __tablename__ = 'users'
+
+        __serialization__ = {
+            'with-addresses': [AttributeConfiguration(name = 'id',
+                                                      supports_csv = True,
+                                                      csv_sequence = 1,
+                                                      supports_json = True,
+                                                      supports_yaml = True,
+                                                      supports_dict = True,
+                                                      on_serialize = None,
+                                                      on_deserialize = None,
+                                                      display_name = None),
+                               AttributeConfiguration(name = 'addresses',
+                                                      supports_json = True,
+                                                      supports_yaml = (True, True),
+                                                      supports_dict = (True, False),
+                                                      on_serialize = None,
+                                                      on_deserialize = None,
+                                                      display_name = None)],
+            'without-addresses': [AttributeConfiguration(name = 'id',
+                                                         supports_csv = True,
+                                                         csv_sequence = 1,
+                                                         supports_json = True,
+                                                         supports_yaml = True,
+                                                         supports_dict = True,
+                                                         on_serialize = None,
+                                                         on_deserialize = None,
+                                                         display_name = None)],
+            'different-display-name': [AttributeConfiguration(name = 'id',
+                                                              supports_csv = True,
+                                                              csv_sequence = 1,
+                                                              supports_json = True,
+                                                              supports_yaml = True,
+                                                              supports_dict = True,
+                                                              on_serialize = None,
+                                                              on_deserialize = None,
+                                                              display_name = None),
+                                       AttributeConfiguration(name = 'addresses',
+                                                              supports_json = True,
+                                                              supports_yaml = (True, True),
+                                                              supports_dict = (True, False),
+                                                              on_serialize = None,
+                                                              on_deserialize = None,
+                                                              display_name = 'custom_address_label')]
+
+        }
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+
+        addresses = relationship('Address',
+                                 backref = 'user')
+
+    If you will be using different configuration sets, then the ``__serialization__``
+    attribute contains a :class:`dict <python:dict>` where each key is the unique name of
+    a given configuration set and its value is a list of
+    :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` objects.
+
+    In the example provided above, we have created three different named configuration
+    sets:
+
+      * ``'with-addresses'`` which serializes both the ``id`` and ``addresses`` attributes,
+      * ``'without-addresses'`` which serializes just the ``id`` attribute but *not* the
+        ``addresses`` attribute
+      * ``'different-display-name'`` which serializes both the ``id`` and ``addresses``
+        attribute, but applies a different ``display_name`` when serializing the
+        ``addresses`` attribute.
 
 .. note::
 
-  The ``__serialization__`` attribute accepts both
+  The ``__serialization__`` attribute and its configuration sets accept both
   :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
   instances, as well as :class:`dict <python:dict>` representations of those instances.
 
