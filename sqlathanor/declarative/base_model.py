@@ -98,7 +98,10 @@ class BaseModel(PrimaryKeyMixin,
     __serialization__ = []
 
     def __init__(self, *args, **kwargs):
-        if self.__serialization__:
+        if self.__serialization__ and isinstance(self.__serialization__, dict):
+            for key in self.__serialization__:
+                self.__serialization__[key] = validate_serialization_config(self.__serialization__[key])
+        elif self.__serialization__:
             self.__serialization__ = validate_serialization_config(self.__serialization__)
         else:
             self.__serialization__ = []
@@ -107,7 +110,8 @@ class BaseModel(PrimaryKeyMixin,
 
     def _get_serialized_value(self,
                               format,
-                              attribute):
+                              attribute,
+                              config_set = None):
         """Retrieve the value of ``attribute`` after applying the attribute's
         ``on_serialize`` function for the format indicated by ``format``.
 
@@ -118,6 +122,11 @@ class BaseModel(PrimaryKeyMixin,
         :param attribute: The name of the attribute that whose serialized value
           should be returned.
         :type attribute: :class:`str <python:str>`
+
+        :param config_set: The name of the named configuration set whose configuration
+          should be used to retrieve the serialized value. Defaults to
+          :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: The value returned by the attribute's ``on_serialize`` function
           for the indicated ``format``.
@@ -135,7 +144,8 @@ class BaseModel(PrimaryKeyMixin,
                                                                  to_csv = to_csv,
                                                                  to_json = to_json,
                                                                  to_yaml = to_yaml,
-                                                                 to_dict = to_dict)
+                                                                 to_dict = to_dict,
+                                                                 config_set = config_set)
         if not supports_serialization:
             raise UnsupportedSerializationError(
                 "%s attribute '%s' does not support serialization to '%s'" % (self.__class__,
@@ -143,7 +153,8 @@ class BaseModel(PrimaryKeyMixin,
                                                                               format)
             )
 
-        config = self.get_attribute_serialization_config(attribute)
+        config = self.get_attribute_serialization_config(attribute,
+                                                         config_set = config_set)
 
         on_serialize = config.on_serialize[format]
         if on_serialize is None:
@@ -157,8 +168,8 @@ class BaseModel(PrimaryKeyMixin,
         if on_serialize is None:
             if format == 'csv':
                 return getattr(self, attribute, '')
-            else:
-                return getattr(self, attribute, None)
+
+            return getattr(self, attribute, None)
 
         try:
             return_value = on_serialize(getattr(self, attribute, None))
@@ -175,6 +186,7 @@ class BaseModel(PrimaryKeyMixin,
                                 value,
                                 format,
                                 attribute,
+                                config_set = None,
                                 **kwargs):
         """Retrieve the value of ``attribute`` after applying the attribute's
         ``on_deserialize`` function for the format indicated by ``format``.
@@ -188,6 +200,11 @@ class BaseModel(PrimaryKeyMixin,
         :param attribute: The name of the attribute that whose serialized value
           should be returned.
         :type attribute: :class:`str <python:str>`
+
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          whose configuration should be used to determine the deserialized value. Defaults
+          to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: The value returned by the attribute's ``on_serialize`` function
           for the indicated ``format``.
@@ -206,7 +223,8 @@ class BaseModel(PrimaryKeyMixin,
                                                                       from_csv = from_csv,
                                                                       from_json = from_json,
                                                                       from_yaml = from_yaml,
-                                                                      from_dict = from_dict)
+                                                                      from_dict = from_dict,
+                                                                      config_set = config_set)
         except UnsupportedSerializationError:
             supports_deserialization = False
 
@@ -225,7 +243,8 @@ class BaseModel(PrimaryKeyMixin,
                  format)
             )
 
-        config = cls.get_attribute_serialization_config(attribute)
+        config = cls.get_attribute_serialization_config(attribute,
+                                                        config_set = config_set)
 
         on_deserialize = config.on_deserialize[format]
         if on_deserialize is None:
