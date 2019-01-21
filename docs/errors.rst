@@ -44,6 +44,13 @@ SQLAthanorError (from :class:`ValueError <python:ValueError>`)
 
 ----------------
 
+ConfigurationError (from :class:`SQLAthanorError`)
+--------------------------------------------------------------------
+
+.. autoclass:: ConfigurationError
+
+----------------
+
 SQLAlchemySupportError (from :class:`SQLAthanorError`)
 ----------------------------------------------------------
 

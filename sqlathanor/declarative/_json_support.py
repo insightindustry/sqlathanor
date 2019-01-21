@@ -17,6 +17,7 @@ class JSONSupportMixin(object):
                 max_nesting = 0,
                 current_nesting = 0,
                 serialize_function = None,
+                config_set = None,
                 **kwargs):
         """Return a JSON representation of the object.
 
@@ -47,6 +48,10 @@ class JSONSupportMixin(object):
 
         :type serialize_function: callable / :obj:`None <python:None>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :param kwargs: Optional keyword parameters that are passed to the
           JSON serializer function. By default, these are options which are passed
           to :func:`simplejson.dumps() <simplejson:simplejson.dumps>`.
@@ -74,7 +79,8 @@ class JSONSupportMixin(object):
         as_dict = self._to_dict('json',
                                 max_nesting = max_nesting,
                                 current_nesting = current_nesting,
-                                is_dumping = False)
+                                is_dumping = False,
+                                config_set = config_set)
 
         as_json = serialize_function(as_dict, **kwargs)
 
@@ -84,6 +90,7 @@ class JSONSupportMixin(object):
                      max_nesting = 0,
                      current_nesting = 0,
                      serialize_function = None,
+                     config_set = None,
                      **kwargs):
         """Return a :term:`JSON <JavaScript Object Notation (JSON)>`
         representation of the object, *with all attributes* regardless of
@@ -122,6 +129,10 @@ class JSONSupportMixin(object):
 
         :type serialize_function: callable / :obj:`None <python:None>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :param kwargs: Optional keyword parameters that are passed to the
           JSON serializer function. By default, these are options which are passed
           to :func:`simplejson.dumps() <simplejson:simplejson.dumps>`.
@@ -149,7 +160,8 @@ class JSONSupportMixin(object):
         as_dict = self._to_dict('json',
                                 max_nesting = max_nesting,
                                 current_nesting = current_nesting,
-                                is_dumping = True)
+                                is_dumping = True,
+                                config_set = config_set)
 
         as_json = serialize_function(as_dict, **kwargs)
 
@@ -160,6 +172,7 @@ class JSONSupportMixin(object):
                          deserialize_function = None,
                          error_on_extra_keys = True,
                          drop_extra_keys = False,
+                         config_set = None,
                          **kwargs):
         """Update the model instance from data in a JSON string.
 
@@ -216,6 +229,10 @@ class JSONSupportMixin(object):
           Defaults to ``False``.
         :type drop_extra_keys: :class:`bool <python:bool>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :param kwargs: Optional keyword parameters that are passed to the
           JSON deserializer function.By default, these are options which are passed
           to :func:`simplejson.loads() <simplejson:simplejson.loads>`.
@@ -239,7 +256,8 @@ class JSONSupportMixin(object):
         data = self._parse_dict(from_json,
                                 'json',
                                 error_on_extra_keys = error_on_extra_keys,
-                                drop_extra_keys = drop_extra_keys)
+                                drop_extra_keys = drop_extra_keys,
+                                config_set = config_set)
 
         for key in data:
             setattr(self, key, data[key])
@@ -250,6 +268,7 @@ class JSONSupportMixin(object):
                       deserialize_function = None,
                       error_on_extra_keys = True,
                       drop_extra_keys = False,
+                      config_set = None,
                       **kwargs):
         """Create a new model instance from data in JSON.
 
@@ -304,6 +323,10 @@ class JSONSupportMixin(object):
           the ``error_on_extra_keys`` parameter. Defaults to ``False``.
         :type drop_extra_keys: :class:`bool <python:bool>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :param kwargs: Optional keyword parameters that are passed to the
           JSON deserializer function. By default, these are options which are passed
           to :func:`simplejson.loads() <simplejson:simplejson.loads>`.
@@ -327,6 +350,7 @@ class JSONSupportMixin(object):
         data = cls._parse_dict(from_json,
                                'json',
                                error_on_extra_keys = error_on_extra_keys,
-                               drop_extra_keys = drop_extra_keys)
+                               drop_extra_keys = drop_extra_keys,
+                               config_set = config_set)
 
         return cls(**data)
