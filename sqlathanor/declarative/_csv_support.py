@@ -39,6 +39,32 @@ class CSVSupportMixin(object):
         """
         config = cls.get_csv_serialization_config(deserialize = deserialize,
                                                   serialize = serialize)
+        attribute_names = [x.name for x in config]
+        display_names = [x.display_name for x in config]
+
+        return [x[0] or x[1] for x in zip(display_names, attribute_names)]
+
+    @classmethod
+    def _get_csv_attribute_names(cls, deserialize = True, serialize = True):
+        """Retrieve a list of the attribute names that are to be serialized to CSV.
+
+        :param deserialize: If ``True``, returns columns that support
+          :term:`de-serialization`. If ``False``, returns columns that do *not*
+          support deserialization. If :obj:`None <python:None>`, does not take
+          deserialization into account. Defaults to ``True``.
+        :type deserialize: :class:`bool <python:bool>`
+
+        :param serialize: If ``True``, returns columns that support
+          :term:`serialization`. If ``False``, returns columns that do *not*
+          support serialization. If :obj:`None <python:None>`, does not take
+          serialization into account. Defaults to ``True``.
+        :type serialize: :class:`bool <python:bool>`
+
+        :returns: List of attribute names, sorted according to their configuration.
+        :rtype: :class:`list <python:list>` of :class:`str <python:str>`
+        """
+        config = cls.get_csv_serialization_config(deserialize = deserialize,
+                                                  serialize = serialize)
         return [x.name for x in config]
 
     @classmethod
@@ -348,15 +374,15 @@ class CSVSupportMixin(object):
         :rtype: :class:`str <python:str>`
         """
         # pylint: disable=line-too-long
-        csv_column_names = [x
-                            for x in self.get_csv_column_names(deserialize = None,
-                                                               serialize = True)
-                            if hasattr(self, x)]
+        csv_attribute_names = [x
+                               for x in self._get_csv_attribute_names(deserialize = None,
+                                                                      serialize = True)
+                               if hasattr(self, x)]
 
-        if not csv_column_names:
+        if not csv_attribute_names:
             raise SerializableAttributeError("no 'csv' serializable attributes found")
 
-        data_row = self._get_attribute_csv_data(csv_column_names,
+        data_row = self._get_attribute_csv_data(csv_attribute_names,
                                                 is_dumping = False,
                                                 delimiter = delimiter,
                                                 wrap_all_strings = wrap_all_strings,
@@ -506,8 +532,7 @@ class CSVSupportMixin(object):
 
         csv_column_names = [x
                             for x in cls.get_csv_column_names(deserialize = True,
-                                                              serialize = None)
-                            if hasattr(cls, x)]
+                                                              serialize = None)]
 
         csv_reader = csv.DictReader([csv_data],
                                     fieldnames = csv_column_names,
@@ -529,20 +554,23 @@ class CSVSupportMixin(object):
         if data.get(None, None) is not None:
             raise CSVStructureError('expected %s fields, found %s' % (len(csv_column_names),
                                                                       len(data.keys())))
+
+        deserialized_data = {}
         for key in data:
             if data[key] == null_text:
-                data[key] = None
+                deserialized_data[key] = None
                 continue
 
+            attribute_name = cls._get_attribute_name(key)
             deserialized_value = cls._get_deserialized_value(data[key],
                                                              'csv',
                                                              key)
 
-            data[key] = deserialized_value
+            deserialized_data[attribute_name] = deserialized_value
 
         csv.unregister_dialect('sqlathanor')
 
-        return data
+        return deserialized_data
 
     def update_from_csv(self,
                         csv_data,
@@ -678,6 +706,11 @@ class CSVSupportMixin(object):
           Nested objects (such as :term:`relationships <relationship>` or
           :term:`association proxies <association proxy>`) will **not**
           be serialized.
+
+        .. note::
+
+          This method ignores any ``display_name`` contributed on the
+          :class:`AttributeConfiguration`.
 
         :param include_header: If ``True``, will include a header row with column
           labels. If ``False``, will not include a header row. Defaults to ``True``.

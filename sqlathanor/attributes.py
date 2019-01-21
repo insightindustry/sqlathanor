@@ -166,6 +166,11 @@ class AttributeConfiguration(SerializationMixin):
           :obj:`None <python:None>`.
         :type attribute: class attribute
 
+        :param display_name: An optional name to use or expect in place of `name` when
+          serializing or de-serializing the attribute. If :obj:`None <python:None>`, the
+          attribute will default to the same name as in its Python model class and as
+          provided in ``name``. Defaults to :obj:`None <python:None>`
+        :type display_name: :class:`str <python:str>` / :obj:`None <python:None>`
 
         """
         object.__setattr__(self, '_dict_proxy', {})
@@ -189,6 +194,7 @@ class AttributeConfiguration(SerializationMixin):
                 self.supports_dict = attribute.supports_dict
                 self.on_serialize = attribute.on_serialize
                 self.on_deserialize = attribute.on_deserialize
+                self.display_name = attribute.display_name
             except AttributeError:
                 pass
 
@@ -203,7 +209,8 @@ class AttributeConfiguration(SerializationMixin):
         repr_string += 'supports_dict = %s, ' % str(self.supports_dict)
         repr_string += 'csv_sequence = %s, ' % str(self.csv_sequence)
         repr_string += 'on_serialize = %s, ' % str(self.on_serialize)
-        repr_string += 'on_deserialize = %s)' % str(self.on_deserialize)
+        repr_string += 'on_deserialize = %s, ' % str(self.on_deserialize)
+        repr_string += 'display_name = %s)' % str(self.display_name)
 
         return repr_string
 
@@ -230,10 +237,11 @@ class AttributeConfiguration(SerializationMixin):
                    'supports_dict',
                    'csv_sequence',
                    'on_serialize',
-                   'on_deserialize']:
+                   'on_deserialize',
+                   'display_name']:
             return getattr(self, key)
-        else:
-            return self._dict_proxy[key]
+
+        return self._dict_proxy[key]
 
     def __missing__(self, key):
         raise KeyError(key)
@@ -246,7 +254,8 @@ class AttributeConfiguration(SerializationMixin):
                    'supports_dict',
                    'csv_sequence',
                    'on_serialize',
-                   'on_deserialize']:
+                   'on_deserialize',
+                   'display_name']:
             setattr(self, key, value)
         else:
             self._dict_proxy[key] = value
@@ -255,7 +264,8 @@ class AttributeConfiguration(SerializationMixin):
         if key in ['name',
                    'csv_sequence',
                    'on_serialize',
-                   'on_deserialize']:
+                   'on_deserialize',
+                   'display_name']:
             setattr(self, key, None)
         elif key in ['supports_csv',
                      'supports_json',
@@ -276,13 +286,14 @@ class AttributeConfiguration(SerializationMixin):
                     'supports_dict',
                     'csv_sequence',
                     'on_serialize',
-                    'on_deserialize']:
+                    'on_deserialize',
+                    'display_name']:
             return True
-        else:
-            return item in self._dict_proxy
+
+        return item in self._dict_proxy
 
     def __len__(self):
-        return 8 + len(self._dict_proxy)
+        return 9 + len(self._dict_proxy)
 
     def __iter__(self):
         return self
@@ -308,6 +319,7 @@ class AttributeConfiguration(SerializationMixin):
         self.supports_dict = (False, False)
         self.on_serialize = BLANK_ON_SERIALIZE
         self.on_deserialize = BLANK_ON_SERIALIZE
+        self.display_name = None
         self._dict_proxy = {}
 
     @classmethod
@@ -337,7 +349,8 @@ class AttributeConfiguration(SerializationMixin):
                         'supports_dict',
                         'csv_sequence',
                         'on_serialize',
-                        'on_deserialize']
+                        'on_deserialize',
+                        'display_name']
         return_value.extend(sorted(self._dict_proxy.keys()))
         return return_value
 
@@ -347,7 +360,8 @@ class AttributeConfiguration(SerializationMixin):
 
         return_value = self[key] or default
         if key in ['name',
-                   'csv_sequence']:
+                   'csv_sequence',
+                   'display_name']:
             self[key] = None
         elif key in ['on_serialize',
                      'on_deserialize']:
@@ -399,6 +413,7 @@ class AttributeConfiguration(SerializationMixin):
         new_instance.supports_dict = self.supports_dict
         new_instance.on_serialize = self.on_serialize
         new_instance.on_deserialize = self.on_deserialize
+        new_instance.display_name = self.display_name
 
         return new_instance
 
