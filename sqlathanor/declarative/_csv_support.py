@@ -53,7 +53,10 @@ class CSVSupportMixin(object):
         return [x[0] or x[1] for x in zip(display_names, attribute_names)]
 
     @classmethod
-    def _get_csv_attribute_names(cls, deserialize = True, serialize = True):
+    def _get_csv_attribute_names(cls,
+                                 deserialize = True,
+                                 serialize = True,
+                                 config_set = None):
         """Retrieve a list of the attribute names that are to be serialized to CSV.
 
         :param deserialize: If ``True``, returns columns that support
