@@ -29,6 +29,20 @@ SQLAthanor
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=latest
          :alt: Documentation Status (ReadTheDocs)
 
+   * - `v.0.4 <https://github.com/insightindustry/sqlathanor/tree/v.0.4.0>`_
+     -
+       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.4.0
+         :target: https://travis-ci.org/insightindustry/sqlathanor
+         :alt: Build Status (Travis CI)
+
+       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.4.0/graph/badge.svg
+         :target: https://codecov.io/gh/insightindustry/sqlathanor
+         :alt: Code Coverage Status (Codecov)
+
+       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.4.0
+         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.4.0
+         :alt: Documentation Status (ReadTheDocs)
+
    * - `v.0.3 <https://github.com/insightindustry/sqlathanor/tree/v.0.3.1>`_
      -
        .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.3.1
@@ -40,7 +54,7 @@ SQLAthanor
          :alt: Code Coverage Status (Codecov)
 
        .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.3.1
-         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.3.0
+         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.3.1
          :alt: Documentation Status (ReadTheDocs)
 
    * - `v.0.2 <https://github.com/insightindustry/sqlathanor/tree/v.0.2.2>`_

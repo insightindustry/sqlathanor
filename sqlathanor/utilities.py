@@ -16,6 +16,7 @@ import yaml
 
 from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.exc import InvalidRequestError as SA_InvalidRequestError
+from sqlalchemy.exc import UnsupportedCompilationError as SA_UnsupportedCompilationError
 
 from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
@@ -178,8 +179,11 @@ def get_class_type_key(class_attribute, value = None):
     if class_type is not None:
         try:
             class_type_key = class_type.__name__
-        except AttributeError:
-            class_type_key = str(class_type)
+        except (AttributeError, SA_UnsupportedCompilationError):
+            try:
+                class_type_key = str(class_type)
+            except (AttributeError, SA_UnsupportedCompilationError):
+                class_type_key = class_type.__class__.__name__
     else:
         class_type_key = 'NONE'
 
@@ -190,7 +194,8 @@ def iterable__to_dict(iterable,
                       format,
                       max_nesting = 0,
                       current_nesting = 0,
-                      is_dumping = False):
+                      is_dumping = False,
+                      config_set = None):
     """Given an iterable, traverse it and execute ``_to_dict()`` if present.
 
     :param iterable: An iterable to traverse.
@@ -213,6 +218,10 @@ def iterable__to_dict(iterable,
 
     :param is_dumping: If ``True``, returns all attributes. Defaults to ``False``.
     :type is_dumping: :class:`bool <python:bool>`
+
+    :param config_set: If not :obj:`None <python:None>`, the named configuration set
+      to use when processing the input. Defaults to :obj:`None <python:None>`.
+    :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
     :returns: Collection of values, possibly converted to :class:`dict <python:dict>`
       objects.
@@ -247,14 +256,16 @@ def iterable__to_dict(iterable,
             new_item = item._to_dict(format,
                                      max_nesting = max_nesting,
                                      current_nesting = next_nesting,
-                                     is_dumping = is_dumping)
+                                     is_dumping = is_dumping,
+                                     config_set = config_set)
         except AttributeError:
             try:
                 new_item = iterable__to_dict(item,
                                              format,
                                              max_nesting = max_nesting,
                                              current_nesting = next_nesting,
-                                             is_dumping = is_dumping)
+                                             is_dumping = is_dumping,
+                                             config_set = config_set)
             except NotAnIterableError:
                 new_item = item
 

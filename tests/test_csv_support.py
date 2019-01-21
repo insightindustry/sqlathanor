@@ -93,12 +93,12 @@ def test__get_attribute_csv_header(request,
 
 
 @pytest.mark.parametrize('deserialize, serialize, delimiter, expected_result', [
-    (None, True, '|', 'id|name|smallint_column|hybrid\r\n'),
-    (None, True, ',', 'id,name,smallint_column,hybrid\r\n'),
-    (None, True, None, 'id|name|smallint_column|hybrid\r\n'),
-    (True, None, '|', 'id|name|password|smallint_column|hybrid\r\n'),
-    (True, None, ',', 'id,name,password,smallint_column,hybrid\r\n'),
-    (True, None, None, 'id|name|password|smallint_column|hybrid\r\n'),
+    (None, True, '|', 'id|name|smallint_column|hybrid_value\r\n'),
+    (None, True, ',', 'id,name,smallint_column,hybrid_value\r\n'),
+    (None, True, None, 'id|name|smallint_column|hybrid_value\r\n'),
+    (True, None, '|', 'id|name|password|smallint_column|hybrid_value\r\n'),
+    (True, None, ',', 'id,name,password,smallint_column,hybrid_value\r\n'),
+    (True, None, None, 'id|name|password|smallint_column|hybrid_value\r\n'),
     (None, None, None, '\r\n'),
 ])
 def test_get_csv_header(request,
@@ -191,12 +191,12 @@ def test__get_attribute_csv_data(request,
     (False, '|', True, '!', None, "1|!serialized!|2|!None!\r\n"),
     (False, '|', False, "'", 'test|value', "1|serialized|2|'test|value'\r\n"),
 
-    (True, '|', False, "'", 1, 'id|name|smallint_column|hybrid\r\n1|serialized|2|1\r\n'),
-    (True, '|', True, "'", 1, "id|name|smallint_column|hybrid\r\n1|'serialized'|2|1\r\n"),
-    (True, '|', False, "'", None, "id|name|smallint_column|hybrid\r\n1|serialized|2|None\r\n"),
-    (True, '|', True, None, None, "id|name|smallint_column|hybrid\r\n1|'serialized'|2|'None'\r\n"),
-    (True, '|', True, '!', None, "id|name|smallint_column|hybrid\r\n1|!serialized!|2|!None!\r\n"),
-    (True, '|', False, "'", 'test|value', "id|name|smallint_column|hybrid\r\n1|serialized|2|'test|value'\r\n"),
+    (True, '|', False, "'", 1, 'id|name|smallint_column|hybrid_value\r\n1|serialized|2|1\r\n'),
+    (True, '|', True, "'", 1, "id|name|smallint_column|hybrid_value\r\n1|'serialized'|2|1\r\n"),
+    (True, '|', False, "'", None, "id|name|smallint_column|hybrid_value\r\n1|serialized|2|None\r\n"),
+    (True, '|', True, None, None, "id|name|smallint_column|hybrid_value\r\n1|'serialized'|2|'None'\r\n"),
+    (True, '|', True, '!', None, "id|name|smallint_column|hybrid_value\r\n1|!serialized!|2|!None!\r\n"),
+    (True, '|', False, "'", 'test|value', "id|name|smallint_column|hybrid_value\r\n1|serialized|2|'test|value'\r\n"),
 
 ])
 def test_to_csv(request,

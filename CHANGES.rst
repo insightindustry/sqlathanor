@@ -1,5 +1,41 @@
 -----------
 
+Release 0.4.0
+=========================================
+
+.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.4.0
+  :target: https://travis-ci.org/insightindustry/sqlathanor
+  :alt: Build Status (Travis CI)
+
+.. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.4.0/graph/badge.svg
+  :target: https://codecov.io/gh/insightindustry/sqlathanor
+  :alt: Code Coverage Status (Codecov)
+
+.. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.4.0
+  :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.4.0
+  :alt: Documentation Status (ReadTheDocs)
+
+Bug Fixes
+-----------------
+
+* #63: Fixed error handling for when SQLAlchemy returns ``UnsupportedCompilationError`` on
+  certain data types.
+
+New Features
+-----------------
+
+* #61: Added ``display_name`` attribute configuration option to re-write attribute names
+  on serialization / de-serialization.
+* #62: Added support for multiple named configuration sets when using the meta
+  configuration pattern.
+
+Other Changes
+------------------
+
+* Upgraded PyYAML version in ``requirements.txt``.
+
+-----------
+
 Release 0.3.1
 =========================================
 

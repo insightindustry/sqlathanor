@@ -37,6 +37,17 @@ from sqlathanor.utilities import bool_to_tuple, callable_to_dict
         'on_serialize': bool_to_tuple,
         'on_deserialize': bool_to_tuple
     }),
+    ({
+        'name': 'test_display_name',
+        'supports_csv': False,
+        'csv_sequence': None,
+        'supports_json': False,
+        'supports_yaml': False,
+        'supports_dict': False,
+        'on_serialize': None,
+        'on_deserialize': None,
+        'display_name': 'some_display_name'
+    }),
 ])
 def test_AttributeConfiguration__init__(kwargs):
     if kwargs is None:
@@ -46,6 +57,7 @@ def test_AttributeConfiguration__init__(kwargs):
         result = AttributeConfiguration(**kwargs)
 
     assert result.name == kwargs.get('name', None)
+    assert result.display_name == kwargs.get('display_name', None)
     assert result.supports_csv == bool_to_tuple(kwargs.get('supports_csv',
                                                            (False, False)))
     assert result.csv_sequence == kwargs.get('csv_sequence', None)

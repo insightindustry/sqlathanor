@@ -28,7 +28,8 @@ class DictSupportMixin(object):
                     input_data,
                     format,
                     error_on_extra_keys = True,
-                    drop_extra_keys = False):
+                    drop_extra_keys = False,
+                    config_set = None):
         """Generate a processed :class:`dict <python:dict>` object from
         in-bound :class:`dict <python:dict>` data.
 
@@ -51,6 +52,10 @@ class DictSupportMixin(object):
           include unrecognized keys or raise an error based on the configuration of
           the ``error_on_extra_keys`` parameter. Defaults to ``False``.
         :type drop_extra_keys: :class:`bool <python:bool>`
+
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use when processing the input. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: A processed :class:`dict <python:dict>` object that has had
           :term:`deserializer functions` applied to it.
@@ -90,7 +95,8 @@ class DictSupportMixin(object):
 
         attributes = [x
                       for x in attribute_getter(deserialize = True,
-                                                serialize = None)
+                                                serialize = None,
+                                                config_set = config_set)
                       if hasattr(cls, x.name)]
 
         if not attributes:
@@ -99,14 +105,14 @@ class DictSupportMixin(object):
                                                                  format)
             )
 
-        attribute_names = [x.name for x in attributes]
+        attribute_names = [x.display_name or x.name for x in attributes]
         extra_keys = [x for x in input_data.keys()
                       if x not in attribute_names]
         if extra_keys and error_on_extra_keys:
             raise ExtraKeyError("input data had extra keys: %s" % extra_keys)
 
         for attribute in attributes:
-            key = attribute.name
+            key = attribute.display_name or attribute.name
             try:
                 value = input_data.pop(key)
             except KeyError:
@@ -114,11 +120,12 @@ class DictSupportMixin(object):
 
             value = cls._get_deserialized_value(value,
                                                 format,
-                                                attribute.name,
+                                                key,
                                                 error_on_extra_keys = error_on_extra_keys,
-                                                drop_extra_keys = drop_extra_keys)
+                                                drop_extra_keys = drop_extra_keys,
+                                                config_set = config_set)
 
-            dict_object[key] = value
+            dict_object[attribute.name] = value
 
         if input_data and not drop_extra_keys:
             for key in input_data:
@@ -131,7 +138,8 @@ class DictSupportMixin(object):
                  format,
                  max_nesting = 0,
                  current_nesting = 0,
-                 is_dumping = False):
+                 is_dumping = False,
+                 config_set = None):
         """Return a :class:`dict <python:dict>` representation of the object.
 
         .. warning::
@@ -158,6 +166,10 @@ class DictSupportMixin(object):
           utilities, and specials (``__<name>``). If ``False``, only retrieves
           those that have JSON serialization enabled. Defaults to ``False``.
         :type is_dumping: :class:`bool <python:bool>`
+
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use when processing the input. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: A :class:`dict <python:dict>` representation of the object.
         :rtype: :class:`dict <python:dict>`
@@ -197,7 +209,8 @@ class DictSupportMixin(object):
         if not is_dumping:
             attributes = [x
                           for x in attribute_getter(deserialize = None,
-                                                    serialize = True)
+                                                    serialize = True,
+                                                    config_set = config_set)
                           if hasattr(self, x.name)]
         else:
             attribute_names = [x
@@ -209,7 +222,8 @@ class DictSupportMixin(object):
                                                             include_utilities = False)]
             attributes = []
             for item in attribute_names:
-                attribute_config = self.get_attribute_serialization_config(item)
+                attribute_config = self.get_attribute_serialization_config(item,
+                                                                           config_set = config_set)
                 if attribute_config is not None:
                     on_serialize_function = attribute_config.on_serialize.get(format,
                                                                               None)
@@ -236,7 +250,8 @@ class DictSupportMixin(object):
                     value = item._to_dict(format,                               # pylint: disable=protected-access
                                           max_nesting = max_nesting,
                                           current_nesting = next_nesting,
-                                          is_dumping = is_dumping)
+                                          is_dumping = is_dumping,
+                                          config_set = config_set)
                 except MaximumNestingExceededError:
                     warnings.warn(
                         "skipping key '%s' because maximum nesting has been exceeded" \
@@ -256,7 +271,8 @@ class DictSupportMixin(object):
                                                   format,
                                                   max_nesting = max_nesting,
                                                   current_nesting = next_nesting,
-                                                  is_dumping = is_dumping)
+                                                  is_dumping = is_dumping,
+                                                  config_set = config_set)
                     except MaximumNestingExceededError:
                         warnings.warn(
                             "skipping key '%s' because maximum nesting has been exceeded" \
@@ -267,7 +283,8 @@ class DictSupportMixin(object):
                     except NotAnIterableError:
                         try:
                             value = self._get_serialized_value(format,
-                                                               attribute.name)
+                                                               attribute.name,
+                                                               config_set = config_set)
                         except UnsupportedSerializationError as error:
                             if is_dumping:
                                 value = getattr(self, attribute.name)
@@ -276,20 +293,24 @@ class DictSupportMixin(object):
                 else:
                     try:
                         value = self._get_serialized_value(format,
-                                                           attribute.name)
+                                                           attribute.name,
+                                                           config_set = config_set)
                     except UnsupportedSerializationError as error:
                         if is_dumping:
                             value = getattr(self, attribute.name)
                         else:
                             raise error
 
-            dict_object[str(attribute.name)] = value
+            serialized_key = attribute.display_name or attribute.name
+
+            dict_object[str(serialized_key)] = value
 
         return dict_object
 
     def to_dict(self,
                 max_nesting = 0,
-                current_nesting = 0):
+                current_nesting = 0,
+                config_set = None):
         """Return a :class:`dict <python:dict>` representation of the object.
 
         :param max_nesting: The maximum number of levels that the resulting
@@ -300,6 +321,10 @@ class DictSupportMixin(object):
         :param current_nesting: The current nesting level at which the
           :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
         :type current_nesting: :class:`int <python:int>`
+
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use when processing the input. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: A :class:`dict <python:dict>` representation of the object.
         :rtype: :class:`dict <python:dict>`
@@ -313,11 +338,13 @@ class DictSupportMixin(object):
         """
         return self._to_dict('dict',
                              max_nesting = max_nesting,
-                             current_nesting = current_nesting)
+                             current_nesting = current_nesting,
+                             config_set = config_set)
 
     def dump_to_dict(self,
                      max_nesting = 0,
-                current_nesting = 0):
+                     current_nesting = 0,
+                     config_set = None):
         """Return a :class:`dict <python:dict>` representation of the object,
         *with all attributes* regardless of configuration.
 
@@ -336,6 +363,10 @@ class DictSupportMixin(object):
           :class:`dict <python:dict>` representation will reside. Defaults to ``0``.
         :type current_nesting: :class:`int <python:int>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use when processing the input. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: A :class:`dict <python:dict>` representation of the object.
         :rtype: :class:`dict <python:dict>`
 
@@ -349,12 +380,14 @@ class DictSupportMixin(object):
         return self._to_dict('dict',
                              max_nesting = max_nesting,
                              current_nesting = current_nesting,
-                             is_dumping = True)
+                             is_dumping = True,
+                             config_set = config_set)
 
     def update_from_dict(self,
                          input_data,
                          error_on_extra_keys = True,
-                         drop_extra_keys = False):
+                         drop_extra_keys = False,
+                         config_set = None):
         """Update the model instance from data in a :class:`dict <python:dict>` object.
 
         :param input_data: The input :class:`dict <python:dict>`
@@ -384,6 +417,10 @@ class DictSupportMixin(object):
           the ``error_on_extra_keys`` parameter. Defaults to ``False``.
         :type drop_extra_keys: :class:`bool <python:bool>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use when processing the input. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
           ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
@@ -395,7 +432,8 @@ class DictSupportMixin(object):
         data = self._parse_dict(input_data,
                                 'dict',
                                 error_on_extra_keys = error_on_extra_keys,
-                                drop_extra_keys = drop_extra_keys)
+                                drop_extra_keys = drop_extra_keys,
+                                config_set = config_set)
 
         for key in data:
             setattr(self, key, data[key])
@@ -404,7 +442,8 @@ class DictSupportMixin(object):
     def new_from_dict(cls,
                       input_data,
                       error_on_extra_keys = True,
-                      drop_extra_keys = False):
+                      drop_extra_keys = False,
+                      config_set = None):
         """Update the model instance from data in a :class:`dict <python:dict>` object.
 
         :param input_data: The input :class:`dict <python:dict>`
@@ -433,6 +472,10 @@ class DictSupportMixin(object):
           the ``error_on_extra_keys`` parameter. Defaults to ``False``.
         :type drop_extra_keys: :class:`bool <python:bool>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use when processing the input. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
           ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
@@ -444,6 +487,7 @@ class DictSupportMixin(object):
         data = cls._parse_dict(input_data,
                                'dict',
                                error_on_extra_keys = error_on_extra_keys,
-                               drop_extra_keys = drop_extra_keys)
+                               drop_extra_keys = drop_extra_keys,
+                               config_set = config_set)
 
         return cls(**data)

@@ -23,6 +23,10 @@ class SQLAlchemySupportError(SQLAthanorError):
     is not supported in your environment's version of SQLAlchemy."""
     pass
 
+class ConfigurationError(SQLAthanorError):
+    """Error raised when the serialization confirmation does not match expectations."""
+    pass
+
 class SerializationError(SQLAthanorError):
     """Error raised when something went wrong during serialization."""
     pass

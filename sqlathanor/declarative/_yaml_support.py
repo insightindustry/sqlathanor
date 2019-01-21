@@ -17,6 +17,7 @@ class YAMLSupportMixin(object):
                 max_nesting = 0,
                 current_nesting = 0,
                 serialize_function = None,
+                config_set = None,
                 **kwargs):
         """Return a YAML representation of the object.
 
@@ -47,6 +48,10 @@ class YAMLSupportMixin(object):
 
         :type serialize_function: callable / :obj:`None <python:None>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :param kwargs: Optional keyword parameters that are passed to the
           YAML serializer function. By default, these are options which are passed
           to ``yaml.dump()``.
@@ -73,7 +78,8 @@ class YAMLSupportMixin(object):
 
         as_dict = self._to_dict('yaml',
                                 max_nesting = max_nesting,
-                                current_nesting = current_nesting)
+                                current_nesting = current_nesting,
+                                config_set = config_set)
 
         as_yaml = serialize_function(as_dict,
                                      **kwargs)
@@ -84,6 +90,7 @@ class YAMLSupportMixin(object):
                      max_nesting = 0,
                      current_nesting = 0,
                      serialize_function = None,
+                     config_set = None,
                      **kwargs):
         """Return a :term:`YAML <YAML Ain't a Markup Language (YAML)>`
         representation of the object *with all attributes*, regardless of
@@ -122,6 +129,10 @@ class YAMLSupportMixin(object):
 
         :type serialize_function: callable / :obj:`None <python:None>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :param kwargs: Optional keyword parameters that are passed to the
           YAML serializer function. By default, these are options which are passed
           to ``yaml.dump()``.
@@ -149,7 +160,8 @@ class YAMLSupportMixin(object):
         as_dict = self._to_dict('yaml',
                                 max_nesting = max_nesting,
                                 current_nesting = current_nesting,
-                                is_dumping = True)
+                                is_dumping = True,
+                                config_set = config_set)
 
         as_yaml = serialize_function(as_dict,
                                      **kwargs)
@@ -161,6 +173,7 @@ class YAMLSupportMixin(object):
                          deserialize_function = None,
                          error_on_extra_keys = True,
                          drop_extra_keys = False,
+                         config_set = None,
                          **kwargs):
         """Update the model instance from data in a YAML string.
 
@@ -210,6 +223,10 @@ class YAMLSupportMixin(object):
           Defaults to ``False``.
         :type drop_extra_keys: :class:`bool <python:bool>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :param kwargs: Optional keyword parameters that are passed to the
           YAML deserializer function. By default, these are options which are passed
           to ``yaml.safe_load()``.
@@ -233,7 +250,8 @@ class YAMLSupportMixin(object):
         data = self._parse_dict(from_yaml,
                                 'yaml',
                                 error_on_extra_keys = error_on_extra_keys,
-                                drop_extra_keys = drop_extra_keys)
+                                drop_extra_keys = drop_extra_keys,
+                                config_set = config_set)
 
         for key in data:
             setattr(self, key, data[key])
@@ -244,6 +262,7 @@ class YAMLSupportMixin(object):
                       deserialize_function = None,
                       error_on_extra_keys = True,
                       drop_extra_keys = False,
+                      config_set = None,
                       **kwargs):
         """Create a new model instance from data in YAML.
 
@@ -293,6 +312,10 @@ class YAMLSupportMixin(object):
           the ``error_on_extra_keys`` parameter. Defaults to ``False``.
         :type drop_extra_keys: :class:`bool <python:bool>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :raises ExtraKeyError: if ``error_on_extra_keys`` is ``True`` and
           ``input_data`` contains top-level keys that are not recognized as
           attributes for the instance model.
@@ -311,6 +334,7 @@ class YAMLSupportMixin(object):
         data = cls._parse_dict(from_yaml,
                                'yaml',
                                error_on_extra_keys = error_on_extra_keys,
-                               drop_extra_keys = drop_extra_keys)
+                               drop_extra_keys = drop_extra_keys,
+                               config_set = config_set)
 
         return cls(**data)
