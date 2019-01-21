@@ -142,7 +142,7 @@ class DummyClass(object):
     def __init__(self, *args, **kwargs):
         pass
 
-    def _to_dict(self, format, max_nesting = 0, current_nesting = 0, is_dumping = False):
+    def _to_dict(self, format, max_nesting = 0, current_nesting = 0, is_dumping = False, config_set = None):
         if format not in ['csv', 'json', 'yaml', 'dict']:
             raise InvalidFormatError()
 

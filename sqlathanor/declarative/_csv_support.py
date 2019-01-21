@@ -19,7 +19,10 @@ class CSVSupportMixin(object):
     """Mixin that provides CSV serialization/de-serialization support."""
 
     @classmethod
-    def get_csv_column_names(cls, deserialize = True, serialize = True):
+    def get_csv_column_names(cls,
+                             deserialize = True,
+                             serialize = True,
+                             config_set = None):
         """Retrieve a list of CSV column names.
 
         :param deserialize: If ``True``, returns columns that support
@@ -34,11 +37,16 @@ class CSVSupportMixin(object):
           serialization into account. Defaults to ``True``.
         :type serialize: :class:`bool <python:bool>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: List of CSV column names, sorted according to their configuration.
         :rtype: :class:`list <python:list>` of :class:`str <python:str>`
         """
         config = cls.get_csv_serialization_config(deserialize = deserialize,
-                                                  serialize = serialize)
+                                                  serialize = serialize,
+                                                  config_set = config_set)
         return [x.name for x in config]
 
     @classmethod
@@ -129,7 +137,8 @@ class CSVSupportMixin(object):
                                 wrapper_character = "'",
                                 double_wrapper_character_when_nested = False,
                                 escape_character = "\\",
-                                line_terminator = '\r\n'):
+                                line_terminator = '\r\n',
+                                config_set = None):
         r"""Return the CSV representation of ``attributes`` extracted from the
         model instance (record).
 
@@ -172,6 +181,10 @@ class CSVSupportMixin(object):
           Defaults to ``\r\n``.
         :type line_terminator: :class:`str <python:str>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: Data from the object in CSV format ending in ``line_terminator``.
         :rtype: :class:`str <python:str>`
         """
@@ -201,7 +214,8 @@ class CSVSupportMixin(object):
         for item in attributes:
             try:
                 value = self._get_serialized_value(format = 'csv',
-                                                   attribute = item)
+                                                   attribute = item,
+                                                   config_set = config_set)
             except UnsupportedSerializationError as error:
                 if is_dumping:
                     value = getattr(self, item)
@@ -244,7 +258,8 @@ class CSVSupportMixin(object):
                        wrapper_character = "'",
                        double_wrapper_character_when_nested = False,
                        escape_character = "\\",
-                       line_terminator = '\r\n'):
+                       line_terminator = '\r\n',
+                       config_set = None):
         r"""Retrieve a header string for a CSV representation of the model.
 
         :param attributes: List of :term:`model attributes <model attribute>` to
@@ -286,6 +301,10 @@ class CSVSupportMixin(object):
           Defaults to ``\r\n``.
         :type line_terminator: :class:`str <python:str>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: A string ending in ``line_terminator`` with the model's CSV column names
           listed, separated by the ``delimiter``.
         :rtype: :class:`str <python:str>`
@@ -293,7 +312,8 @@ class CSVSupportMixin(object):
         # pylint: disable=line-too-long
 
         column_names = cls.get_csv_column_names(deserialize = deserialize,
-                                                serialize = serialize)
+                                                serialize = serialize,
+                                                config_set = config_set)
 
         header_string = cls._get_attribute_csv_header(column_names,
                                                       delimiter = delimiter,
@@ -311,7 +331,8 @@ class CSVSupportMixin(object):
                      wrapper_character = "'",
                      double_wrapper_character_when_nested = False,
                      escape_character = "\\",
-                     line_terminator = '\r\n'):
+                     line_terminator = '\r\n',
+                     config_set = None):
         r"""Return the CSV representation of the model instance (record).
 
         :param delimiter: The delimiter used between columns. Defaults to ``|``.
@@ -344,13 +365,18 @@ class CSVSupportMixin(object):
           Defaults to ``\r\n``.
         :type line_terminator: :class:`str <python:str>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: Data from the object in CSV format ending in ``line_terminator``.
         :rtype: :class:`str <python:str>`
         """
         # pylint: disable=line-too-long
         csv_column_names = [x
                             for x in self.get_csv_column_names(deserialize = None,
-                                                               serialize = True)
+                                                               serialize = True,
+                                                               config_set = config_set)
                             if hasattr(self, x)]
 
         if not csv_column_names:
@@ -364,7 +390,8 @@ class CSVSupportMixin(object):
                                                 wrapper_character = wrapper_character,
                                                 double_wrapper_character_when_nested = double_wrapper_character_when_nested,
                                                 escape_character = escape_character,
-                                                line_terminator = line_terminator)
+                                                line_terminator = line_terminator,
+                                                config_set = config_set)
 
         return data_row
 
@@ -376,7 +403,8 @@ class CSVSupportMixin(object):
                wrapper_character = "'",
                double_wrapper_character_when_nested = False,
                escape_character = "\\",
-               line_terminator = '\r\n'):
+               line_terminator = '\r\n',
+               config_set = None):
         r"""Retrieve a CSV string with the object's data.
 
         :param include_header: If ``True``, will include a header row with column
@@ -413,18 +441,24 @@ class CSVSupportMixin(object):
           Defaults to ``\r\n``.
         :type line_terminator: :class:`str <python:str>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: Data from the object in CSV format ending in a newline (``\n``).
         :rtype: :class:`str <python:str>`
         """
         if include_header:
-            return self.get_csv_header(delimiter = delimiter) + \
+            return self.get_csv_header(delimiter = delimiter,
+                                       config_set = config_set) + \
                    self.get_csv_data(delimiter = delimiter,
                                      wrap_all_strings = wrap_all_strings,
                                      null_text = null_text,
                                      wrapper_character = wrapper_character,
                                      double_wrapper_character_when_nested = double_wrapper_character_when_nested,     # pylint: disable=line-too-long
                                      escape_character = escape_character,
-                                     line_terminator = line_terminator)
+                                     line_terminator = line_terminator,
+                                     config_set = config_set)
 
 
         return self.get_csv_data(delimiter = delimiter,
@@ -433,7 +467,8 @@ class CSVSupportMixin(object):
                                  wrapper_character = wrapper_character,
                                  double_wrapper_character_when_nested = double_wrapper_character_when_nested,     # pylint: disable=line-too-long
                                  escape_character = escape_character,
-                                 line_terminator = line_terminator)
+                                 line_terminator = line_terminator,
+                                 config_set = config_set)
 
     @classmethod
     def _parse_csv(cls,
@@ -444,7 +479,8 @@ class CSVSupportMixin(object):
                    wrapper_character = "'",
                    double_wrapper_character_when_nested = False,
                    escape_character = "\\",
-                   line_terminator = '\r\n'):
+                   line_terminator = '\r\n',
+                   config_set = None):
         """Generate a :class:`dict <python:dict>` from a CSV record.
 
         .. tip::
@@ -466,6 +502,10 @@ class CSVSupportMixin(object):
         :param null_text: The string used to indicate an empty value if empty
           values are wrapped. Defaults to `None`.
         :type null_text: :class:`str <python:str>`
+
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: A :class:`dict <python:dict>` representation of the CSV record.
         :rtype: :class:`dict <python:dict>`
@@ -506,7 +546,8 @@ class CSVSupportMixin(object):
 
         csv_column_names = [x
                             for x in cls.get_csv_column_names(deserialize = True,
-                                                              serialize = None)
+                                                              serialize = None,
+                                                              config_set = config_set)
                             if hasattr(cls, x)]
 
         csv_reader = csv.DictReader([csv_data],
@@ -536,7 +577,8 @@ class CSVSupportMixin(object):
 
             deserialized_value = cls._get_deserialized_value(data[key],
                                                              'csv',
-                                                             key)
+                                                             key,
+                                                             config_set = config_set)
 
             data[key] = deserialized_value
 
@@ -552,7 +594,8 @@ class CSVSupportMixin(object):
                         wrapper_character = "'",
                         double_wrapper_character_when_nested = False,
                         escape_character = "\\",
-                        line_terminator = '\r\n'):
+                        line_terminator = '\r\n',
+                        config_set = None):
         """Update the model instance from a CSV record.
 
         .. tip::
@@ -577,6 +620,10 @@ class CSVSupportMixin(object):
           values are wrapped. Defaults to `None`.
         :type null_text: :class:`str <python:str>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :raises DeserializationError: if ``csv_data`` is not a valid
           :class:`str <python:str>`
         :raises CSVStructureError: if the columns in ``csv_data`` do not match
@@ -596,7 +643,8 @@ class CSVSupportMixin(object):
                                wrapper_character = wrapper_character,
                                double_wrapper_character_when_nested = double_wrapper_character_when_nested,
                                escape_character = escape_character,
-                               line_terminator = line_terminator)
+                               line_terminator = line_terminator,
+                               config_set = config_set)
 
         for key in data:
             setattr(self, key, data[key])
@@ -610,7 +658,8 @@ class CSVSupportMixin(object):
                      wrapper_character = "'",
                      double_wrapper_character_when_nested = False,
                      escape_character = "\\",
-                     line_terminator = '\r\n'):
+                     line_terminator = '\r\n',
+                     config_set = None):
         """Create a new model instance from a CSV record.
 
         .. tip::
@@ -635,6 +684,10 @@ class CSVSupportMixin(object):
           values are wrapped. Defaults to `None`.
         :type null_text: :class:`str <python:str>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: A :term:`model instance` created from the record.
         :rtype: model instance
 
@@ -657,7 +710,8 @@ class CSVSupportMixin(object):
                               wrapper_character = wrapper_character,
                               double_wrapper_character_when_nested = double_wrapper_character_when_nested,
                               escape_character = escape_character,
-                              line_terminator = line_terminator)
+                              line_terminator = line_terminator,
+                              config_set = config_set)
 
         return cls(**data)
 
@@ -669,7 +723,8 @@ class CSVSupportMixin(object):
                     wrapper_character = "'",
                     double_wrapper_character_when_nested = False,
                     escape_character = "\\",
-                    line_terminator = '\r\n'):
+                    line_terminator = '\r\n',
+                    config_set = None):
         r"""Retrieve a :term:`CSV <Comma-Separated Value (CSV)>` representation of
         the object, *with all attributes* serialized regardless of configuration.
 
@@ -713,6 +768,10 @@ class CSVSupportMixin(object):
           Defaults to ``\r\n``.
         :type line_terminator: :class:`str <python:str>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          to use. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: Data from the object in CSV format ending in a newline (``\n``).
         :rtype: :class:`str <python:str>`
         """
@@ -737,7 +796,8 @@ class CSVSupportMixin(object):
                                                 wrapper_character = wrapper_character,
                                                 double_wrapper_character_when_nested = double_wrapper_character_when_nested,
                                                 escape_character = escape_character,
-                                                line_terminator = line_terminator)
+                                                line_terminator = line_terminator,
+                                                config_set = config_set)
 
 
         return self._get_attribute_csv_data(attributes,
@@ -748,4 +808,5 @@ class CSVSupportMixin(object):
                                             wrapper_character = wrapper_character,
                                             double_wrapper_character_when_nested = double_wrapper_character_when_nested,
                                             escape_character = escape_character,
-                                            line_terminator = line_terminator)
+                                            line_terminator = line_terminator,
+                                            config_set = config_set)

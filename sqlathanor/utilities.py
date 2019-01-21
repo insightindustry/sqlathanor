@@ -194,7 +194,8 @@ def iterable__to_dict(iterable,
                       format,
                       max_nesting = 0,
                       current_nesting = 0,
-                      is_dumping = False):
+                      is_dumping = False,
+                      config_set = None):
     """Given an iterable, traverse it and execute ``_to_dict()`` if present.
 
     :param iterable: An iterable to traverse.
@@ -217,6 +218,10 @@ def iterable__to_dict(iterable,
 
     :param is_dumping: If ``True``, returns all attributes. Defaults to ``False``.
     :type is_dumping: :class:`bool <python:bool>`
+
+    :param config_set: If not :obj:`None <python:None>`, the named configuration set
+      to use when processing the input. Defaults to :obj:`None <python:None>`.
+    :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
     :returns: Collection of values, possibly converted to :class:`dict <python:dict>`
       objects.
@@ -251,14 +256,16 @@ def iterable__to_dict(iterable,
             new_item = item._to_dict(format,
                                      max_nesting = max_nesting,
                                      current_nesting = next_nesting,
-                                     is_dumping = is_dumping)
+                                     is_dumping = is_dumping,
+                                     config_set = config_set)
         except AttributeError:
             try:
                 new_item = iterable__to_dict(item,
                                              format,
                                              max_nesting = max_nesting,
                                              current_nesting = next_nesting,
-                                             is_dumping = is_dumping)
+                                             is_dumping = is_dumping,
+                                             config_set = config_set)
             except NotAnIterableError:
                 new_item = item
 
