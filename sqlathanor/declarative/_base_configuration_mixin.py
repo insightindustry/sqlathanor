@@ -11,7 +11,7 @@ from validator_collection import checkers
 
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config, \
     BLANK_ON_SERIALIZE
-from sqlathanor.errors import UnsupportedSerializationError
+from sqlathanor.errors import ConfigurationError, UnsupportedSerializationError
 
 
 class ConfigurationMixin(object):
@@ -236,14 +236,17 @@ class ConfigurationMixin(object):
                                           from_yaml = None,
                                           to_yaml = None,
                                           from_dict = None,
-                                          to_dict = None):
-        """Retrieve a list of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` objects corresponding
-        to attributes whose values can be serialized from/to CSV, JSON, YAML, etc.
+                                          to_dict = None,
+                                          config_set = None):
+        """Retrieve a list of
+        :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+        objects corresponding to attributes whose values can be serialized from/to CSV,
+        JSON, YAML, etc.
 
         .. note::
 
           This method operates *solely* on attribute configurations that have been
-          provided in the meta override ``__<format>_support__`` attribute.
+          provided in the meta override ``__serialization__`` attribute.
 
         :param from_csv: If ``True``, includes attribute names that **can** be
           de-serialized from CSV strings. If ``False``, includes attribute names
@@ -303,79 +306,106 @@ class ConfigurationMixin(object):
           based on other parameters). Defaults to :obj:`None <python:None>`.
         :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
+        :param config_set: If not :obj:`None <python:None>`, will return those
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+          objects that are contained within the named set. Defaults to
+          :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: List of attribute configurations.
         :rtype: :class:`list <python:list>` of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
 
+        :raises ConfigurationError: if ``config_set`` is not empty and there are no
+          configuration sets defined on ``cls`` or if there are configuration sets defined
+          but no ``config_set`` is specified
+        :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
+
         """
+        if config_set and not isinstance(cls.__serialization__, dict):
+            raise ConfigurationError('__serialization__ is not a dict and therefore no '
+                                     'config_set can be found')
+        elif not config_set and isinstance(cls.__serialization__, dict):
+            raise ConfigurationError('configuration sets defined but no config_set '
+                                     ' specified')
+
+        if config_set and config_set not in cls.__serialization__:
+            raise ValueError('config set (%s) not found in __serialization__ '
+                             ' configuration' % config_set)
+
         attributes = []
 
+        if not config_set:
+            __serialization__ = [x for x in cls.__serialization__]
+        else:
+            __serialization__ = [x for x in cls.__serialization__[config_set]]
+
         if from_csv is not None and to_csv is None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_csv[0] == bool(from_csv) and \
                                   x not in attributes
                               ])
         if to_csv is not None and from_csv is None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_csv[1] == bool(to_csv) and \
                                   x not in attributes
                               ])
 
         if from_csv is not None and to_csv is not None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_csv[0] == bool(from_csv) and \
                                   x.supports_csv[1] == bool(to_csv) and \
                                   x not in attributes
                               ])
 
         if from_json is not None and to_json is None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_json[0] == bool(from_json) and \
                                   x not in attributes
                               ])
         if to_json is not None and from_json is None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_json[1] == bool(to_json) and \
                                   x not in attributes
                               ])
 
         if from_json is not None and to_json is not None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_json[0] == bool(from_json) and \
                                   x.supports_json[1] == bool(to_json) and \
                                   x not in attributes
                               ])
 
         if from_yaml is not None and to_yaml is None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_yaml[0] == bool(from_yaml) and \
                                   x not in attributes
                               ])
         if to_yaml is not None and from_yaml is None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_yaml[1] == bool(to_yaml) and \
                                   x not in attributes
                               ])
 
         if from_yaml is not None and to_yaml is not None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_yaml[0] == bool(from_yaml) and \
                                   x.supports_yaml[1] == bool(to_yaml) and \
                                   x not in attributes
                               ])
 
         if from_dict is not None and to_dict is None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_dict[0] == bool(from_dict) and \
                                   x not in attributes
                               ])
         if to_dict is not None and from_dict is None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_dict[1] == bool(to_dict) and \
                                   x not in attributes
                               ])
 
         if from_dict is not None and to_dict is not None:
-            attributes.extend([x for x in cls.__serialization__
+            attributes.extend([x for x in __serialization__
                                if x.supports_dict[0] == bool(from_dict) and \
                                   x.supports_dict[1] == bool(to_dict) and \
                                   x not in attributes
@@ -384,9 +414,39 @@ class ConfigurationMixin(object):
         return attributes
 
     @classmethod
-    def _get_attribute_configurations(cls):
-        """Retrieve a list of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` applied to the class."""
-        attributes = [x for x in cls.__serialization__]
+    def _get_attribute_configurations(cls, config_set = None):
+        """Retrieve a list of
+        :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+        applied to the class.
+
+        :param config_set: If not :obj:`None <python:None>`, will return those
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+          objects that are contained within the named set. Defaults to
+          :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
+        :raises ConfigurationError: if ``config_set`` is not empty and there are no
+          configuration sets defined on ``cls`` or if there are configuration sets defined
+          but no ``config_set`` is specified
+        :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
+
+        """
+        if config_set and not isinstance(cls.__serialization__, dict):
+            raise ConfigurationError('__serialization__ is not a dict and therefore no '
+                                     'config_set can be found')
+        elif not config_set and isinstance(cls.__serialization__, dict):
+            raise ConfigurationError('configuration sets defined but no config_set '
+                                     ' specified')
+
+        if config_set and config_set not in cls.__serialization__:
+            raise ValueError('config set (%s) not found in __serialization__ '
+                             ' configuration' % config_set)
+
+        if not config_set:
+            attributes = [x for x in cls.__serialization__]
+        else:
+            attributes = [x for x in cls.__serialization__[config_set]]
+
         attributes.extend([x
                            for x in cls._get_declarative_serializable_attributes(
                                from_csv = True,
@@ -417,7 +477,8 @@ class ConfigurationMixin(object):
                                  to_yaml = None,
                                  from_dict = None,
                                  to_dict = None,
-                                 exclude_private = True):
+                                 exclude_private = True,
+                                 config_set = None):
         """Retrieve a list of
         :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         objects corresponding to attributes whose values can be serialized
@@ -485,10 +546,38 @@ class ConfigurationMixin(object):
           names begin with a single underscore. Defaults to ``True``.
         :type exclude_private: :class:`bool <python:bool>`
 
+        :param config_set: If not :obj:`None <python:None>`, will return those
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+          objects that are contained within the named set. Defaults to
+          :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: List of attribute configurations.
-        :rtype: :class:`list <python:list>` of :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+        :rtype: :class:`list <python:list>` of
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+
+        :raises ConfigurationError: if ``cls`` does not use named configuration sets but
+          ``config_set`` is not :obj:`None <python:None>`
+        :raises ConfigurationError: if ``cls`` uses named configuration sets but
+          ``config_set`` is empty
+        :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
 
         """
+        if config_set and not isinstance(cls.__serialization__, dict):
+            raise ConfigurationError('object does not use named configuration sets, '
+                                     'but config_set is not None')
+        elif not config_set and isinstance(cls.__serialization__, dict):
+            raise ConfigurationError('configuration sets defined but config_set is empty')
+
+        if config_set and config_set not in cls.__serialization__:
+            raise ValueError('config set (%s) not found in __serialization__ '
+                             ' configuration' % config_set)
+
+        if config_set:
+            __serialization__ = [x for x in cls.__serialization__[config_set]]
+        else:
+            __serialization__ = [x for x in cls.__serialization__]
+
         declarative_attributes = cls._get_declarative_serializable_attributes(
             from_csv = from_csv,
             to_csv = to_csv,
@@ -509,16 +598,19 @@ class ConfigurationMixin(object):
             to_yaml = to_yaml,
             from_dict = from_dict,
             to_dict = to_dict,
+            config_set = config_set
         )
 
         attributes = [x for x in meta_attributes]
         attributes.extend([x for x in declarative_attributes
-                           if x not in attributes and x not in cls.__serialization__])
+                           if x not in attributes and x not in __serialization__])
 
         return attributes
 
     @classmethod
-    def get_attribute_serialization_config(cls, attribute):
+    def get_attribute_serialization_config(cls,
+                                           attribute,
+                                           config_set = None):
         """Retrieve the
         :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         for ``attribute``.
@@ -527,13 +619,24 @@ class ConfigurationMixin(object):
           configuration should be returned.
         :type attribute: :class:`str <python:str>`
 
+        :param config_set: If not :obj:`None <python:None>`, will return the
+          :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+          object for ``attribute`` that is contained within the named set. Defaults to
+          :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: The
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
           for ``attribute``.
         :rtype: :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
 
+        :raises ConfigurationError: if ``config_set`` is not empty and there are no
+          configuration sets defined on ``cls`` or if there are configuration sets defined
+          but no ``config_set`` is specified
+        :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
+
         """
-        attributes = cls._get_attribute_configurations()
+        attributes = cls._get_attribute_configurations(config_set = config_set)
 
         for config in attributes:
             if config.name == attribute:
@@ -551,7 +654,8 @@ class ConfigurationMixin(object):
                                            supports_yaml = None,
                                            supports_dict = None,
                                            on_deserialize = None,
-                                           on_serialize = None):
+                                           on_serialize = None,
+                                           config_set = None):
         """Set the serialization/de-serialization configuration for ``attribute``.
 
         .. note::
@@ -757,12 +861,33 @@ class ConfigurationMixin(object):
         :type csv_sequence: :class:`int <python:int>` / :obj:`None <python:None>` /
           ``False``
 
+        :raises ConfigurationError: if ``config_set`` is not empty and there are no
+          configuration sets defined on ``cls`` or if there are configuration sets defined
+          but no ``config_set`` is specified
+        :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
         :raises ValueError: if ``attribute`` does not match ``config.name`` if
           ``config`` is not :obj:`None <python:None>`
 
         """
         # pylint: disable=too-many-branches
-        original_config = cls.get_attribute_serialization_config(attribute)
+        if config_set and not isinstance(cls.__serialization__, dict):
+            raise ConfigurationError('__serialization__ is not a dict and therefore no '
+                                     'config_set can be found')
+        elif not config_set and isinstance(cls.__serialization__, dict):
+            raise ConfigurationError('configuration sets defined but no config_set '
+                                     ' specified')
+
+        if config_set and config_set not in cls.__serialization__:
+            raise ValueError('config set (%s) not found in __serialization__ '
+                             ' configuration' % config_set)
+
+        if config_set:
+            __serialization__ = [x for x in cls.__serialization__[config_set]]
+        else:
+            __serialization__ = [x for x in cls.__serialization__]
+
+        original_config = cls.get_attribute_serialization_config(attribute,
+                                                                 config_set = config_set)
         if original_config is None:
             original_config = AttributeConfiguration(name = attribute)
 
@@ -823,11 +948,14 @@ class ConfigurationMixin(object):
                                            BLANK_ON_SERIALIZE):
             new_config.on_serialize = original_config.on_serialize
 
-        serialization = [x for x in cls.__serialization__
+        serialization = [x for x in __serialization__
                          if x.name != attribute]
         serialization.append(new_config)
 
-        cls.__serialization__ = [x for x in serialization]
+        if config_set:
+            cls.__serialization__[config_set] = [x for x in serialization]
+        else:
+            cls.__serialization__ = [x for x in serialization]
 
     @classmethod
     def configure_serialization(cls,
@@ -838,7 +966,8 @@ class ConfigurationMixin(object):
                                 supports_yaml = False,
                                 supports_dict = False,
                                 on_serialize = None,
-                                on_deserialize = None):
+                                on_deserialize = None,
+                                config_set = None):
         """Apply configuration settings to the :term:`model class` (overwrites
         entire configuration).
 
@@ -1024,6 +1153,13 @@ class ConfigurationMixin(object):
         :type on_serialize: callable / :class:`dict <python:dict>` with formats
           as keys and values as callables / :obj:`None <python:None>` / ``False``
 
+        :param config_set: If not :obj:`None <python:None>`, will apply ``configs`` to the
+          configuration set named. If the class does not use pre-existing configuration sets,
+          will switch the class' meta configuration to use configuration sets, with any
+          pre-existing configuration set assigned to a set named ``_original``. Defaults
+          to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         """
         config = validate_serialization_config(configs)
         config_attributes = [x.name for x in config]
@@ -1043,7 +1179,15 @@ class ConfigurationMixin(object):
 
         config.extend(attributes)
 
-        cls.__serialization__ = config
+        if not config_set and not isinstance(cls.__serialization__, dict):
+            cls.__serialization__ = [x for x in config]
+        elif config_set and isinstance(cls.__serialization__, dict):
+            cls.__serialization__[config_set] = [x for x in config]
+        elif config_set:
+            config_dict = {}
+            config_dict['_original'] = [x for x in cls.__serialization__]
+            config_dict[config_set] = [x for x in config]
+            cls.__serialization__ = config_dict
 
     @classmethod
     def does_support_serialization(cls,
@@ -1055,7 +1199,8 @@ class ConfigurationMixin(object):
                                    from_yaml = None,
                                    to_yaml = None,
                                    from_dict = None,
-                                   to_dict = None):
+                                   to_dict = None,
+                                   config_set = None):
         """Indicate whether ``attribute`` supports serialization/deserializtion.
 
         :param attribute: The name of the attribute whose serialization support
@@ -1120,6 +1265,11 @@ class ConfigurationMixin(object):
           based on other parameters). Defaults to :obj:`None <python:None>`.
         :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
+        :param config_set: If not :obj:`None <python:None>`, will determine serialization
+          support within the indicated configuration set. Defaults to
+          :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: ``True`` if the attribute's serialization support matches,
           ``False`` if not, and :obj:`None <python:None>` if no serialization support was
           specified.
@@ -1127,8 +1277,25 @@ class ConfigurationMixin(object):
 
         :raises UnsupportedSerializationError: if ``attribute`` is not present
           on the object
+        :raises ValueError: if ``config_set`` is not :obj:`None <python:None>` and
+          its value does not match a named configuration set
+        :raises ConfigurationError: if ``config_set`` is :obj:`None <python:None>` and the
+          object uses named configuration sets
+        :raises ConfigurationError: if the object does not use configuration sets but
+          ``config_set`` is not None
+
         """
         # pylint: disable=too-many-boolean-expressions,too-many-branches
+        if config_set and not isinstance(cls.__serialization__, dict):
+            raise ConfigurationError('object does not use configuration sets, but '
+                                     'config_set was not None')
+        elif not config_set and isinstance(cls.__serialization__, dict):
+            raise ConfigurationError('configuration sets defined but no config_set '
+                                     ' specified')
+
+        if config_set and config_set not in cls.__serialization__:
+            raise ValueError('config set (%s) not found in __serialization__ '
+                             ' configuration' % config_set)
 
         if from_csv is None and to_csv is None and \
            from_json is None and to_json is None and \
@@ -1136,7 +1303,8 @@ class ConfigurationMixin(object):
            from_dict is None and to_dict is None:
             return None
 
-        config = cls.get_attribute_serialization_config(attribute)
+        config = cls.get_attribute_serialization_config(attribute,
+                                                        config_set = config_set)
         if config is None:
             if inspect_.isclass(cls):
                 class_name = cls.__name__
@@ -1192,7 +1360,10 @@ class ConfigurationMixin(object):
         return csv_check and json_check and yaml_check and dict_check
 
     @classmethod
-    def get_csv_serialization_config(cls, deserialize = True, serialize = True):
+    def get_csv_serialization_config(cls,
+                                     deserialize = True,
+                                     serialize = True,
+                                     config_set = None):
         """Retrieve the CSV serialization configurations that apply for this object.
 
         :param deserialize: If ``True``, returns configurations for attributes that
@@ -1211,14 +1382,27 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          whose CSV serialization configuration should be returned. Defaults to
+          :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
         :rtype: :class:`list <python:list>` of
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+
+        :raises ConfigurationError: if ``cls`` does not use named configuration sets but
+          ``config_set`` is not :obj:`None <python:None>`
+        :raises ConfigurationError: if ``cls`` uses named configuration sets but
+          ``config_set`` is empty
+        :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
+
         """
         attributes = [x.copy()
                       for x in cls.get_serialization_config(from_csv = deserialize,
-                                                            to_csv = serialize)]
+                                                            to_csv = serialize,
+                                                            config_set = config_set)]
         for config in attributes:
             if config.csv_sequence is None:
                 config.csv_sequence = len(attributes) + 1
@@ -1226,7 +1410,10 @@ class ConfigurationMixin(object):
         return sorted(attributes, key = lambda x: (x.csv_sequence, x.name))
 
     @classmethod
-    def get_json_serialization_config(cls, deserialize = True, serialize = True):
+    def get_json_serialization_config(cls,
+                                      deserialize = True,
+                                      serialize = True,
+                                      config_set = None):
         """Retrieve the JSON serialization configurations that apply for this object.
 
         :param deserialize: If ``True``, returns configurations for attributes that
@@ -1245,16 +1432,25 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          whose serialization configuration should be returned. Defaults to
+          :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
         :rtype: :class:`list <python:list>` of
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         """
         return [x for x in cls.get_serialization_config(from_json = deserialize,
-                                                        to_json = serialize)]
+                                                        to_json = serialize,
+                                                        config_set = config_set)]
 
     @classmethod
-    def get_yaml_serialization_config(cls, deserialize = True, serialize = True):
+    def get_yaml_serialization_config(cls,
+                                      deserialize = True,
+                                      serialize = True,
+                                      config_set = None):
         """Retrieve the YAML serialization configurations that apply for this object.
 
         :param deserialize: If ``True``, returns configurations for attributes that
@@ -1273,6 +1469,11 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          whose serialization configuration should be returned. Defaults to
+          :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
         :rtype: :class:`list <python:list>` of
@@ -1280,10 +1481,14 @@ class ConfigurationMixin(object):
 
         """
         return [x for x in cls.get_serialization_config(from_yaml = deserialize,
-                                                        to_yaml = serialize)]
+                                                        to_yaml = serialize,
+                                                        config_set = config_set)]
 
     @classmethod
-    def get_dict_serialization_config(cls, deserialize = True, serialize = True):
+    def get_dict_serialization_config(cls,
+                                      deserialize = True,
+                                      serialize = True,
+                                      config_set = None):
         """Retrieve the :class:`dict <python:dict>` serialization configurations that
         apply for this object.
 
@@ -1303,10 +1508,16 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
+        :param config_set: If not :obj:`None <python:None>`, the named configuration set
+          whose serialization configuration should be returned. Defaults to
+          :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :returns: Set of attribute serialization configurations that match the
           arguments supplied.
         :rtype: :class:`list <python:list>` of
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         """
         return [x for x in cls.get_serialization_config(from_dict = deserialize,
-                                                        to_dict = serialize)]
+                                                        to_dict = serialize,
+                                                        config_set = config_set)]
