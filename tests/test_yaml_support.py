@@ -10,6 +10,8 @@ Tests for :term:`YAML` serialization/de-serialization support.
 """
 # pylint: disable=line-too-long
 
+from collections import OrderedDict
+
 import pytest
 
 import yaml
@@ -236,6 +238,9 @@ def test_update_from_yaml(request,
     as_dict = target.to_dict(max_nesting = 5,
                              current_nesting = 0)
 
+    if isinstance(as_dict, OrderedDict):
+        as_dict = dict(as_dict)
+
     as_dict['hybrid_value'] = hybrid_value
 
     if extra_keys:
@@ -297,6 +302,9 @@ def test_new_from_yaml(request,
 
     input_data = source.to_dict(max_nesting = 5,
                                 current_nesting = 0)
+
+    if isinstance(input_data, OrderedDict):
+        input_data = dict(input_data)
 
     input_data['hybrid_value'] = hybrid_value
 

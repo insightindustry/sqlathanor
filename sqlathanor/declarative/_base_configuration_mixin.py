@@ -6,9 +6,11 @@
 # there as needed.
 
 import inspect as inspect_
+from collections import OrderedDict
 
 from validator_collection import checkers
 
+from sqlathanor._compat import dict as dict_
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config, \
     BLANK_ON_SERIALIZE
 from sqlathanor.errors import ConfigurationError, UnsupportedSerializationError
@@ -321,10 +323,10 @@ class ConfigurationMixin(object):
         :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
 
         """
-        if config_set and not isinstance(cls.__serialization__, dict):
+        if config_set and not isinstance(cls.__serialization__, (dict, OrderedDict)):
             raise ConfigurationError('__serialization__ is not a dict and therefore no '
                                      'config_set can be found')
-        elif not config_set and isinstance(cls.__serialization__, dict):
+        elif not config_set and isinstance(cls.__serialization__, (dict, OrderedDict)):
             raise ConfigurationError('configuration sets defined but no config_set '
                                      ' specified')
 
@@ -431,10 +433,10 @@ class ConfigurationMixin(object):
         :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
 
         """
-        if config_set and not isinstance(cls.__serialization__, dict):
+        if config_set and not isinstance(cls.__serialization__, (dict, OrderedDict)):
             raise ConfigurationError('__serialization__ is not a dict and therefore no '
                                      'config_set can be found')
-        elif not config_set and isinstance(cls.__serialization__, dict):
+        elif not config_set and isinstance(cls.__serialization__, (dict, OrderedDict)):
             raise ConfigurationError('configuration sets defined but no config_set '
                                      ' specified')
 
@@ -563,10 +565,10 @@ class ConfigurationMixin(object):
         :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
 
         """
-        if config_set and not isinstance(cls.__serialization__, dict):
+        if config_set and not isinstance(cls.__serialization__, (dict, OrderedDict)):
             raise ConfigurationError('object does not use named configuration sets, '
                                      'but config_set is not None')
-        elif not config_set and isinstance(cls.__serialization__, dict):
+        elif not config_set and isinstance(cls.__serialization__, (dict, OrderedDict)):
             raise ConfigurationError('configuration sets defined but config_set is empty')
 
         if config_set and config_set not in cls.__serialization__:
@@ -872,10 +874,10 @@ class ConfigurationMixin(object):
 
         """
         # pylint: disable=too-many-branches
-        if config_set and not isinstance(cls.__serialization__, dict):
+        if config_set and not isinstance(cls.__serialization__, (dict, OrderedDict)):
             raise ConfigurationError('__serialization__ is not a dict and therefore no '
                                      'config_set can be found')
-        elif not config_set and isinstance(cls.__serialization__, dict):
+        elif not config_set and isinstance(cls.__serialization__, (dict, OrderedDict)):
             raise ConfigurationError('configuration sets defined but no config_set '
                                      ' specified')
 
@@ -1181,12 +1183,12 @@ class ConfigurationMixin(object):
 
         config.extend(attributes)
 
-        if not config_set and not isinstance(cls.__serialization__, dict):
+        if not config_set and not isinstance(cls.__serialization__, (dict, OrderedDict)):
             cls.__serialization__ = [x for x in config]
-        elif config_set and isinstance(cls.__serialization__, dict):
+        elif config_set and isinstance(cls.__serialization__, (dict, OrderedDict)):
             cls.__serialization__[config_set] = [x for x in config]
         elif config_set:
-            config_dict = {}
+            config_dict = dict_()
             config_dict['_original'] = [x for x in cls.__serialization__]
             config_dict[config_set] = [x for x in config]
             cls.__serialization__ = config_dict
@@ -1288,10 +1290,10 @@ class ConfigurationMixin(object):
 
         """
         # pylint: disable=too-many-boolean-expressions,too-many-branches
-        if config_set and not isinstance(cls.__serialization__, dict):
+        if config_set and not isinstance(cls.__serialization__, (dict, OrderedDict)):
             raise ConfigurationError('object does not use configuration sets, but '
                                      'config_set was not None')
-        elif not config_set and isinstance(cls.__serialization__, dict):
+        elif not config_set and isinstance(cls.__serialization__, (dict, OrderedDict)):
             raise ConfigurationError('configuration sets defined but no config_set '
                                      ' specified')
 
