@@ -206,8 +206,8 @@ def tables(request, db_engine):
         def hybrid_differentiated(self, value):
             self._hybrid = value
 
-        keywords_basic = association_proxy('keywords_basic',
-                                           'keyword')
+        #keywords_basic = association_proxy('keywords_basic',
+        #                                   'keyword')
 
     class UserKeyword(BaseModel):
         __tablename__ = 'user_keywords'
