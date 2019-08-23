@@ -8,6 +8,9 @@
 import inspect as inspect_
 from collections import OrderedDict
 
+from sqlalchemy.inspection import inspect
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.ext.associationproxy import AssociationProxy
 from validator_collection import checkers
 
 from sqlathanor._compat import dict as dict_
@@ -51,7 +54,15 @@ class ConfigurationMixin(object):
             if key.startswith('_') and not key.startswith('__') and not include_private:
                 continue
 
-            item = getattr(cls, key)
+            try:
+                item = getattr(cls, key)
+            except InvalidRequestError as error:
+                is_AssociationProxy = isinstance(inspect(cls).all_orm_descriptors[key], AssociationProxy)
+                if not is_AssociationProxy:
+                    raise error
+
+                item = None
+
             if checkers.is_callable(item) and exclude_methods:
                 continue
 
@@ -159,7 +170,14 @@ class ConfigurationMixin(object):
 
         attributes = []
         for key in instance_attributes:
-            value = getattr(cls, key)
+            try:
+                value = getattr(cls, key)
+            except InvalidRequestError as error:
+                value = inspect(cls).all_orm_descriptors[key]
+                is_AssociationProxy = isinstance(value, AssociationProxy)
+                if not is_AssociationProxy:
+                    raise error
+
             config = AttributeConfiguration(attribute = value)
             config.name = key
 
