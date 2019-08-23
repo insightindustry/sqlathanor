@@ -11,6 +11,7 @@ configuration data.
 """
 
 import pytest
+import datetime
 
 from tests.fixtures import db_engine, tables, base_model, db_session, \
     model_complex_postgresql, instance_postgresql
@@ -25,19 +26,22 @@ from sqlathanor.errors import InvalidFormatError, ValueDeserializationError, \
     ('hybrid', 'csv', 1, 1, None),
     ('smallint_column', 'csv', '2', 2, None),
     ('addresses', 'json', [], [], None),
+    ('time_delta', 'csv', 86400.0, datetime.timedelta(1), None),
     ('name', 'invalid', None, None, InvalidFormatError),
     ('missing', 'csv', None, None, UnsupportedDeserializationError),
     ('hidden', 'csv', None, None, UnsupportedDeserializationError),
     ('id', 'csv', 'invalid', None, ValueDeserializationError),
+    ('time_delta', 'csv', 'not-numeric', None, ValueDeserializationError),
+    ('time_delta', 'json', 86400.0, None, UnsupportedDeserializationError),
 
 ])
-def test__get_serialized_value(request,
-                               instance_postgresql,
-                               attribute,
-                               format,
-                               input_value,
-                               expected_result,
-                               error):
+def test__get_deserialized_value(request,
+                                 instance_postgresql,
+                                 attribute,
+                                 format,
+                                 input_value,
+                                 expected_result,
+                                 error):
     target = instance_postgresql[0][0]
 
     if not error:

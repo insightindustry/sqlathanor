@@ -11,6 +11,7 @@ Tests for :class:`dict <python:dict>` serialization/de-serialization support.
 # pylint: disable=line-too-long,protected-access
 
 import pytest
+import datetime
 
 from validator_collection import checkers
 
@@ -39,7 +40,7 @@ from sqlathanor.utilities import are_dicts_equivalent
     (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': 'test value' }, None, None),
     (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': 'test value' }, MaximumNestingExceededWarning, None),
     (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': 'test value' }, MaximumNestingExceededWarning, None),
-    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'serialized', 'smallint_column': 2, 'hybrid_value': 'test value' }, None, None),
+    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'serialized', 'smallint_column': 2, 'hybrid_value': 'test value', 'time_delta': 86400.0 }, None, None),
 
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, None),
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'json', 0, 0, { 'id': 1, 'name': 'serialized', 'hybrid_value': { 'nested_key': 'test', 'nested_key2': 'test2' } }, MaximumNestingExceededWarning, None),
@@ -121,17 +122,17 @@ def test__to_dict(request,
     (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, None, True, False, None, None),
     (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, None, True, False, MaximumNestingExceededWarning, None),
     (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, None, True, False, MaximumNestingExceededWarning, None),
-    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value' }, None, True, False, None, None),
+    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', 'time_delta': datetime.timedelta(1) }, None, True, False, None, None),
 
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, None, None),
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'json', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, MaximumNestingExceededWarning, None),
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'yaml', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, MaximumNestingExceededWarning, None),
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2 }, None, True, False, None, ValueSerializationError),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'time_delta': datetime.timedelta(1) }, None, True, False, None, ValueSerializationError),
 
     (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 'dict', 1, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': [{ 'nested_key': 'test', 'nested_key2': 'test2' }] }, None, True, False, None, None),
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'json', 1, 0, { 'id': 1, 'name': 'deserialized', 'addresses': [], 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, None, None),
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'yaml', 1, 0, { 'id': 1, 'name': 'deserialized', 'addresses': [], 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, None, None),
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 1, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, None, ValueSerializationError),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 1, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' }, 'time_delta': datetime.timedelta(1) }, None, True, False, None, ValueSerializationError),
 
     (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' } }, None, True, False, None, None),
     (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' } }, None, True, False, None, None),
@@ -140,19 +141,19 @@ def test__to_dict(request,
     (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, { 'extra': 'test' }, True, False, None, ExtraKeyError),
     (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, { 'extra': 'test' }, True, False, MaximumNestingExceededWarning, ExtraKeyError),
     (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, { 'extra': 'test' }, True, False, MaximumNestingExceededWarning, ExtraKeyError),
-    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value' }, { 'extra': 'test' }, True, False, None, ExtraKeyError),
+    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', 'time_delta': datetime.timedelta(1) }, { 'extra': 'test' }, True, False, None, ExtraKeyError),
 
     # Include Extra Keys in result
     (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', 'extra': 'test' }, { 'extra': 'test' }, False, False, None, None),
     (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', 'extra': 'test' }, { 'extra': 'test' }, False, False, MaximumNestingExceededWarning, None),
     (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', 'extra': 'test' }, { 'extra': 'test' }, False, False, MaximumNestingExceededWarning, None),
-    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', 'extra': 'test' }, { 'extra': 'test' }, False, False, None, None),
+    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', 'extra': 'test', 'time_delta': datetime.timedelta(1) }, { 'extra': 'test' }, False, False, None, None),
 
     # Exclude Extra Keys from result
     (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', }, { 'extra': 'test' }, False, True, None, None),
     (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', }, { 'extra': 'test' }, False, True, MaximumNestingExceededWarning, None),
     (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', }, { 'extra': 'test' }, False, True, MaximumNestingExceededWarning, None),
-    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', }, { 'extra': 'test' }, False, True, None, None),
+    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', 'time_delta': datetime.timedelta(1) }, { 'extra': 'test' }, False, True, None, None),
 
 ])
 def test_model__parse_dict(request,
@@ -256,17 +257,17 @@ def test_model__parse_dict(request,
     (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, None, True, False, None, None),
     (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, None, True, False, MaximumNestingExceededWarning, None),
     (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, None, True, False, MaximumNestingExceededWarning, None),
-    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value' }, None, True, False, None, None),
+    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', 'time_delta': datetime.timedelta(1) }, None, True, False, None, None),
 
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, None, None),
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'json', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, MaximumNestingExceededWarning, None),
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'yaml', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, MaximumNestingExceededWarning, None),
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2 }, None, True, False, None, ValueSerializationError),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'time_delta': datetime.timedelta(1) }, None, True, False, None, ValueSerializationError),
 
     (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 'dict', 1, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': [{ 'nested_key': 'test', 'nested_key2': 'test2' }] }, None, True, False, None, None),
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'json', 1, 0, { 'id': 1, 'name': 'deserialized', 'addresses': [], 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, None, None),
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'yaml', 1, 0, { 'id': 1, 'name': 'deserialized', 'addresses': [], 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, None, None),
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 1, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' } }, None, True, False, None, ValueSerializationError),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 'csv', 1, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': { 'nested_key': 'test', 'nested_key2': 'test2' }, 'time_delta': datetime.timedelta(1) }, None, True, False, None, ValueSerializationError),
 
     (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' } }, None, True, False, None, None),
     (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' } }, None, True, False, None, None),
@@ -275,19 +276,19 @@ def test_model__parse_dict(request,
     (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, { 'extra': 'test' }, True, False, None, ExtraKeyError),
     (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, { 'extra': 'test' }, True, False, MaximumNestingExceededWarning, ExtraKeyError),
     (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value' }, { 'extra': 'test' }, True, False, MaximumNestingExceededWarning, ExtraKeyError),
-    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value' }, { 'extra': 'test' }, True, False, None, ExtraKeyError),
+    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', 'time_delta': datetime.timedelta(1) }, { 'extra': 'test' }, True, False, None, ExtraKeyError),
 
     # Include Extra Keys in result
     (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', 'extra': 'test' }, { 'extra': 'test' }, False, False, None, None),
     (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', 'extra': 'test' }, { 'extra': 'test' }, False, False, MaximumNestingExceededWarning, None),
     (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', 'extra': 'test' }, { 'extra': 'test' }, False, False, MaximumNestingExceededWarning, None),
-    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', 'extra': 'test' }, { 'extra': 'test' }, False, False, None, None),
+    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', 'extra': 'test', 'time_delta': datetime.timedelta(1) }, { 'extra': 'test' }, False, False, None, None),
 
     # Exclude Extra Keys from result
     (True, 'test value', 'dict', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', }, { 'extra': 'test' }, False, True, None, None),
     (True, 'test value', 'json', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', }, { 'extra': 'test' }, False, True, MaximumNestingExceededWarning, None),
     (True, 'test value', 'yaml', 0, 0, { 'id': 1, 'name': 'deserialized', 'hybrid': 'test value', }, { 'extra': 'test' }, False, True, MaximumNestingExceededWarning, None),
-    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', }, { 'extra': 'test' }, False, True, None, None),
+    (True, 'test value', 'csv', 0, 0, { 'id': 1, 'name': 'deserialized', 'smallint_column': 2, 'hybrid': 'test value', 'time_delta': datetime.timedelta(1) }, { 'extra': 'test' }, False, True, None, None),
 
 ])
 def test_instance__parse_dict(request,
@@ -449,14 +450,14 @@ def test_to_dict(request,
 
     (False, None, 0, 3, None, None, MaximumNestingExceededError),
 
-    (True, 'test value', 0, 0, {'_hybrid': 1, 'hidden': 'hidden value', 'hybrid': 'test value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2}, MaximumNestingExceededWarning, None),
+    (True, 'test value', 0, 0, {'_hybrid': 1, 'hidden': 'hidden value', 'hybrid': 'test value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2, 'time_delta': datetime.timedelta(1)}, MaximumNestingExceededWarning, None),
 
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, MaximumNestingExceededWarning, None),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2, 'time_delta': datetime.timedelta(1) }, MaximumNestingExceededWarning, None),
 
-    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, { '_hybrid': 1, 'addresses': [], 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, None, None),
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, { '_hybrid': 1, 'addresses': [], 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2, 'time_delta': datetime.timedelta(1) }, None, None),
 
-    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, MaximumNestingExceededWarning, None),
-    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2 }, MaximumNestingExceededWarning, None),
+    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2, 'time_delta': datetime.timedelta(1) }, MaximumNestingExceededWarning, None),
+    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, { '_hybrid': 1, 'hidden': 'hidden value', 'hybrid_differentiated': 1, 'id': 1, 'name': 'serialized', 'password': 'test_password', 'smallint_column': 2, 'time_delta': datetime.timedelta(1) }, MaximumNestingExceededWarning, None),
 
 ])
 def test_dump_to_dict(request,
