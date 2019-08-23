@@ -15,7 +15,7 @@ from sqlathanor.utilities import format_to_tuple, get_class_type_key, \
     raise_UnsupportedSerializationError, raise_UnsupportedDeserializationError
 from sqlathanor.errors import UnsupportedValueTypeError
 
-from sqlalchemy.types import Boolean, Date, DateTime, Float, Integer, Text, Time
+from sqlalchemy.types import Boolean, Date, DateTime, Float, Integer, Text, Time, Interval
 
 DEFAULT_PYTHON_SQL_TYPE_MAPPING = {
     'bool': Boolean,
@@ -24,7 +24,8 @@ DEFAULT_PYTHON_SQL_TYPE_MAPPING = {
     'float': Float,
     'datetime': DateTime,
     'date': Date,
-    'time': Time
+    'time': Time,
+    'timedelta': Interval
 }
 
 def get_default_deserializer(class_attribute = None,
@@ -84,6 +85,9 @@ def from_date(value):
     return validators.date(value, allow_empty = True)
 
 def from_datetime(value):
+    if checkers.is_numeric(value):
+        return from_timedelta(value)
+
     return validators.datetime(value, allow_empty = True)
 
 def from_time(value):
@@ -161,6 +165,8 @@ def get_type_mapping(value,
            - :class:`DateTime <sqlalchemy:sqlalchemy.types.DateTime>`
          * - ``time``
            - :class:`Time <sqlalchemy:sqlalchemy.types.Time>`
+         * - ``timedelta``
+           - :class:`Interval <sqlalchemy:sqlalchemy.types.Interval>`
 
     :type type_mapping: :class:`dict <python:dict>` with type names as keys and
       column data types as values / :obj:`None <python:None>`
