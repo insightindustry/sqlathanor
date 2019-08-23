@@ -55,7 +55,8 @@ def empty_string(value):
 
 def to_str(value):
     value = validators.string(value,
-                              allow_empty = True)
+                              allow_empty = True,
+                              coerce_value = True)
 
     return value
 
