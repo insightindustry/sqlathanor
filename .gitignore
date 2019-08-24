@@ -96,6 +96,7 @@ venv/
 .python37
 .python36
 .python27
+.sqlalchemy137
 .clean
 ENV/
 .activate.ps1

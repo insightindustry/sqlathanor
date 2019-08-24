@@ -10,7 +10,7 @@ import warnings
 from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
 
-from sqlathanor._compat import json
+from sqlathanor._compat import json, dict as dict_
 from sqlathanor.attributes import AttributeConfiguration
 from sqlathanor.utilities import iterable__to_dict, get_attribute_names
 from sqlathanor.errors import DeserializableAttributeError, DeserializationError, \
@@ -82,7 +82,7 @@ class DictSupportMixin(object):
         if not input_data or len(input_data.keys()) == 0:
             raise DeserializationError("input_data is empty")
 
-        dict_object = {}
+        dict_object = dict_()
 
         if format == 'csv':
             attribute_getter = cls.get_csv_serialization_config
@@ -195,7 +195,7 @@ class DictSupportMixin(object):
                                                                    max_nesting)
             )
 
-        dict_object = {}
+        dict_object = dict_()
 
         if format == 'csv':
             attribute_getter = self.get_csv_serialization_config
@@ -311,7 +311,8 @@ class DictSupportMixin(object):
                 max_nesting = 0,
                 current_nesting = 0,
                 config_set = None):
-        """Return a :class:`dict <python:dict>` representation of the object.
+        """Return a :class:`OrderedDict <python:collections.OrderedDict>` representation
+        of the object.
 
         :param max_nesting: The maximum number of levels that the resulting
           :class:`dict <python:dict>` object can be nested. If set to ``0``, will
@@ -326,8 +327,9 @@ class DictSupportMixin(object):
           to use when processing the input. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
-        :returns: A :class:`dict <python:dict>` representation of the object.
-        :rtype: :class:`dict <python:dict>`
+        :returns: A :class:`OrderedDict <python:collections.OrderedDict>` representation
+          of the object.
+        :rtype: :class:`OrderedDict <python:collections.OrderedDict>`
 
         :raises SerializableAttributeError: if attributes is empty
         :raises MaximumNestingExceededError: if ``current_nesting`` is greater
@@ -345,8 +347,8 @@ class DictSupportMixin(object):
                      max_nesting = 0,
                      current_nesting = 0,
                      config_set = None):
-        """Return a :class:`dict <python:dict>` representation of the object,
-        *with all attributes* regardless of configuration.
+        """Return a :class:`OrderedDict <python:collections.OrderedDict>` representation
+        of the object, *with all attributes* regardless of configuration.
 
         .. caution::
 
@@ -355,8 +357,8 @@ class DictSupportMixin(object):
           be serialized.
 
         :param max_nesting: The maximum number of levels that the resulting
-          :class:`dict <python:dict>` object can be nested. If set to ``0``, will
-          not nest other serializable objects. Defaults to ``0``.
+          :class:`OrderedDict <python:collections.OrderedDict>` object can be nested. If
+          set to ``0``, will not nest other serializable objects. Defaults to ``0``.
         :type max_nesting: :class:`int <python:int>`
 
         :param current_nesting: The current nesting level at which the
@@ -367,8 +369,9 @@ class DictSupportMixin(object):
           to use when processing the input. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
-        :returns: A :class:`dict <python:dict>` representation of the object.
-        :rtype: :class:`dict <python:dict>`
+        :returns: A :class:`OrderedDict <python:collections.OrderedDict>` representation
+          of the object.
+        :rtype: :class:`OrderedDict <python:collections.OrderedDict>`
 
         :raises SerializableAttributeError: if attributes is empty
         :raises MaximumNestingExceededError: if ``current_nesting`` is greater

@@ -10,13 +10,14 @@ Fixtures used by the SQLAthanor test suite.
 """
 import os
 import sqlite3
+import datetime
 
 import pytest
 
 from sqlathanor import BaseModel as Base
 from sqlathanor import Column, relationship, AttributeConfiguration
 
-from sqlalchemy import Integer, String, ForeignKey, create_engine, MetaData, Table
+from sqlalchemy import Integer, String, Interval, ForeignKey, create_engine, MetaData, Table
 from sqlalchemy.orm import clear_mappers, Session, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -206,8 +207,8 @@ def tables(request, db_engine):
         def hybrid_differentiated(self, value):
             self._hybrid = value
 
-        keywords_basic = association_proxy('keywords_basic',
-                                           'keyword')
+        #keywords_basic = association_proxy('keywords_basic',
+        #                                   'keyword')
 
     class UserKeyword(BaseModel):
         __tablename__ = 'user_keywords'
@@ -415,7 +416,12 @@ def tables(request, db_engine):
                                    csv_sequence = 3,
                                    supports_json = (True, False),
                                    supports_yaml = (True, False),
-                                   supports_dict = (True, False))
+                                   supports_dict = (True, False)),
+            AttributeConfiguration(name = 'time_delta',
+                                   supports_csv = True,
+                                   supports_json = False,
+                                   supports_yaml = False,
+                                   supports_dict = False)
         ]
 
         id = Column('id',
@@ -436,6 +442,9 @@ def tables(request, db_engine):
                                  csv_sequence = 4)
 
         _hybrid = 1
+
+        time_delta = Column('time_delta',
+                            Interval)
 
         @hybrid_property
         def hybrid(self):
@@ -664,7 +673,8 @@ def instance_postgresql(request, model_complex_postgresql):
         'name': 'test_username',
         'password': 'test_password',
         'hidden': 'hidden value',
-        'smallint_column': 2
+        'smallint_column': 2,
+        'time_delta': datetime.timedelta(1)
     }
     address_instance_values = {
         'id': 1,

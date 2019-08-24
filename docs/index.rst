@@ -156,11 +156,13 @@ Key SQLAthanor Features
   * CSV records
   * JSON objects
   * YAML objects
-  * :class:`dict <python:dict>` objects
+  * :class:`dict <python:dict>` objects (technically,
+    :class:`OrderedDict <python:collections.OrderedDict>` objects, but they
+    behave just like regular :class:`dict <python:dict>` objects)
 
 * With one method call, create or update SQLAlchemy model instances from:
 
-  * :class:`dict <python:dict>` objects
+  * :class:`dict <python:dict>` or :class:`OrderedDict <python:collections.OrderedDict>` objects
   * CSV records
   * JSON objects
   * YAML objects

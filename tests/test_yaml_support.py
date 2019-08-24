@@ -10,9 +10,15 @@ Tests for :term:`YAML` serialization/de-serialization support.
 """
 # pylint: disable=line-too-long
 
+from collections import OrderedDict
+
 import pytest
+import datetime
 
 import yaml
+from yaml.error import MarkedYAMLError, YAMLError
+from yaml.constructor import ConstructorError
+
 from validator_collection import checkers
 
 from tests.fixtures import db_engine, tables, base_model, db_session, \
@@ -25,6 +31,19 @@ from sqlathanor.errors import CSVStructureError, DeserializationError, \
     SerializableAttributeError, InvalidFormatError, ValueSerializationError, \
     ExtraKeyError
 from sqlathanor.utilities import are_dicts_equivalent
+
+def replace_timedelta(value):
+    try:
+        result = yaml.dump(value)
+    except TypeError:
+        for key in value:
+            if isinstance(value[key], datetime.timedelta):
+                value[key] = value[key].total_seconds()
+
+        result = yaml.dump(value)
+
+    return result
+
 
 @pytest.mark.parametrize('supports_serialization, hybrid_value, max_nesting, current_nesting, serialize_function, warning, error', [
     (False, None, 0, 0, None, None, SerializableAttributeError),
@@ -120,15 +139,27 @@ def test_to_yaml(request,
 
     (True, 'test value', 0, 0, 'not-callable', None, ValueError),
 
-    (True, 'test value', 0, 0, None, MaximumNestingExceededWarning, None),
+    (True, 'test value', 0, 0, None, MaximumNestingExceededWarning, YAMLError),
 
-    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 0, 0, None, MaximumNestingExceededWarning, None),
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 0, 0, None, MaximumNestingExceededWarning, ConstructorError),
     (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, None, None, None),
 
     (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 1, 0, None, None, None),
 
     (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, None, MaximumNestingExceededWarning, None),
     (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, None, MaximumNestingExceededWarning, None),
+
+    # Replace Timedelta
+    (True, 'test value', 0, 0, replace_timedelta, MaximumNestingExceededWarning, None),
+
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 0, 0, replace_timedelta, MaximumNestingExceededWarning, None),
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, replace_timedelta, None, None),
+
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 1, 0, replace_timedelta, None, None),
+
+    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, replace_timedelta, MaximumNestingExceededWarning, None),
+    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, replace_timedelta, MaximumNestingExceededWarning, None),
+
 
 ])
 def test_dump_to_yaml(request,
@@ -170,19 +201,30 @@ def test_dump_to_yaml(request,
         print(result)
         assert isinstance(result, str)
 
-        deserialized_dict = yaml.safe_load(result)
-        print('\nDESERIALIZED DICT:')
-        print(deserialized_dict)
+        should_pass = False
+        try:
+            deserialized_dict = yaml.safe_load(result)
+            print('\nDESERIALIZED DICT:')
+            print(deserialized_dict)
 
-        assert isinstance(deserialized_dict, dict)
+            assert isinstance(deserialized_dict, dict)
+            assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
 
-        assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+        except ConstructorError as raised_error:
+            for key in interim_dict:
+                if isinstance(interim_dict[key], datetime.timedelta):
+                    should_pass = True
+
+            if not should_pass:
+                raise raised_error
 
     elif not warning:
         with pytest.raises(error):
             result = target.dump_to_yaml(max_nesting = max_nesting,
                                          current_nesting = current_nesting,
                                          serialize_function = serialize_function)
+            print('THIS IS THE RESULT:')
+            print(result)
     elif not error:
         with pytest.warns(warning):
             result = target.dump_to_yaml(max_nesting = max_nesting,
@@ -193,14 +235,22 @@ def test_dump_to_yaml(request,
         print(result)
         assert isinstance(result, str)
 
-        deserialized_dict = yaml.safe_load(result)
-        print('\nDESERIALIZED DICT:')
-        print(deserialized_dict)
+        should_pass = False
+        try:
+            deserialized_dict = yaml.safe_load(result)
+            print('\nDESERIALIZED DICT:')
+            print(deserialized_dict)
 
-        assert isinstance(deserialized_dict, dict)
+            assert isinstance(deserialized_dict, dict)
 
-        assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+            assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+        except ConstructorError as raised_error:
+            for key in interim_dict:
+                if isinstance(interim_dict[key], datetime.timedelta):
+                    should_pass = True
 
+            if not should_pass:
+                raise raised_error
 
 @pytest.mark.parametrize('use_file, filename, hybrid_value, expected_name, extra_keys, error_on_extra_keys, drop_extra_keys, deserialize_function, error', [
     (False, None, 'test value', 'deserialized', None, True, False, None, None),
@@ -235,6 +285,9 @@ def test_update_from_yaml(request,
 
     as_dict = target.to_dict(max_nesting = 5,
                              current_nesting = 0)
+
+    if isinstance(as_dict, OrderedDict):
+        as_dict = dict(as_dict)
 
     as_dict['hybrid_value'] = hybrid_value
 
@@ -297,6 +350,9 @@ def test_new_from_yaml(request,
 
     input_data = source.to_dict(max_nesting = 5,
                                 current_nesting = 0)
+
+    if isinstance(input_data, OrderedDict):
+        input_data = dict(input_data)
 
     input_data['hybrid_value'] = hybrid_value
 

@@ -1,5 +1,47 @@
 -----------
 
+Release 0.5.0
+=========================================
+
+.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.5.0
+  :target: https://travis-ci.org/insightindustry/sqlathanor
+  :alt: Build Status (Travis CI)
+
+.. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.5.0/graph/badge.svg
+  :target: https://codecov.io/gh/insightindustry/sqlathanor
+  :alt: Code Coverage Status (Codecov)
+
+.. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.5.0
+  :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.5.0
+  :alt: Documentation Status (ReadTheDocs)
+
+New Features
+-----------------
+
+* #68: Replaced serialization to ``dict`` with serialization to ``OrderedDict`` to preserve
+  key ordering when serializing to JSON and YAML. The interface and interaction
+  with ``OrderedDict`` should be 100% consistent with the behavior of past ``dict``
+  objects - just now their order will be preserved when on Python versions before
+  3.7.
+
+Bug Fixes
+-----------------
+
+* #71: Modified default ``to_str()`` serializer function to coerce values to strings.
+* #73: Corrected a variety of mismatches in the default serializer/deserializer
+  functions relating to ``datetime.timedelta`` objects and SQLAlchemy ``Interval``
+  and ``DATETIME`` type objects.
+* #75: Corrected a bug that may have introduced errors in applications using
+  Python 3.7, SQLAlchemy 1.3+, and relying on ``AssociationProxy`` constructions
+  in their models.
+* Updated the ``requirements.txt`` (which does not actually indicate utilization
+  dependencies, and instead indicates development dependencies) to upgrade
+  a number of libraries that had recently had security vulnerabilities
+  discovered.
+
+
+-----------
+
 Release 0.4.0
 =========================================
 

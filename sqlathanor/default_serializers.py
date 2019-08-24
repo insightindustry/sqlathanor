@@ -55,7 +55,8 @@ def empty_string(value):
 
 def to_str(value):
     value = validators.string(value,
-                              allow_empty = True)
+                              allow_empty = True,
+                              coerce_value = True)
 
     return value
 
@@ -66,7 +67,10 @@ def to_isoformat(value):
     try:
         value = value.isoformat()
     except AttributeError as error:
-        raise ValueSerializationError(error.args[0])
+        try:
+            value = to_total_seconds(value)
+        except AttributeError:
+            raise ValueSerializationError(error.args[0])
 
     return value
 
@@ -182,6 +186,12 @@ DEFAULT_SERIALIZERS = {
         'csv': raise_UnsupportedSerializationError,
         'json': to_list,
         'yaml': to_list,
+        'dict': None
+    },
+    'timedelta': {
+        'csv': to_total_seconds,
+        'json': to_total_seconds,
+        'yaml': to_total_seconds,
         'dict': None
     },
     'String': {
@@ -436,6 +446,12 @@ DEFAULT_SERIALIZERS = {
         'yaml': to_isoformat,
         'dict': None
     },
+    'datetime': {
+        'csv': to_isoformat,
+        'json': to_isoformat,
+        'yaml': to_isoformat,
+        'dict': None
+    },
     'DATETIME2': {
         'csv': to_isoformat,
         'json': to_isoformat,
@@ -449,6 +465,12 @@ DEFAULT_SERIALIZERS = {
         'dict': None
     },
     'Date': {
+        'csv': to_isoformat,
+        'json': to_isoformat,
+        'yaml': to_isoformat,
+        'dict': None
+    },
+    'date': {
         'csv': to_isoformat,
         'json': to_isoformat,
         'yaml': to_isoformat,

@@ -5,6 +5,8 @@
 # extension, and its member function documentation is automatically incorporated
 # there as needed.
 
+from collections import OrderedDict
+
 from validator_collection import checkers
 import yaml
 
@@ -80,6 +82,9 @@ class YAMLSupportMixin(object):
                                 max_nesting = max_nesting,
                                 current_nesting = current_nesting,
                                 config_set = config_set)
+
+        if isinstance(as_dict, OrderedDict):
+            as_dict = dict(as_dict)
 
         as_yaml = serialize_function(as_dict,
                                      **kwargs)
@@ -162,6 +167,9 @@ class YAMLSupportMixin(object):
                                 current_nesting = current_nesting,
                                 is_dumping = True,
                                 config_set = config_set)
+
+        if isinstance(as_dict, OrderedDict):
+            as_dict = dict(as_dict)
 
         as_yaml = serialize_function(as_dict,
                                      **kwargs)

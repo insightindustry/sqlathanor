@@ -24,9 +24,11 @@ from sqlathanor.errors import InvalidFormatError, ValueSerializationError, \
     ('hybrid', 'csv', 1, None),
     ('smallint_column', 'csv', 2, None),
     ('addresses', 'json', [], None),
+    ('time_delta', 'csv', 86400, None),
     ('name', 'invalid', None, InvalidFormatError),
     ('missing', 'csv', None, UnsupportedSerializationError),
     ('hidden', 'csv', None, UnsupportedSerializationError),
+    ('time_delta', 'json', 86400, UnsupportedSerializationError),
 
 ])
 def test__get_serialized_value(request,

@@ -11,7 +11,9 @@ Tests for :ref:`JSON` serialization/de-serialization support.
 # pylint: disable=line-too-long
 
 import pytest
+import datetime
 
+import simplejson
 from validator_collection import checkers
 
 from tests.fixtures import db_engine, tables, base_model, db_session, \
@@ -24,6 +26,18 @@ from sqlathanor.errors import CSVStructureError, DeserializationError, \
     SerializableAttributeError, InvalidFormatError, ValueSerializationError, \
     DeserializationError, ExtraKeyError
 from sqlathanor.utilities import are_dicts_equivalent
+
+def replace_timedelta(value):
+    try:
+        result = simplejson.dumps(value)
+    except TypeError:
+        for key in value:
+            if isinstance(value[key], datetime.timedelta):
+                value[key] = value[key].total_seconds()
+
+        result = simplejson.dumps(value)
+
+    return result
 
 @pytest.mark.parametrize('supports_serialization, hybrid_value, max_nesting, current_nesting, serialize_function, warning, error', [
     (False, None, 0, 0, None, None, SerializableAttributeError),
@@ -127,15 +141,27 @@ def test_to_json(request,
 
     (True, 'test value', 0, 0, 'not-callable', None, ValueError),
 
-    (True, 'test value', 0, 0, None, MaximumNestingExceededWarning, None),
+    (True, 'test value', 0, 0, None, MaximumNestingExceededWarning, TypeError),
 
-    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 0, 0, None, MaximumNestingExceededWarning, None),
-    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, None, None, None),
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 0, 0, None, MaximumNestingExceededWarning, TypeError),
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, None, None, TypeError),
 
-    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 1, 0, None, None, None),
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 1, 0, None, None, TypeError),
 
-    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, None, MaximumNestingExceededWarning, None),
-    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, None, MaximumNestingExceededWarning, None),
+    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, None, MaximumNestingExceededWarning, TypeError),
+    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, None, MaximumNestingExceededWarning, TypeError),
+
+    # Replace Timedelta
+
+    (True, 'test value', 0, 0, replace_timedelta, MaximumNestingExceededWarning, None),
+
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 0, 0, replace_timedelta, MaximumNestingExceededWarning, None),
+    (True, [{ 'nested_key': 'test', 'nested_key2': 'test2' }], 1, 0, replace_timedelta, None, None),
+
+    (True, { 'nested_key': 'test', 'nested_key2': 'test2' }, 1, 0, replace_timedelta, None, None),
+
+    (True, { 'nested_key': {'second-nesting-key': 'test'}, 'nested_key2': 'test2' }, 0, 0, replace_timedelta, MaximumNestingExceededWarning, None),
+    (True, { 'nested_key': {'second-nesting-key': {'third-nest': 3} }, 'nested_key2': 'test2' }, 0, 0, replace_timedelta, MaximumNestingExceededWarning, None),
 
 ])
 def test_dump_to_json(request,
@@ -181,9 +207,22 @@ def test_dump_to_json(request,
         print('\nDESERIALIZED DICT:')
         print(deserialized_dict)
 
+        print('\nINTERIM DICT:')
+        print(interim_dict)
+
         assert isinstance(deserialized_dict, dict)
 
-        assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+        try:
+            assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+        except AssertionError as error:
+            for key in interim_dict:
+                if isinstance(interim_dict[key], datetime.timedelta):
+                    interim_dict[key] = interim_dict[key].total_seconds()
+            try:
+                assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+            except AssertionError:
+                raise error
+
     elif not warning:
         with pytest.raises(error):
             result = target.dump_to_json(max_nesting = max_nesting,
@@ -203,9 +242,21 @@ def test_dump_to_json(request,
         print('\nDESERIALIZED DICT:')
         print(deserialized_dict)
 
+        print('\nINTERIM DICT:')
+        print(interim_dict)
+
         assert isinstance(deserialized_dict, dict)
 
-        assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+        try:
+            assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+        except AssertionError as error:
+            for key in interim_dict:
+                if isinstance(interim_dict[key], datetime.timedelta):
+                    interim_dict[key] = interim_dict[key].total_seconds()
+            try:
+                assert are_dicts_equivalent(interim_dict, deserialized_dict) is True
+            except AssertionError:
+                raise error
 
 
 @pytest.mark.parametrize('use_file, filename, hybrid_value, expected_name, extra_keys, error_on_extra_keys, drop_extra_keys, deserialize_function, error', [

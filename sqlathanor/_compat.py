@@ -14,6 +14,7 @@ from decimal import Decimal
 import datetime as datetime_
 from fractions import Fraction
 import time as time_
+from collections import OrderedDict
 
 _ver = sys.version_info
 
@@ -40,6 +41,8 @@ uses_float_infinity = (is_py2 or is_py34 or is_py33 or is_py32 or is_py31 or is_
 if uses_float_infinity:
     POSITIVE_INFINITY = float('+inf')
     NEGATIVE_INFINITY = float('-inf')
+
+dict = OrderedDict
 
 if is_py2:
     import regex
