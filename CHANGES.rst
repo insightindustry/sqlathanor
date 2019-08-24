@@ -19,7 +19,25 @@ New Features
 -----------------
 
 * #68: Replaced serialization to ``dict`` with serialization to ``OrderedDict`` to preserve
-  key ordering when serializing to JSON and YAML.
+  key ordering when serializing to JSON and YAML. The interface and interaction
+  with ``OrderedDict`` should be 100% consistent with the behavior of past ``dict``
+  objects - just now their order will be preserved when on Python versions before
+  3.7.
+
+Bug Fixes
+-----------------
+
+* #71: Modified default ``to_str()`` serializer function to coerce values to strings.
+* #73: Corrected a variety of mismatches in the default serializer/deserializer
+  functions relating to ``datetime.timedelta`` objects and SQLAlchemy ``Interval``
+  and ``DATETIME`` type objects.
+* #75: Corrected a bug that may have introduced errors in applications using
+  Python 3.7, SQLAlchemy 1.3+, and relying on ``AssociationProxy`` constructions
+  in their models.
+* Updated the ``requirements.txt`` (which does not actually indicate utilization
+  dependencies, and instead indicates development dependencies) to upgrade
+  a number of libraries that had recently had security vulnerabilities
+  discovered.
 
 
 -----------

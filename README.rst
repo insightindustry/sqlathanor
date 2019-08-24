@@ -29,6 +29,20 @@ SQLAthanor
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=latest
          :alt: Documentation Status (ReadTheDocs)
 
+   * - `v.0.5 <https://github.com/insightindustry/sqlathanor/tree/v.0.5.0>`_
+     -
+       .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.5.0
+         :target: https://travis-ci.org/insightindustry/sqlathanor
+         :alt: Build Status (Travis CI)
+
+       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.5.0/graph/badge.svg
+         :target: https://codecov.io/gh/insightindustry/sqlathanor
+         :alt: Code Coverage Status (Codecov)
+
+       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.5.0
+         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.5.0
+         :alt: Documentation Status (ReadTheDocs)
+
    * - `v.0.4 <https://github.com/insightindustry/sqlathanor/tree/v.0.4.0>`_
      -
        .. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.4.0
@@ -143,11 +157,11 @@ Dependencies
    * - | * `SQLAlchemy v.0.9 <https://www.sqlalchemy.org>`_ or higher
        | * `PyYAML v3.10 <https://github.com/yaml/pyyaml>`_ or higher
        | * `simplejson v3.0 <https://simplejson.readthedocs.io/en/latest/>`_ or higher
-       | * `Validator-Collection v1.2.0 <https://github.com/insightindustry/validator-collection>`_ or higher
+       | * `Validator-Collection v1.3.0 <https://github.com/insightindustry/validator-collection>`_ or higher
      - | * `SQLAlchemy v.0.9 <https://www.sqlalchemy.org>`_ or higher
        | * `PyYAML v3.10 <https://github.com/yaml/pyyaml>`_ or higher
        | * `simplejson v3.0 <https://simplejson.readthedocs.io/en/latest/>`_ or higher
-       | * `Validator-Collection v1.2.0 <https://github.com/insightindustry/validator-collection>`_ or higher
+       | * `Validator-Collection v1.3.0 <https://github.com/insightindustry/validator-collection>`_ or higher
 
 -------------
 
@@ -207,11 +221,12 @@ Key SQLAthanor Features
   * CSV records
   * JSON objects
   * YAML objects
-  * Python ``dict`` objects
+  * Python ``dict`` objects (technically, ``OrderedDict`` objects but they
+    behave just like ``dict``)
 
 * With one method call, create or update SQLAlchemy model instances from:
 
-  * Python ``dict`` objects
+  * Python ``dict`` or ``OrderedDict`` objects
   * CSV records
   * JSON objects
   * YAML objects
