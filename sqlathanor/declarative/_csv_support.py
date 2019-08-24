@@ -9,7 +9,7 @@ import csv
 
 from validator_collection import checkers, validators
 
-from sqlathanor._compat import StringIO
+from sqlathanor._compat import StringIO, dict as dict_
 from sqlathanor.utilities import read_csv_data, get_attribute_names
 from sqlathanor.errors import SerializableAttributeError, \
     UnsupportedSerializationError, CSVStructureError, DeserializationError
@@ -260,7 +260,7 @@ class CSVSupportMixin(object):
             elif not checkers.is_string(item) and not checkers.is_numeric(item):
                 data[index] = str(item)
 
-        data_dict = {}
+        data_dict = dict_()
         for index, column_name in enumerate(attributes):
             data_dict[column_name] = data[index]
 
@@ -590,7 +590,7 @@ class CSVSupportMixin(object):
         if len(rows) > 1:
             raise CSVStructureError('expected 1 row of data, received %s' % len(csv_reader))
         elif len(rows) == 0:
-            data = {}
+            data = dict_()
             for column_name in csv_column_names:
                 data[column_name] = None
         else:
@@ -600,7 +600,7 @@ class CSVSupportMixin(object):
             raise CSVStructureError('expected %s fields, found %s' % (len(csv_column_names),
                                                                       len(data.keys())))
 
-        deserialized_data = {}
+        deserialized_data = dict_()
         for key in data:
             if data[key] == null_text:
                 deserialized_data[key] = None

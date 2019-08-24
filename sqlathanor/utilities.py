@@ -13,6 +13,7 @@ import csv
 import linecache
 import warnings
 import yaml
+from collections import OrderedDict
 
 from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.exc import InvalidRequestError as SA_InvalidRequestError
@@ -21,7 +22,7 @@ from sqlalchemy.exc import UnsupportedCompilationError as SA_UnsupportedCompilat
 from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
 
-from sqlathanor._compat import json, is_py2, is_py36, is_py35
+from sqlathanor._compat import json, is_py2, is_py36, is_py35, dict as dict_
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
     MaximumNestingExceededWarning, DeserializationError, CSVStructureError
@@ -72,7 +73,7 @@ def callable_to_dict(input):
     :rtype: :class:`dict <python:dict>`
 
     """
-    if input is not None and not isinstance(input, dict):
+    if input is not None and not isinstance(input, (dict, OrderedDict)):
         input = {
             'csv': input,
             'json': input,
@@ -436,6 +437,8 @@ def parse_yaml(input_data,
         raise DeserializationError('input_data is not a valid string')
 
     if not is_file:
+        print(type(input_data))
+        print(input_data)
         from_yaml = yaml.safe_load(input_data, **kwargs)
     else:
         with open(input_data, 'r') as input_file:
