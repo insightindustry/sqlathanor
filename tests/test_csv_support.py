@@ -20,8 +20,8 @@ from sqlathanor.errors import CSVStructureError, DeserializationError
 from sqlathanor.utilities import get_attribute_names
 
 @pytest.mark.parametrize('deserialize, serialize, expected_length', [
-    (None, True, 4),
-    (True, None, 5),
+    (None, True, 5),
+    (True, None, 6),
     (False, False, 6),
     (None, None, 0),
 ])
@@ -65,9 +65,9 @@ def test_get_csv_column_names(request,
         assert smallint_column_sequence < hybrid_sequence
 
 @pytest.mark.parametrize('delimiter, expected_result', [
-    ('|', '_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column\r\n'),
-    (',', '_hybrid,addresses,hidden,hybrid,hybrid_differentiated,id,name,password,smallint_column\r\n'),
-    (None, '_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column\r\n'),
+    ('|', '_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column|time_delta\r\n'),
+    (',', '_hybrid,addresses,hidden,hybrid,hybrid_differentiated,id,name,password,smallint_column,time_delta\r\n'),
+    (None, '_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column|time_delta\r\n'),
 ])
 def test__get_attribute_csv_header(request,
                                    instance_postgresql,
@@ -93,12 +93,12 @@ def test__get_attribute_csv_header(request,
 
 
 @pytest.mark.parametrize('deserialize, serialize, delimiter, expected_result', [
-    (None, True, '|', 'id|name|smallint_column|hybrid_value\r\n'),
-    (None, True, ',', 'id,name,smallint_column,hybrid_value\r\n'),
-    (None, True, None, 'id|name|smallint_column|hybrid_value\r\n'),
-    (True, None, '|', 'id|name|password|smallint_column|hybrid_value\r\n'),
-    (True, None, ',', 'id,name,password,smallint_column,hybrid_value\r\n'),
-    (True, None, None, 'id|name|password|smallint_column|hybrid_value\r\n'),
+    (None, True, '|', 'id|name|smallint_column|hybrid_value|time_delta\r\n'),
+    (None, True, ',', 'id,name,smallint_column,hybrid_value,time_delta\r\n'),
+    (None, True, None, 'id|name|smallint_column|hybrid_value|time_delta\r\n'),
+    (True, None, '|', 'id|name|password|smallint_column|hybrid_value|time_delta\r\n'),
+    (True, None, ',', 'id,name,password,smallint_column,hybrid_value,time_delta\r\n'),
+    (True, None, None, 'id|name|password|smallint_column|hybrid_value|time_delta\r\n'),
     (None, None, None, '\r\n'),
 ])
 def test_get_csv_header(request,
@@ -121,12 +121,12 @@ def test_get_csv_header(request,
 
 
 @pytest.mark.parametrize('delimiter, wrap_all_strings, wrapper_character, hybrid_value, expected_result', [
-    ('|', False, "'", 1, '1|serialized|2|1\r\n'),
-    ('|', True, "'", 1, "1|'serialized'|2|1\r\n"),
-    ('|', False, "'", None, "1|serialized|2|None\r\n"),
-    ('|', True, None, None, "1|'serialized'|2|'None'\r\n"),
-    ('|', True, '!', None, "1|!serialized!|2|!None!\r\n"),
-    ('|', False, "'", 'test|value', "1|serialized|2|'test|value'\r\n"),
+    ('|', False, "'", 1, '1|serialized|2|1|86400.0\r\n'),
+    ('|', True, "'", 1, "1|'serialized'|2|1|86400.0\r\n"),
+    ('|', False, "'", None, "1|serialized|2|None|86400.0\r\n"),
+    ('|', True, None, None, "1|'serialized'|2|'None'|86400.0\r\n"),
+    ('|', True, '!', None, "1|!serialized!|2|!None!|86400.0\r\n"),
+    ('|', False, "'", 'test|value', "1|serialized|2|'test|value'|86400.0\r\n"),
 ])
 def test_get_csv_data(request,
                       instance_postgresql,
@@ -147,12 +147,12 @@ def test_get_csv_data(request,
 
 
 @pytest.mark.parametrize('delimiter, wrap_all_strings, wrapper_character, hybrid_value, expected_result', [
-    ('|', False, "'", 1, '1|[]|hidden value|1|1|1|serialized|test_password|2\r\n'),
-    ('|', True, "'", 1, "1|'[]'|'hidden value'|1|1|1|'serialized'|'test_password'|2\r\n"),
-    ('|', False, "'", None, "None|[]|hidden value|None|None|1|serialized|test_password|2\r\n"),
-    ('|', True, None, None, "'None'|'[]'|'hidden value'|'None'|'None'|1|'serialized'|'test_password'|2\r\n"),
-    ('|', True, '!', None, "!None!|![]!|!hidden value!|!None!|!None!|1|!serialized!|!test_password!|2\r\n"),
-    ('|', False, "'", 'test|value', "'test|value'|[]|hidden value|'test|value'|'test|value'|1|serialized|test_password|2\r\n"),
+    ('|', False, "'", 1, '1|[]|hidden value|1|1|1|serialized|test_password|2|86400.0\r\n'),
+    ('|', True, "'", 1, "1|'[]'|'hidden value'|1|1|1|'serialized'|'test_password'|2|86400.0\r\n"),
+    ('|', False, "'", None, "None|[]|hidden value|None|None|1|serialized|test_password|2|86400.0\r\n"),
+    ('|', True, None, None, "'None'|'[]'|'hidden value'|'None'|'None'|1|'serialized'|'test_password'|2|86400.0\r\n"),
+    ('|', True, '!', None, "!None!|![]!|!hidden value!|!None!|!None!|1|!serialized!|!test_password!|2|86400.0\r\n"),
+    ('|', False, "'", 'test|value', "'test|value'|[]|hidden value|'test|value'|'test|value'|1|serialized|test_password|2|86400.0\r\n"),
 ])
 def test__get_attribute_csv_data(request,
                                  instance_postgresql,
@@ -184,19 +184,19 @@ def test__get_attribute_csv_data(request,
 
 
 @pytest.mark.parametrize('include_header, delimiter, wrap_all_strings, wrapper_character, hybrid_value, expected_result', [
-    (False, '|', False, "'", 1, '1|serialized|2|1\r\n'),
-    (False, '|', True, "'", 1, "1|'serialized'|2|1\r\n"),
-    (False, '|', False, "'", None, "1|serialized|2|None\r\n"),
-    (False, '|', True, None, None, "1|'serialized'|2|'None'\r\n"),
-    (False, '|', True, '!', None, "1|!serialized!|2|!None!\r\n"),
-    (False, '|', False, "'", 'test|value', "1|serialized|2|'test|value'\r\n"),
+    (False, '|', False, "'", 1, '1|serialized|2|1|86400.0\r\n'),
+    (False, '|', True, "'", 1, "1|'serialized'|2|1|86400.0\r\n"),
+    (False, '|', False, "'", None, "1|serialized|2|None|86400.0\r\n"),
+    (False, '|', True, None, None, "1|'serialized'|2|'None'|86400.0\r\n"),
+    (False, '|', True, '!', None, "1|!serialized!|2|!None!|86400.0\r\n"),
+    (False, '|', False, "'", 'test|value', "1|serialized|2|'test|value'|86400.0\r\n"),
 
-    (True, '|', False, "'", 1, 'id|name|smallint_column|hybrid_value\r\n1|serialized|2|1\r\n'),
-    (True, '|', True, "'", 1, "id|name|smallint_column|hybrid_value\r\n1|'serialized'|2|1\r\n"),
-    (True, '|', False, "'", None, "id|name|smallint_column|hybrid_value\r\n1|serialized|2|None\r\n"),
-    (True, '|', True, None, None, "id|name|smallint_column|hybrid_value\r\n1|'serialized'|2|'None'\r\n"),
-    (True, '|', True, '!', None, "id|name|smallint_column|hybrid_value\r\n1|!serialized!|2|!None!\r\n"),
-    (True, '|', False, "'", 'test|value', "id|name|smallint_column|hybrid_value\r\n1|serialized|2|'test|value'\r\n"),
+    (True, '|', False, "'", 1, 'id|name|smallint_column|hybrid_value|time_delta\r\n1|serialized|2|1|86400.0\r\n'),
+    (True, '|', True, "'", 1, "id|name|smallint_column|hybrid_value|time_delta\r\n1|'serialized'|2|1|86400.0\r\n"),
+    (True, '|', False, "'", None, "id|name|smallint_column|hybrid_value|time_delta\r\n1|serialized|2|None|86400.0\r\n"),
+    (True, '|', True, None, None, "id|name|smallint_column|hybrid_value|time_delta\r\n1|'serialized'|2|'None'|86400.0\r\n"),
+    (True, '|', True, '!', None, "id|name|smallint_column|hybrid_value|time_delta\r\n1|!serialized!|2|!None!|86400.0\r\n"),
+    (True, '|', False, "'", 'test|value', "id|name|smallint_column|hybrid_value|time_delta\r\n1|serialized|2|'test|value'|86400.0\r\n"),
 
 ])
 def test_to_csv(request,
@@ -220,19 +220,19 @@ def test_to_csv(request,
 
 
 @pytest.mark.parametrize('include_header, delimiter, wrap_all_strings, wrapper_character, hybrid_value, expected_result', [
-    (False, '|', False, "'", 1, '1|[]|hidden value|1|1|1|serialized|test_password|2\r\n'),
-    (False, '|', True, "'", 1, "1|'[]'|'hidden value'|1|1|1|'serialized'|'test_password'|2\r\n"),
-    (False, '|', False, "'", None, "None|[]|hidden value|None|None|1|serialized|test_password|2\r\n"),
-    (False, '|', True, None, None, "'None'|'[]'|'hidden value'|'None'|'None'|1|'serialized'|'test_password'|2\r\n"),
-    (False, '|', True, '!', None, "!None!|![]!|!hidden value!|!None!|!None!|1|!serialized!|!test_password!|2\r\n"),
-    (False, '|', False, "'", 'test|value', "'test|value'|[]|hidden value|'test|value'|'test|value'|1|serialized|test_password|2\r\n"),
+    (False, '|', False, "'", 1, '1|[]|hidden value|1|1|1|serialized|test_password|2|86400.0\r\n'),
+    (False, '|', True, "'", 1, "1|'[]'|'hidden value'|1|1|1|'serialized'|'test_password'|2|86400.0\r\n"),
+    (False, '|', False, "'", None, "None|[]|hidden value|None|None|1|serialized|test_password|2|86400.0\r\n"),
+    (False, '|', True, None, None, "'None'|'[]'|'hidden value'|'None'|'None'|1|'serialized'|'test_password'|2|86400.0\r\n"),
+    (False, '|', True, '!', None, "!None!|![]!|!hidden value!|!None!|!None!|1|!serialized!|!test_password!|2|86400.0\r\n"),
+    (False, '|', False, "'", 'test|value', "'test|value'|[]|hidden value|'test|value'|'test|value'|1|serialized|test_password|2|86400.0\r\n"),
 
-    (True, '|', False, "'", 1, '_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column\r\n1|[]|hidden value|1|1|1|serialized|test_password|2\r\n'),
-    (True, '|', True, "'", 1, "_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column\r\n1|'[]'|'hidden value'|1|1|1|'serialized'|'test_password'|2\r\n"),
-    (True, '|', False, "'", None, "_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column\r\nNone|[]|hidden value|None|None|1|serialized|test_password|2\r\n"),
-    (True, '|', True, None, None, "_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column\r\n'None'|'[]'|'hidden value'|'None'|'None'|1|'serialized'|'test_password'|2\r\n"),
-    (True, '|', True, '!', None, "_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column\r\n!None!|![]!|!hidden value!|!None!|!None!|1|!serialized!|!test_password!|2\r\n"),
-    (True, '|', False, "'", 'test|value', "_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column\r\n'test|value'|[]|hidden value|'test|value'|'test|value'|1|serialized|test_password|2\r\n"),
+    (True, '|', False, "'", 1, '_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column|time_delta\r\n1|[]|hidden value|1|1|1|serialized|test_password|2|86400.0\r\n'),
+    (True, '|', True, "'", 1, "_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column|time_delta\r\n1|'[]'|'hidden value'|1|1|1|'serialized'|'test_password'|2|86400.0\r\n"),
+    (True, '|', False, "'", None, "_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column|time_delta\r\nNone|[]|hidden value|None|None|1|serialized|test_password|2|86400.0\r\n"),
+    (True, '|', True, None, None, "_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column|time_delta\r\n'None'|'[]'|'hidden value'|'None'|'None'|1|'serialized'|'test_password'|2|86400.0\r\n"),
+    (True, '|', True, '!', None, "_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column|time_delta\r\n!None!|![]!|!hidden value!|!None!|!None!|1|!serialized!|!test_password!|2|86400.0\r\n"),
+    (True, '|', False, "'", 'test|value', "_hybrid|addresses|hidden|hybrid|hybrid_differentiated|id|name|password|smallint_column|time_delta\r\n'test|value'|[]|hidden value|'test|value'|'test|value'|1|serialized|test_password|2|86400.0\r\n"),
 
 ])
 def test_dump_to_csv(request,
@@ -257,13 +257,13 @@ def test_dump_to_csv(request,
 
 
 @pytest.mark.parametrize('input_value, expected_name, expected_smallint, expected_id, expected_serialization, error', [
-    ('1|serialized|test-password|3|2\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
-    ('1|serialized|test-password|3|2|extra\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVStructureError),
-    (123, 'deserialized', 3, 1, '1|serialized|3|2\r\n', DeserializationError),
+    ('1|serialized|test-password|3|2|86400.0\r\n', 'deserialized', 3, 1, '1|serialized|3|2|86400.0\r\n', None),
+    ('1|serialized|test-password|3|2|extra|86400.0\r\n', 'deserialized', 3, 1, '1|serialized|3|2|86400.0\r\n', CSVStructureError),
+    (123, 'deserialized', 3, 1, '1|serialized|3|2|86400.0\r\n', DeserializationError),
 
-    ('CSV/update_from_csv1.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
-    ('CSV/update_from_csv2.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVStructureError),
-    ('CSV/update_from_csv3.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
+    ('CSV/update_from_csv1.csv', 'deserialized', 3, 1, '1|serialized|3|2|None\r\n', None),
+    ('CSV/update_from_csv2.csv', 'deserialized', 3, 1, '1|serialized|3|2|86400.0\r\n', CSVStructureError),
+    ('CSV/update_from_csv3.csv', 'deserialized', 3, 1, '1|serialized|3|2|86400.0\r\n', None),
 
 ])
 def test_update_from_csv(request,
@@ -298,13 +298,13 @@ def test_update_from_csv(request,
 
 
 @pytest.mark.parametrize('input_value, expected_name, expected_smallint, expected_id, expected_serialization, error', [
-    ('1|serialized|test-password|3|2\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
-    ('1|serialized|test-password|3|2|extra\r\n', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVStructureError),
-    (123, 'deserialized', 3, 1, '1|serialized|3|2\r\n', DeserializationError),
+    ('1|serialized|test-password|3|2|86400.0\r\n', 'deserialized', 3, 1, '1|serialized|3|2|86400.0\r\n', None),
+    ('1|serialized|test-password|3|2|86400.0|extra\r\n', 'deserialized', 3, 1, '1|serialized|3|2|86400.0\r\n', CSVStructureError),
+    (123, 'deserialized', 3, 1, '1|serialized|3|2|86400.0\r\n', DeserializationError),
 
-    ('CSV/update_from_csv1.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
-    ('CSV/update_from_csv2.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', CSVStructureError),
-    ('CSV/update_from_csv3.csv', 'deserialized', 3, 1, '1|serialized|3|2\r\n', None),
+    ('CSV/update_from_csv1.csv', 'deserialized', 3, 1, '1|serialized|3|2|None\r\n', None),
+    ('CSV/update_from_csv2.csv', 'deserialized', 3, 1, '1|serialized|3|2|86400.0\r\n', CSVStructureError),
+    ('CSV/update_from_csv3.csv', 'deserialized', 3, 1, '1|serialized|3|2|86400.0\r\n', None),
 
 ])
 def test_new_from_csv(request,
