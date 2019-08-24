@@ -119,6 +119,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7'
     ],
 
     zip_safe = False,
@@ -149,7 +150,7 @@ setup(
     install_requires=[
         'sqlalchemy>=0.9;python_version<"3.7"',
         'sqlalchemy>=0.10;python_version>"3.6"',
-        'validator-collection>=1.2.0',
+        'validator-collection>=1.3.0',
         'simplejson>=3.0',
         'PyYAML>=3.10;python_version<"3.7"',
         'PyYAML>=3.13;python_version>"3.6"'
