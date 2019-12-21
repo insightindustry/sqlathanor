@@ -704,13 +704,16 @@ def get_attribute_names(obj,
             if is_iterable:
                 loop = False
 
-                for item in attribute_value:
-                    if checkers.is_type(item, ('BaseModel',
-                                               'RelationshipProperty',
-                                               'AssociationProxy',
-                                               dict)):
-                        loop = True
-                        break
+                try:
+                    for item in attribute_value:
+                        if checkers.is_type(item, ('BaseModel',
+                                                   'RelationshipProperty',
+                                                   'AssociationProxy',
+                                                   dict)):
+                            loop = True
+                            break
+                except (NotImplementedError, TypeError):
+                    pass
 
                 if loop:
                     continue
