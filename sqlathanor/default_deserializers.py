@@ -85,8 +85,11 @@ def from_date(value):
     return validators.date(value, allow_empty = True)
 
 def from_datetime(value):
-    if checkers.is_numeric(value):
-        return from_timedelta(value)
+    try:
+        value = validators.timedelta(value, allow_empty = True)
+        return value
+    except (ValueError, TypeError):
+        pass
 
     return validators.datetime(value, allow_empty = True)
 
@@ -108,11 +111,9 @@ def from_iterable(value):
     return validators.iterable(value, allow_empty = True)
 
 def from_timedelta(value):
-    value = validators.integer(value, allow_empty = True)
-    if value is None:
-        return value
+    value = validators.timedelta(value, allow_empty = True)
 
-    return datetime.timedelta(seconds = value)
+    return value
 
 def from_mac_address(value):
     return validators.mac_address(value, allow_empty = True)
