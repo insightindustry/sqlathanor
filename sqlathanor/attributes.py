@@ -276,7 +276,13 @@ class AttributeConfiguration(SerializationMixin):
             self._dict_proxy.__delitem__(key)
 
     def __getattr__(self, name):
-        return self._dict_proxy[name]
+        try:
+            return self._dict_proxy[name]
+        except KeyError as error:
+            try:
+                return self._dict_proxy.get(name)
+            except AttributeError:
+                raise error
 
     def __contains__(self, item):
         if item in ['name',
