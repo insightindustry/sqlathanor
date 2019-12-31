@@ -27,7 +27,13 @@ Bug Fixes
   converted to a ``timedelta`` (if it is a complete / proper datetime with both
   a time and date value), the default deserializer will then revert to returning
   a ``datetime.datetime`` object.
+* #82: Revised the minimum version needed for the Validator Collection library
+  to resolve a bug in iterable serialization/deserialization.
 
+Other Changes
+------------------
+
+* #84: Added Python 3.8 to test matrix.
 
 -----------
 
