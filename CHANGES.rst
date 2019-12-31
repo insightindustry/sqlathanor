@@ -1,5 +1,36 @@
 -----------
 
+Release 0.5.1
+=========================================
+
+.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.5.1
+  :target: https://travis-ci.org/insightindustry/sqlathanor
+  :alt: Build Status (Travis CI)
+
+.. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.5.1/graph/badge.svg
+  :target: https://codecov.io/gh/insightindustry/sqlathanor
+  :alt: Code Coverage Status (Codecov)
+
+.. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.5.1
+  :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.5.1
+  :alt: Documentation Status (ReadTheDocs)
+
+Bug Fixes
+-----------------
+
+* #80: Revised how the default deserializer functions for ``datetime.timedelta``
+  and ``datetime.datetime`` objects functions. When deserializing either, the
+  default deserializer now starts by attempting to coerce the value to a
+  ``datetime.timedelta`` using the Validator Collection ``timedelta()`` validator
+  function, which supports the expression of amounts of time as both integers (e.g.
+  ``23 seconds``) and strings (e.g. ``00:00:23``). If the object cannot be
+  converted to a ``timedelta`` (if it is a complete / proper datetime with both
+  a time and date value), the default deserializer will then revert to returning
+  a ``datetime.datetime`` object.
+
+
+-----------
+
 Release 0.5.0
 =========================================
 
