@@ -63,7 +63,7 @@ easy-to-use record :term:`serialization`/:term:`de-serialization` with support f
 
 The library works as a :term:`drop-in extension <drop-in replacement>` - change
 one line of existing code, and it should just work. Furthermore, it has been
-extensively tested on Python 2.7, 3.4, 3.5, 3.6, and 3.7 using `SQLAlchemy`_ 0.9 and
+extensively tested on Python 2.7, 3.4, 3.5, 3.6, 3.7, and 3.8 using `SQLAlchemy`_ 0.9 and
 higher.
 
 .. contents::

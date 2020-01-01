@@ -9,333 +9,135 @@ env:
 
 matrix:
   include:
+## PYTHON 3.8
 ## SIMPLEJSON
-    - python: '2.7'
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson30
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson30
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson31
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson31
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson32
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson32
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson33
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson33
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson34
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson34
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson35
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson35
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson36
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson36
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson37
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson37
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson38
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson38
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson39
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson39
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson310
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson310
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson311
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson311
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson312
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson312
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson313
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson313
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson314
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson314
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson315
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson315
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson316
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson316
 # PYYAML
-    - python: '2.7'
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml311-simplejson316
-    - python: '2.7'
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson316
+    - python: '3.8'
+      dist: bionic
+      sudo: true
       env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml312-simplejson316
-    - python: '2.7'
-      env:
-        - TOXENV=.python27-sqlalchemy09-pyyaml42b2-simplejson316
+        - TOXENV=.python38-sqlalchemy10-pyyaml42b2-simplejson316
 #### SQLALCHEMY
-    - python: '2.7'
-      env:
-        - TOXENV=.python27-sqlalchemy10-pyyaml312-simplejson316
-    - python: '2.7'
-      env:
-        - TOXENV=.python27-sqlalchemy10-pyyaml42b2-simplejson316
-    - python: '2.7'
-      env:
-        - TOXENV=.python27-sqlalchemy11-pyyaml312-simplejson316
-    - python: '2.7'
-      env:
-        - TOXENV=.python27-sqlalchemy12-pyyaml312-simplejson316
-    - python: '2.7'
-      env:
-        - TOXENV=.python27-sqlalchemy12-pyyaml42b1-simplejson316
-    - python: '2.7'
-      env:
-        - TOXENV=.python27-sqlalchemy12-pyyaml42b2-simplejson316
-## PYTHON 3.4
-## SIMPLEJSON
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson30
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson31
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson32
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson33
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson34
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson35
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson36
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson37
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson38
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson39
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson310
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson311
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson312
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson313
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson314
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson315
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson316
-# PYYAML
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml311-simplejson316
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml312-simplejson316
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy09-pyyaml42b2-simplejson316
-#### SQLALCHEMY
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy10-pyyaml312-simplejson316
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy10-pyyaml42b2-simplejson316
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy11-pyyaml312-simplejson316
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy12-pyyaml312-simplejson316
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy12-pyyaml42b1-simplejson316
-    - python: '3.4'
-      env:
-        - TOXENV=.python34-sqlalchemy12-pyyaml42b2-simplejson316
-## PYTHON 3.5
-## SIMPLEJSON
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson30
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson31
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson32
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson33
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson34
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson35
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson36
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson37
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson38
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson39
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson310
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson311
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson312
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson313
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson314
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson315
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson316
-# PYYAML
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml311-simplejson316
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml312-simplejson316
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy09-pyyaml42b2-simplejson316
-#### SQLALCHEMY
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy10-pyyaml312-simplejson316
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy10-pyyaml42b2-simplejson316
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy11-pyyaml312-simplejson316
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy12-pyyaml312-simplejson316
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy12-pyyaml42b1-simplejson316
-    - python: '3.5'
-      env:
-        - TOXENV=.python35-sqlalchemy12-pyyaml42b2-simplejson316
-## PYTHON 3.6
-## SIMPLEJSON
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson30
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson31
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson32
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson33
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson34
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson35
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson36
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson37
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson38
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson39
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson310
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson311
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson312
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson313
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson314
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson315
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson316
-# PYYAML
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml311-simplejson316
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml312-simplejson316
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy09-pyyaml42b2-simplejson316
-#### SQLALCHEMY
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy10-pyyaml312-simplejson316
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy10-pyyaml42b2-simplejson316
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy11-pyyaml312-simplejson316
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy12-pyyaml312-simplejson316
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy12-pyyaml42b1-simplejson316
-    - python: '3.6'
-      env:
-        - TOXENV=.python36-sqlalchemy12-pyyaml42b2-simplejson316
+    - python: '3.8'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python38-sqlalchemy10-pyyaml313-simplejson316
+    - python: '3.8'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python38-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '3.8'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python38-sqlalchemy11-pyyaml313-simplejson316
+    - python: '3.8'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python38-sqlalchemy12-pyyaml313-simplejson316
+    - python: '3.8'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python38-sqlalchemy12-pyyaml42b1-simplejson316
+    - python: '3.8'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python38-sqlalchemy12-pyyaml42b2-simplejson316
 ## PYTHON 3.7
 ## SIMPLEJSON
     - python: '3.7'
@@ -465,6 +267,334 @@ matrix:
       sudo: true
       env:
         - TOXENV=.python37-sqlalchemy12-pyyaml42b2-simplejson316
+## PYTHON 3.6
+## SIMPLEJSON
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson30
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson31
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson32
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson33
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson34
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson35
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson36
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson37
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson38
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson39
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson310
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson311
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson312
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson313
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson314
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson315
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml310-simplejson316
+# PYYAML
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml311-simplejson316
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml312-simplejson316
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy09-pyyaml42b2-simplejson316
+#### SQLALCHEMY
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy10-pyyaml312-simplejson316
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy11-pyyaml312-simplejson316
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy12-pyyaml312-simplejson316
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy12-pyyaml42b1-simplejson316
+    - python: '3.6'
+      env:
+        - TOXENV=.python36-sqlalchemy12-pyyaml42b2-simplejson316
+## PYTHON 3.5
+## SIMPLEJSON
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson30
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson31
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson32
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson33
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson34
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson35
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson36
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson37
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson38
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson39
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson310
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson311
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson312
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson313
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson314
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson315
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml310-simplejson316
+# PYYAML
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml311-simplejson316
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml312-simplejson316
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy09-pyyaml42b2-simplejson316
+#### SQLALCHEMY
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy10-pyyaml312-simplejson316
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy11-pyyaml312-simplejson316
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy12-pyyaml312-simplejson316
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy12-pyyaml42b1-simplejson316
+    - python: '3.5'
+      env:
+        - TOXENV=.python35-sqlalchemy12-pyyaml42b2-simplejson316
+## PYTHON 3.4
+## SIMPLEJSON
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson30
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson31
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson32
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson33
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson34
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson35
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson36
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson37
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson38
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson39
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson310
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson311
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson312
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson313
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson314
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson315
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml310-simplejson316
+# PYYAML
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml311-simplejson316
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml312-simplejson316
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy09-pyyaml42b2-simplejson316
+#### SQLALCHEMY
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy10-pyyaml312-simplejson316
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy11-pyyaml312-simplejson316
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy12-pyyaml312-simplejson316
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy12-pyyaml42b1-simplejson316
+    - python: '3.4'
+      env:
+        - TOXENV=.python34-sqlalchemy12-pyyaml42b2-simplejson316
+## PYTHON 2.7
+## SIMPLEJSON
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson30
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson31
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson32
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson33
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson34
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson35
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson36
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson37
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson38
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson39
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson310
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson311
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson312
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson313
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson314
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson315
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml310-simplejson316
+# PYYAML
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml311-simplejson316
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml312-simplejson316
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy09-pyyaml42b2-simplejson316
+#### SQLALCHEMY
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy10-pyyaml312-simplejson316
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy11-pyyaml312-simplejson316
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy12-pyyaml312-simplejson316
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy12-pyyaml42b1-simplejson316
+    - python: '2.7'
+      env:
+        - TOXENV=.python27-sqlalchemy12-pyyaml42b2-simplejson316
 
 ## PYTHON 3.6 - OTHER TESTS
     - python: '3.6'
