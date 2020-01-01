@@ -94,7 +94,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
 
         # Indicate who your project is intended for
         'Environment :: Web Environment',
@@ -119,7 +119,8 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7'
+        'Programming Language :: Python :: 3.7',
+        'Programming Lanugage :: Python :: 3.8'
     ],
 
     zip_safe = False,
@@ -128,7 +129,7 @@ setup(
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    keywords='sqlalchemy ORM model extension serialization CSV JSON YAML dict deserialization',  # Optional
+    keywords='sqlalchemy ORM model extension serialization CSV JSON YAML dict deserialization schema',  # Optional
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -150,7 +151,7 @@ setup(
     install_requires=[
         'sqlalchemy>=0.9;python_version<"3.7"',
         'sqlalchemy>=0.10;python_version>"3.6"',
-        'validator-collection>=1.3.0',
+        'validator-collection>=1.4.0',
         'simplejson>=3.0',
         'PyYAML>=3.10;python_version<"3.7"',
         'PyYAML>=3.13;python_version>"3.6"'
