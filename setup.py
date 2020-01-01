@@ -120,7 +120,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Lanugage :: Python :: 3.8'
+        'Programming Language :: Python :: 3.8'
     ],
 
     zip_safe = False,
