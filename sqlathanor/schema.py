@@ -272,6 +272,13 @@ class RelationshipProperty(SA_RelationshipProperty):
         :type supports_dict: :class:`bool <python:bool>` / :class:`tuple <python:tuple>` of
           form (inbound: :class:`bool <python:bool>`, outbound: :class:`bool <python:bool>`)
 
+        :param display_name: An optional name to use or expect in place of `name` when
+          serializing or de-serializing the attribute. If :obj:`None <python:None>`, the
+          attribute will default to the same name as in its Python model class and as
+          provided in ``name``. Defaults to :obj:`None <python:None>`
+
+        :type display_name: :class:`str <python:str>` / :obj:`None <python:None>`
+
         """
         # pylint: disable=too-many-branches
         if on_serialize is not None and not isinstance(on_serialize, dict):
