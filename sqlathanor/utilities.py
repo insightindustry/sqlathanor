@@ -437,8 +437,6 @@ def parse_yaml(input_data,
         raise DeserializationError('input_data is not a valid string')
 
     if not is_file:
-        print(type(input_data))
-        print(input_data)
         from_yaml = yaml.safe_load(input_data, **kwargs)
     else:
         with open(input_data, 'r') as input_file:
