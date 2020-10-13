@@ -93,6 +93,8 @@ celerybeat-schedule
 # virtualenv
 .venv
 venv/
+.python38
+.py38
 .python37
 .python36
 .python27
