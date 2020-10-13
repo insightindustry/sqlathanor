@@ -485,6 +485,76 @@ def tables(request, db_engine):
                          ForeignKey('users_complex_postgresql.id'))
 
 
+    # ISSUE 87: One-to-One relationship deserialization
+    class User_OneToOne_Nested(BaseModel):
+        """Mocked class with a single primary key."""
+
+        __tablename__ = 'users_one_to_one'
+
+        __serialization__ = [
+            AttributeConfiguration(name = 'id',
+                                   supports_csv = True,
+                                   csv_sequence = 1,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True),
+            AttributeConfiguration(name = 'name',
+                                   supports_csv = True,
+                                   csv_sequence = 2,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True,
+                                   on_serialize = None,
+                                   on_deserialize = None),
+            AttributeConfiguration(name = 'address',
+                                   supports_json = True,
+                                   supports_yaml = (True, True),
+                                   supports_dict = (True, True)),
+        ]
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+        name = Column('username',
+                      String(50))
+        address = relationship('Address_Nested_OneToOne', backref = 'user', uselist = False)
+
+    class Address_Nested_OneToOne(BaseModel):
+        """Mocked class with a single primary key."""
+
+        __tablename__ = 'addresses_nested_one_to_one'
+
+        __serialization__ = [
+            AttributeConfiguration(name = 'id',
+                                   supports_csv = True,
+                                   csv_sequence = 1,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True),
+            AttributeConfiguration(name = 'email',
+                                   supports_csv = True,
+                                   csv_sequence = 2,
+                                   supports_json = True,
+                                   supports_yaml = True,
+                                   supports_dict = True,
+                                   on_serialize = None,
+                                   on_deserialize = None),
+        ]
+
+        id = Column('id',
+                    Integer,
+                    primary_key = True)
+        email = Column('email_address',
+                       String(50),
+                       supports_csv = True,
+                       supports_json = True,
+                       supports_yaml = True,
+                       supports_dict = True,
+                       on_serialize = validators.email,
+                       on_deserialize = validators.email)
+        user_id = Column('user_id',
+                         Integer,
+                         ForeignKey('users_one_to_one.id'))
 
     BaseModel.metadata.create_all(db_engine)
 
@@ -494,7 +564,8 @@ def tables(request, db_engine):
         'model_composite_pk': (User2, Address2),
         'model_complex': (User_Complex, Address_Complex),
         'model_complex_meta': (User_Complex_Meta, Address_Complex_Meta),
-        'model_complex_postgresql': (User_Complex_PostgreSQL, Address_Complex_PostgreSQL)
+        'model_complex_postgresql': (User_Complex_PostgreSQL, Address_Complex_PostgreSQL),
+        'model_user_one_to_one': (User_OneToOne_Nested, Address_Nested_OneToOne)
     }
 
     clear_mappers()
@@ -615,6 +686,13 @@ def model_complex_postgresql(request, tables):
 
     return (User2, Address2)
 
+@pytest.fixture(scope = 'session')
+def model_nested_one_to_one(request, tables):
+    User3 = tables['model_user_one_to_one'][0]
+    Address3 = tables['model_user_one_to_one'][1]
+
+    return (User3, Address3)
+
 
 @pytest.fixture
 def instance_complex(request, model_complex):
@@ -686,6 +764,30 @@ def instance_postgresql(request, model_complex_postgresql):
 
     user_instance = user(**user_instance_values)
     address_instance = address(**address_instance_values)
+
+    instances = (user_instance, address_instance)
+    instance_values = (user_instance_values, address_instance_values)
+
+    return (instances, instance_values)
+
+@pytest.fixture
+def instance_nested_one_to_one(request, model_nested_one_to_one):
+    user_instance_values = {
+        'id': 1,
+        'name': 'test_username'
+    }
+    address_instance_values = {
+        'id': 1,
+        'email': 'test@domain.com',
+        'user_id': 1
+    }
+
+    user = model_nested_one_to_one[0]
+    address = model_nested_one_to_one[1]
+
+    user_instance = user(**user_instance_values)
+    address_instance = address(**address_instance_values)
+    user_instance.address = address_instance
 
     instances = (user_instance, address_instance)
     instance_values = (user_instance_values, address_instance_values)
