@@ -1,5 +1,34 @@
 -----------
 
+Release 0.6.0
+=========================================
+
+.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.6.0
+  :target: https://travis-ci.org/insightindustry/sqlathanor
+  :alt: Build Status (Travis CI)
+
+.. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.6.0/graph/badge.svg
+  :target: https://codecov.io/gh/insightindustry/sqlathanor
+  :alt: Code Coverage Status (Codecov)
+
+.. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.6.0
+  :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.6.0
+  :alt: Documentation Status (ReadTheDocs)
+
+Bug Fixes
+-----------------
+
+* #87: Fixed a longstanding bug that prevented one-to-one relationships from being
+  deserialized properly.
+
+Other Changes
+------------------
+
+* #89: Implemented support for ``display_name`` on relationships.
+* Updated test matrix to maintain test compability in the Python 3.4 environment.
+
+-----------
+
 Release 0.5.1
 =========================================
 

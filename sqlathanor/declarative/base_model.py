@@ -6,7 +6,9 @@
 # there as needed.
 
 import inspect as inspect_
+import yaml
 
+from sqlathanor._compat import json
 from sqlathanor.attributes import validate_serialization_config
 from sqlathanor.utilities import format_to_tuple
 from sqlathanor.default_serializers import get_default_serializer
@@ -261,10 +263,19 @@ class BaseModel(PrimaryKeyMixin,
                 resolved_class = None
             if resolved_class:
                 # pylint: disable=W0212
-                return_value = [resolved_class(
-                    **resolved_class._parse_dict(x,
-                                                 format,
-                                                 **kwargs)) for x in value]
+                if hasattr(resolved_class, 'new_from_json') and format == 'json' and isinstance(value, dict):
+                    as_json = json.dumps(value)
+                    return_value = resolved_class.new_from_json(as_json, **kwargs)
+                elif hasattr(resolved_class, 'new_from_yaml') and format == 'yaml' and isinstance(value, dict):
+                    as_yaml = yaml.dump(value)
+                    return_value = resolved_class.new_from_yaml(value, **kwargs)
+                elif hasattr(resolved_class, 'new_from_dict') and format == 'dict' and isinstance(value, dict):
+                    return_value = resolved_class.new_from_dict(value, **kwargs)
+                else:
+                    return_value = [resolved_class(
+                        **resolved_class._parse_dict(x,
+                                                     format,
+                                                     **kwargs)) for x in value]
                 #pylint: enable=W0212
             else:
                 return_value = value
