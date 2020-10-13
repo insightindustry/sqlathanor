@@ -193,6 +193,7 @@ class RelationshipProperty(SA_RelationshipProperty):
                  supports_dict = False,
                  on_serialize = None,
                  on_deserialize = None,
+                 display_name = None,
                  **kwargs):
         """Provide a relationship between two mapped classes.
 
@@ -353,6 +354,7 @@ class RelationshipProperty(SA_RelationshipProperty):
         self.supports_dict = supports_dict
         self.on_serialize = on_serialize
         self.on_deserialize = on_deserialize
+        self.display_name = display_name
 
         comparator_factory = kwargs.pop('comparator_factory', RelationshipProperty.Comparator)
 
@@ -388,7 +390,11 @@ class RelationshipProperty(SA_RelationshipProperty):
 
         @property
         def on_deserialize(self):
-            return self.prop.on_deserialize
+            return self.prop.on_deserialize\
+
+        @property
+        def display_name(self):
+            return self.prop.display_name
 
 
 relationship = public_factory(RelationshipProperty, ".orm.relationship")
