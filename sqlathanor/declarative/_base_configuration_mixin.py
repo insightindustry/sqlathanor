@@ -628,7 +628,9 @@ class ConfigurationMixin(object):
 
             return attributes
 
-        k = f'attributes_fc{str(from_csv)}tc{str(to_csv)}fj{str(from_json)}tj{str(to_json)}fy{str(from_yaml)}ty{str(to_yaml)}fd{str(from_dict)}td{str(to_dict)}ep{str(exclude_private)}',
+        k = 'attributes_fc%stc%sfj%stj%sfy%sty%sfd%std%sep%s' % (
+        str(from_csv), str(to_csv), str(from_json), str(to_json), str(from_yaml), str(to_yaml), str(from_dict),
+        str(to_dict), str(exclude_private))
 
         return cls._heapable(k, _build_set, config_set)
 
@@ -661,7 +663,7 @@ class ConfigurationMixin(object):
         :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
 
         """
-        attributes = cls._heapable(f'config_{attribute}', lambda: cls._get_attribute_configurations(config_set = config_set), config_set)
+        attributes = cls._heapable('config_%s' % attribute, lambda: cls._get_attribute_configurations(config_set = config_set), config_set)
 
         for config in attributes:
             if config.name == attribute or config.display_name == attribute:
@@ -1439,7 +1441,7 @@ class ConfigurationMixin(object):
 
             return sorted(attributes, key=lambda x: (x.csv_sequence, x.name))
 
-        return cls._heapable(f'csv_s{str(serialize)}d{str(deserialize)}', _build_csv, config_set)
+        return cls._heapable('csv_s%sd%s' % (str(serialize), str(deserialize)), _build_csv, config_set)
 
     @classmethod
     def get_json_serialization_config(cls,
@@ -1474,7 +1476,7 @@ class ConfigurationMixin(object):
         :rtype: :class:`list <python:list>` of
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         """
-        return cls._heapable(f'json_s{str(serialize)}d{str(deserialize)}',
+        return cls._heapable('json_s%sd%s' % (str(serialize), str(deserialize)),
                              lambda: [x for x in cls.get_serialization_config(from_json = deserialize,
                                                         to_json = serialize,
                                                         config_set = config_set)], config_set)
@@ -1513,7 +1515,7 @@ class ConfigurationMixin(object):
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
 
         """
-        return cls._heapable(f'yaml_s{str(serialize)}d{str(deserialize)}',
+        return cls._heapable('yaml_s%sd%s' % (str(serialize), str(deserialize)),
                              lambda: [x for x in cls.get_serialization_config(from_yaml = deserialize,
                                                         to_yaml = serialize,
                                                         config_set = config_set)], config_set)
@@ -1552,13 +1554,13 @@ class ConfigurationMixin(object):
         :rtype: :class:`list <python:list>` of
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         """
-        return cls._heapable(f'dict_s{str(serialize)}d{str(deserialize)}', lambda: [x for x in cls.get_serialization_config(from_dict = deserialize,
+        return cls._heapable('dict_s%sd%s' % (str(serialize), str(deserialize)), lambda: [x for x in cls.get_serialization_config(from_dict = deserialize,
                                                         to_dict = serialize,
                                                         config_set = config_set)], config_set)
 
     @classmethod
     def _heapable(cls, name, value, config_set=None):
-        _heap_name = f'__serialization_cache__{name}__{"default" if config_set is None else config_set}__'
+        _heap_name = '__serialization_cache__%s{name}__%s__' % (name, "default" if config_set is None else config_set)
 
         if not hasattr(cls, _heap_name):
             _v = value()
@@ -1570,6 +1572,6 @@ class ConfigurationMixin(object):
 
     @classmethod
     def clear_serialization_cache(cls):
-        for n in [*cls.__dict__.keys()]:
+        for n in list(cls.__dict__.keys()):
             if n.startswith('__serialization_cache__'):
                 delattr(cls, n)
