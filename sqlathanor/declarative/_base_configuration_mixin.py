@@ -583,49 +583,56 @@ class ConfigurationMixin(object):
         :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
 
         """
-        if config_set and not isinstance(cls.__serialization__, (dict, OrderedDict)):
-            raise ConfigurationError('object does not use named configuration sets, '
-                                     'but config_set is not None')
-        elif not config_set and isinstance(cls.__serialization__, (dict, OrderedDict)):
-            raise ConfigurationError('configuration sets defined but config_set is empty')
+        def _build_set():
+            if config_set and not isinstance(cls.__serialization__, (dict, OrderedDict)):
+                raise ConfigurationError('%s object does not use named (%s) configuration sets, '
+                                         'but config_set is not None' % (cls, config_set))
+            elif not config_set and isinstance(cls.__serialization__, (dict, OrderedDict)):
+                raise ConfigurationError('%s configuration sets defined but config_set is empty' % cls)
 
-        if config_set and config_set not in cls.__serialization__:
-            raise ValueError('config set (%s) not found in __serialization__ '
-                             ' configuration' % config_set)
+            if config_set and config_set not in cls.__serialization__:
+                raise ValueError('%s config set (%s) not found in __serialization__ '
+                                 ' configuration' % (cls, config_set))
 
-        if config_set:
-            __serialization__ = [x for x in cls.__serialization__[config_set]]
-        else:
-            __serialization__ = [x for x in cls.__serialization__]
+            if config_set:
+                __serialization__ = [x for x in cls.__serialization__[config_set]]
+            else:
+                __serialization__ = [x for x in cls.__serialization__]
 
-        declarative_attributes = cls._get_declarative_serializable_attributes(
-            from_csv = from_csv,
-            to_csv = to_csv,
-            from_json = from_json,
-            to_json = to_json,
-            from_yaml = from_yaml,
-            to_yaml = to_yaml,
-            from_dict = from_dict,
-            to_dict = to_dict,
-            exclude_private = exclude_private
-        )
-        meta_attributes = cls._get_meta_serializable_attributes(
-            from_csv = from_csv,
-            to_csv = to_csv,
-            from_json = from_json,
-            to_json = to_json,
-            from_yaml = from_yaml,
-            to_yaml = to_yaml,
-            from_dict = from_dict,
-            to_dict = to_dict,
-            config_set = config_set
-        )
+            declarative_attributes = cls._get_declarative_serializable_attributes(
+                from_csv = from_csv,
+                to_csv = to_csv,
+                from_json = from_json,
+                to_json = to_json,
+                from_yaml = from_yaml,
+                to_yaml = to_yaml,
+                from_dict = from_dict,
+                to_dict = to_dict,
+                exclude_private = exclude_private
+            )
+            meta_attributes = cls._get_meta_serializable_attributes(
+                from_csv = from_csv,
+                to_csv = to_csv,
+                from_json = from_json,
+                to_json = to_json,
+                from_yaml = from_yaml,
+                to_yaml = to_yaml,
+                from_dict = from_dict,
+                to_dict = to_dict,
+                config_set = config_set
+            )
 
-        attributes = [x for x in meta_attributes]
-        attributes.extend([x for x in declarative_attributes
-                           if x not in attributes and x not in __serialization__])
+            attributes = [x for x in meta_attributes]
+            attributes.extend([x for x in declarative_attributes
+                               if x not in attributes and x not in __serialization__])
 
-        return attributes
+            return attributes
+
+        k = 'attributes_fc%stc%sfj%stj%sfy%sty%sfd%std%sep%s' % (
+        str(from_csv), str(to_csv), str(from_json), str(to_json), str(from_yaml), str(to_yaml), str(from_dict),
+        str(to_dict), str(exclude_private))
+
+        return cls._heapable(k, _build_set, config_set)
 
     @classmethod
     def get_attribute_serialization_config(cls,
@@ -656,12 +663,10 @@ class ConfigurationMixin(object):
         :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
 
         """
-        attributes = cls._get_attribute_configurations(config_set = config_set)
+        attributes = cls._heapable('config_%s' % attribute, lambda: cls._get_attribute_configurations(config_set = config_set), config_set)
 
         for config in attributes:
-            if config.name == attribute:
-                return config.copy()
-            if config.display_name == attribute:
+            if config.name == attribute or config.display_name == attribute:
                 return config.copy()
 
         return None
@@ -979,6 +984,8 @@ class ConfigurationMixin(object):
         else:
             cls.__serialization__ = [x for x in serialization]
 
+        cls.clear_serialization_cache()
+
     @classmethod
     def configure_serialization(cls,
                                 configs = None,
@@ -1183,6 +1190,8 @@ class ConfigurationMixin(object):
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         """
+        cls.clear_serialization_cache()
+
         config = validate_serialization_config(configs)
         config_attributes = [x.name for x in config]
 
@@ -1421,15 +1430,18 @@ class ConfigurationMixin(object):
         :raises ValueError: if ``config_set`` is not defined within ``__serialization__``
 
         """
-        attributes = [x.copy()
-                      for x in cls.get_serialization_config(from_csv = deserialize,
-                                                            to_csv = serialize,
-                                                            config_set = config_set)]
-        for config in attributes:
-            if config.csv_sequence is None:
-                config.csv_sequence = len(attributes) + 1
+        def _build_csv():
+            attributes = [x.copy()
+                          for x in cls.get_serialization_config(from_csv=deserialize,
+                                                                to_csv=serialize,
+                                                                config_set=config_set)]
+            for config in attributes:
+                if config.csv_sequence is None:
+                    config.csv_sequence = len(attributes) + 1
 
-        return sorted(attributes, key = lambda x: (x.csv_sequence, x.name))
+            return sorted(attributes, key=lambda x: (x.csv_sequence, x.name))
+
+        return cls._heapable('csv_s%sd%s' % (str(serialize), str(deserialize)), _build_csv, config_set)
 
     @classmethod
     def get_json_serialization_config(cls,
@@ -1464,9 +1476,10 @@ class ConfigurationMixin(object):
         :rtype: :class:`list <python:list>` of
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         """
-        return [x for x in cls.get_serialization_config(from_json = deserialize,
+        return cls._heapable('json_s%sd%s' % (str(serialize), str(deserialize)),
+                             lambda: [x for x in cls.get_serialization_config(from_json = deserialize,
                                                         to_json = serialize,
-                                                        config_set = config_set)]
+                                                        config_set = config_set)], config_set)
 
     @classmethod
     def get_yaml_serialization_config(cls,
@@ -1502,9 +1515,10 @@ class ConfigurationMixin(object):
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
 
         """
-        return [x for x in cls.get_serialization_config(from_yaml = deserialize,
+        return cls._heapable('yaml_s%sd%s' % (str(serialize), str(deserialize)),
+                             lambda: [x for x in cls.get_serialization_config(from_yaml = deserialize,
                                                         to_yaml = serialize,
-                                                        config_set = config_set)]
+                                                        config_set = config_set)], config_set)
 
     @classmethod
     def get_dict_serialization_config(cls,
@@ -1540,6 +1554,24 @@ class ConfigurationMixin(object):
         :rtype: :class:`list <python:list>` of
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
         """
-        return [x for x in cls.get_serialization_config(from_dict = deserialize,
+        return cls._heapable('dict_s%sd%s' % (str(serialize), str(deserialize)), lambda: [x for x in cls.get_serialization_config(from_dict = deserialize,
                                                         to_dict = serialize,
-                                                        config_set = config_set)]
+                                                        config_set = config_set)], config_set)
+
+    @classmethod
+    def _heapable(cls, name, value, config_set=None):
+        _heap_name = '__serialization_cache__%s{name}__%s__' % (name, "default" if config_set is None else config_set)
+
+        if not hasattr(cls, _heap_name):
+            _v = value()
+            if _v is not None:
+                setattr(cls, _heap_name, _v)
+
+        if hasattr(cls, _heap_name):
+            return getattr(cls, _heap_name)
+
+    @classmethod
+    def clear_serialization_cache(cls):
+        for n in list(cls.__dict__.keys()):
+            if n.startswith('__serialization_cache__'):
+                delattr(cls, n)
