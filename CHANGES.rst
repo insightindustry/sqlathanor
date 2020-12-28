@@ -25,6 +25,7 @@ Other Changes
 
 * Significant performance improvement through the introduction of a heap cache (thanks,
   @digitalkaoz!)
+* Added contributors list.
 
 -----------
 
