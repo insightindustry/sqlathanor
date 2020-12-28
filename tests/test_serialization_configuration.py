@@ -5,7 +5,7 @@
 tests.test_serialization_configuration
 ******************************************
 
-Tests for declarative :class:`BaseModel` and the ability to retireve serialization
+Tests for declarative :class:`BaseModel` and the ability to retrieve serialization
 configuration data.
 
 """
@@ -55,7 +55,7 @@ def test_instance__serialization__(request,
 @pytest.mark.parametrize('test_index, include_private, exclude_methods, expected_length', [
     (0, False, True, 10),
     (0, True, True, 13),
-    (0, False, False, 40),
+    (0, False, False, 41),
 ])
 def test_model__get_instance_attributes(request,
                                         model_complex_meta,
@@ -1096,7 +1096,7 @@ def test_model_set_attribute_serialization_config(request,
 @pytest.mark.parametrize('test_index, include_private, exclude_methods, expected_length', [
     (0, False, True, 10),
     (0, True, True, 13),
-    (0, False, False, 40),
+    (0, False, False, 41),
 ])
 def test_instance__get_instance_attributes(request,
                                            instance_complex_meta,

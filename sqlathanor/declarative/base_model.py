@@ -265,16 +265,17 @@ class BaseModel(PrimaryKeyMixin,
                 # pylint: disable=W0212
                 if hasattr(resolved_class, 'new_from_json') and format == 'json' and isinstance(value, dict):
                     as_json = json.dumps(value)
-                    return_value = resolved_class.new_from_json(as_json, **kwargs)
+                    return_value = resolved_class.new_from_json(as_json, config_set=config_set, **kwargs)
                 elif hasattr(resolved_class, 'new_from_yaml') and format == 'yaml' and isinstance(value, dict):
                     as_yaml = yaml.dump(value)
-                    return_value = resolved_class.new_from_yaml(value, **kwargs)
+                    return_value = resolved_class.new_from_yaml(value, config_set=config_set, **kwargs)
                 elif hasattr(resolved_class, 'new_from_dict') and format == 'dict' and isinstance(value, dict):
-                    return_value = resolved_class.new_from_dict(value, **kwargs)
+                    return_value = resolved_class.new_from_dict(value, config_set=config_set, **kwargs)
                 else:
                     return_value = [resolved_class(
                         **resolved_class._parse_dict(x,
                                                      format,
+                                                     config_set=config_set,
                                                      **kwargs)) for x in value]
                 #pylint: enable=W0212
             else:
