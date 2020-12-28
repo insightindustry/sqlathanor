@@ -299,7 +299,7 @@ Dependencies
 
     The :doc:`Automap Extension <sqlalchemy:orm/extensions/automap>` is an incredibly
     useful tool for modeling *existing* databases with minimal effort. What it does
-    is it reasd your existing database's metadata and automatically constructs
+    is it reads your existing database's metadata and automatically constructs
     :doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`
     :term:`model classes <model class>` populated with your tables' columns.
 
