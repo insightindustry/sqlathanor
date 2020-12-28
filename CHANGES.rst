@@ -1,10 +1,38 @@
 -----------
 
+Release 0.7.0
+=========================================
+
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.7.0
+  :target: https://travis-ci.com/insightindustry/sqlathanor
+  :alt: Build Status (Travis CI)
+
+.. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.7.0/graph/badge.svg
+  :target: https://codecov.io/gh/insightindustry/sqlathanor
+  :alt: Code Coverage Status (Codecov)
+
+.. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.7.0
+  :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.7.0
+  :alt: Documentation Status (ReadTheDocs)
+
+Bug Fixes
+-----------------
+
+* Fixed a typo in the documentation (thanks, @timmy224!)
+
+Other Changes
+------------------
+
+* Significant performance improvement through the introduction of a heap cache (thanks,
+  @digitalkaoz!)
+
+-----------
+
 Release 0.6.0
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.6.0
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.6.0
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.6.0/graph/badge.svg
@@ -32,8 +60,8 @@ Other Changes
 Release 0.5.1
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.5.1
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.5.1
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.5.1/graph/badge.svg
@@ -69,8 +97,8 @@ Other Changes
 Release 0.5.0
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.5.0
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.5.0
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.5.0/graph/badge.svg
@@ -111,8 +139,8 @@ Bug Fixes
 Release 0.4.0
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.4.0
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.4.0
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.4.0/graph/badge.svg
@@ -147,8 +175,8 @@ Other Changes
 Release 0.3.1
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.3.1
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.3.1
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.3.1/graph/badge.svg
@@ -177,8 +205,8 @@ Other Changes
 Release 0.3.0
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.3.0
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.3.0
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.3.0/graph/badge.svg
@@ -214,8 +242,8 @@ Other Changes
 Release 0.2.2
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.2.2
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.2.2
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.2.2/graph/badge.svg
@@ -243,8 +271,8 @@ Other Changes
 Release 0.2.1
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.2.1
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.2.1
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.2.1/graph/badge.svg
@@ -266,8 +294,8 @@ Bugs Fixed
 Release 0.2.0
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.2.0
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.2.0
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.2.0/graph/badge.svg
@@ -290,8 +318,8 @@ Features Added
 Release 0.1.1
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.1.1
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.1.1
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.1.1/graph/badge.svg
@@ -313,8 +341,8 @@ Release 0.1.1
 Release 0.1.0
 =========================================
 
-.. image:: https://travis-ci.org/insightindustry/sqlathanor.svg?branch=v.0.1.0
-  :target: https://travis-ci.org/insightindustry/sqlathanor
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.1.0
+  :target: https://travis-ci.com/insightindustry/sqlathanor
   :alt: Build Status (Travis CI)
 
 .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.1.0/graph/badge.svg
