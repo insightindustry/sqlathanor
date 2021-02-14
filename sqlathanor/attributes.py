@@ -180,7 +180,7 @@ class AttributeConfiguration(SerializationMixin):
           .. note::
 
             If present, values will be validated against the Pydantic field *after* any
-            ``on_serialize`` function is executed.
+            ``on_deserialize`` function is executed.
 
         :type pydantic_field: :class:`pydantic.fields.ModelField <pydantic.fields.ModelField>`
           / :class:`pydantic.fields.FieldInfo <pydantic:pydantic.fields.FieldInfo>`

@@ -698,7 +698,8 @@ class ConfigurationMixin(object):
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
           to apply. If :obj:`None <python:None>`, will set particular values based
           on their corresponding keyword arguments.
-        :type config: :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+        :type config: :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` /
+          / Pydantic :class:`ModelField <pydantic:pydantic.fields.ModelField>` object /
           / :obj:`None <python:None>`
 
         :param supports_csv: Determines whether the column can be serialized to or
@@ -921,7 +922,11 @@ class ConfigurationMixin(object):
         if config is None:
             new_config = AttributeConfiguration(name = attribute)
         else:
-            new_config = config
+            if checkers.is_type(config, 'ModelField'):
+                new_config = AttributeConfiguration(name = attribute,
+                                                    pydantic_field = config)
+            else:
+                new_config = config
 
         if attribute != new_config.name:
             raise ValueError(

@@ -285,10 +285,20 @@ class BaseModel(PrimaryKeyMixin,
                 return_value = on_deserialize(value)
             except Exception:
                 raise ValueDeserializationError(
-                    "attribute '%s' failed de-serialization to format '%s'" % (attribute,
-                                                                               format)
+                    "attribute '%s' failed de-serialization from format '%s'" % (attribute,
+                                                                                 format)
                 )
 
+        if config.pydantic_field:
+            return_value, error_list = config.pydantic_field.validate(return_value)
+            if error_list:
+                error_message = (
+                    "attribute '%s' failed de-serialization from format '%s'" % (attribute,
+                                                                                 format)
+                )
+                error_message += '\n-- Pydantic Validation Errors:\n{%s}' % error_list
+
+                raise ValueDeserializationError(error_list)
 
         return return_value
 

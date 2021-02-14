@@ -19,6 +19,21 @@ from tests.fixtures import db_engine, tables, base_model, db_session, \
 from sqlathanor.errors import InvalidFormatError, ValueDeserializationError, \
     UnsupportedDeserializationError
 
+from sqlathanor._compat import is_py36
+
+if is_py36:
+    from pydantic import BaseModel
+    from pydantic.fields import Field, ModelField
+
+    class PydanticModel(BaseModel):
+        id: datetime.timedelta
+
+    pydantic_field = PydanticModel.__fields__.get('id', None)
+
+else:
+    pydantic_field = None
+    PydanticModel = 'Python <3.6'
+
 
 @pytest.mark.parametrize('attribute, format, input_value, expected_result, error', [
     ('name', 'csv', 'serialized', 'deserialized', None),
@@ -50,3 +65,37 @@ def test__get_deserialized_value(request,
     else:
         with pytest.raises(error):
             result = target._get_deserialized_value(input_value, format, attribute)
+
+
+if is_py36:
+    @pytest.mark.parametrize('attribute, format, input_value, pydantic_field, expected_result, error', [
+        ('id', 'csv', '1', pydantic_field, 1, None),
+        ('id', 'csv', 'invalid', pydantic_field, None, ValueDeserializationError),
+        ('id', 'yaml', '1', pydantic_field, 1, UnsupportedDeserializationError),
+
+    ])
+    def test__get_deserialized_value_pydantic(request,
+                                              model_complex_postgresql,
+                                              instance_postgresql,
+                                              attribute,
+                                              format,
+                                              input_value,
+                                              pydantic_field,
+                                              expected_result,
+                                              error):
+        model = model_complex_postgresql[0]
+        model.set_attribute_serialization_config('id',
+                                                 config = pydantic_field,
+                                                 supports_csv = True,
+                                                 supports_json = True,
+                                                 supports_yaml = False,
+                                                 supports_dict = True)
+        instance_values = instance_postgresql[1][0]
+        target = model(**instance_values)
+
+        if not error:
+            result = target._get_deserialized_value(input_value, format, attribute)
+            assert result == expected_result
+        else:
+            with pytest.raises(error):
+                result = target._get_deserialized_value(input_value, format, attribute)
