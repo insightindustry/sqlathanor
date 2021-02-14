@@ -889,6 +889,17 @@ class ConfigurationMixin(object):
         :type csv_sequence: :class:`int <python:int>` / :obj:`None <python:None>` /
           ``False``
 
+        :param config_set: The name of the :term:`configuration set` where the
+          serialization/de-serialization configuration for ``attribute`` should be
+          updated. Defaults to :obj:`None <python:None>`
+
+          .. warning::
+
+            If the ``config_set`` is not defined on the model, then a
+            :exc:`ValueError <python:ValueError>` will be raised.
+
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :raises ConfigurationError: if ``config_set`` is not empty and there are no
           configuration sets defined on ``cls`` or if there are configuration sets defined
           but no ``config_set`` is specified
