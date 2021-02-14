@@ -1013,6 +1013,7 @@ class ConfigurationMixin(object):
           objects to apply to the class. Defaults to :obj:`None <python:None>`.
         :type configs: iterable of
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` /
+          :class:`pydantic.main.ModelMetaclass` /
           :obj:`None <python:None>`
 
         :param attributes: Collection of :term:`model attribute` names to which
