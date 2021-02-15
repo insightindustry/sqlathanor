@@ -9,6 +9,7 @@ Tests for ``Table.from_<format>()`` deserialization.
 
 """
 from datetime import datetime
+from typing import Any, Union, Optional
 
 import pytest
 
@@ -23,7 +24,35 @@ from sqlalchemy.types import Integer, Text, Float, DateTime, Date, Time, Boolean
 from sqlathanor import Table
 from sqlathanor.errors import UnsupportedValueTypeError, CSVStructureError
 
+from sqlathanor._compat import is_py36
+
 from tests.fixtures import check_input_file, input_files
+
+if is_py36:
+    from pydantic import BaseModel
+    from pydantic.fields import Field, ModelField
+
+    class PydanticModel(BaseModel):
+        id: int
+        field_1: str
+        field_2: str
+
+    class PydanticModel2(BaseModel):
+        id: int
+        field_1: str
+        field_2: str
+        field_3: Any
+
+    class PydanticModel3(BaseModel):
+        id: int
+        field_4: Optional[str]
+        field_5: bool
+        field_6: Union[str, int]
+else:
+    def Field(*args, **kwargs):
+        return None
+    PydanticModel = 'Python <3.6'
+
 
 # pylint: disable=line-too-long
 
@@ -691,3 +720,55 @@ def test_from_csv(input_files,
             assert isinstance(item_column.type, item[1]) is True
 
             assert item_column.primary_key is (item[0] == primary_key)
+
+
+@pytest.mark.parametrize('kwargs, expected_columns, error', [
+    ({}, 0, (TypeError, ValueError)),
+    ('invalid-type', 0, (TypeError, ValueError)),
+    ({'primary_key': 'id'}, 0, (TypeError, ValueError)),
+    ({'tablename': 'some_tablename'}, 0, (TypeError, ValueError)),
+    ({'models': 'invalid-type',
+      'tablename': 'some_tablename',
+      'primary_key': 'id'}, 0, (TypeError, ValueError)),
+    ({'models': {
+        '_single': [PydanticModel]
+      },
+      'tablename': 'some_tablename',
+      'primary_key': 'id'}, 3, None),
+    ({'models': {
+        'set_one': [PydanticModel],
+        'set_two': [PydanticModel2, PydanticModel3]
+      },
+      'tablename': 'some_tablename',
+      'primary_key': 'id'}, 7, None),
+    ({'models': {
+        'set_one': [PydanticModel],
+        'set_two': [PydanticModel2]
+      },
+      'tablename': 'some_tablename',
+      'primary_key': 'id'}, 4, None),
+    ({'models': {
+        'set_one': [PydanticModel],
+        'set_two': [PydanticModel2],
+        'set_three': [PydanticModel3]
+      },
+      'tablename': 'some_tablename',
+      'primary_key': 'id'}, 7, None),
+])
+def test_from_pydantic(kwargs, expected_columns, error):
+    if not error:
+        tablename = kwargs.get('tablename', None)
+        primary_key = kwargs.get('primary_key', None)
+
+        kwargs['metadata'] = MetaData()
+
+        result = Table.from_pydantic(**kwargs)
+
+        assert isinstance(result, Table)
+        assert result.name == tablename
+
+        assert len(result.c) == expected_columns
+
+    else:
+        with pytest.raises(error):
+            result = Table.from_pydantic(**kwargs)
