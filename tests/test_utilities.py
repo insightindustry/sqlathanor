@@ -9,6 +9,7 @@ Tests for the schema extensions written in :ref:`sqlathanor.utilities`.
 
 """
 import os
+from typing import Any, Union, Optional
 
 import pytest
 import sqlalchemy
@@ -16,16 +17,43 @@ import sqlalchemy
 from validator_collection import checkers
 from validator_collection.errors import NotAnIterableError
 
+from sqlathanor._compat import is_py36
+
 from tests.fixtures import db_engine, tables, base_model, db_session, \
     model_complex_postgresql, instance_postgresql, input_files, check_input_file
 
 from sqlathanor.utilities import bool_to_tuple, callable_to_dict, format_to_tuple, \
     get_class_type_key, raise_UnsupportedSerializationError, \
     raise_UnsupportedDeserializationError, iterable__to_dict, parse_yaml, parse_json, \
-    get_attribute_names, is_an_attribute, parse_csv, read_csv_data
+    get_attribute_names, is_an_attribute, parse_csv, read_csv_data, columns_from_pydantic
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
     MaximumNestingExceededWarning, DeserializationError, CSVStructureError
+
+if is_py36:
+    from pydantic import BaseModel
+    from pydantic.fields import Field, ModelField
+
+    class PydanticModel(BaseModel):
+        id: int
+        field_1: str
+        field_2: str
+
+    class PydanticModel2(BaseModel):
+        id: int
+        field_1: str
+        field_2: str
+        field_3: Any
+
+    class PydanticModel3(BaseModel):
+        id: int
+        field_4: Optional[str]
+        field_5: bool
+        field_6: Union[str, int]
+else:
+    def Field(*args, **kwargs):
+        return None
+    PydanticModel = 'Python <3.6'
 
 
 
@@ -450,3 +478,43 @@ def test_read_csv_data(input_files, input_data, single_record, expected_result):
         assert result == expected_result
     else:
         assert result.strip() == expected_result.strip()
+
+
+if is_py36:
+    @pytest.mark.parametrize('kwargs, expected_columns, expected_config_sets, error', [
+        ({'config_sets': {
+            '_single': [PydanticModel]
+         },
+         'primary_key': 'id'}, 3, 1, None),
+        ({'config_sets': {
+            'set_one': [PydanticModel],
+            'set_two': [PydanticModel2, PydanticModel3]
+         },
+         'primary_key': 'id'}, 7, 2, None),
+        ({'config_sets': {
+            'set_one': [PydanticModel],
+            'set_two': [PydanticModel2]
+         },
+         'primary_key': 'id'}, 4, 2, None),
+        ({'config_sets': {
+            'set_one': [PydanticModel],
+            'set_two': [PydanticModel2],
+            'set_three': [PydanticModel3]
+         },
+         'primary_key': 'id'}, 7, 3, None),
+    ])
+    def test_columns_from_pydantic(kwargs, expected_columns, expected_config_sets, error):
+        if not error:
+            columns, serialization_config = columns_from_pydantic(**kwargs)
+            assert len(columns) == expected_columns
+            if expected_config_sets > 1:
+                assert isinstance(serialization_config, dict)
+                assert len(serialization_config.keys()) == expected_config_sets
+                for config_set in serialization_config:
+                    assert len(serialization_config[config_set]) <= expected_columns
+            else:
+                assert isinstance(serialization_config, list)
+                assert len(serialization_config) == expected_columns
+        else:
+            with pytest.raises(error):
+                columns, serialization_config = columns_from_pydantic(**kwargs)

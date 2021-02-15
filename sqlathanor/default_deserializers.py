@@ -6,7 +6,10 @@
 # there as needed.
 
 import datetime
+from decimal import Decimal
 import io
+
+from typing import get_origin, get_args, Any, Optional, Union, Mapping, List
 
 from validator_collection import validators, checkers
 
@@ -235,6 +238,118 @@ def get_type_mapping(value,
     return column_type
 
 
+def get_pydantic_type_mapping(field,
+                              type_mapping = None,
+                              skip_nested = True,
+                              default_to_str = False):
+    """Retrieve the SQL type mapping for ``field``.
+
+    :param field: The Pydantic :class:`ModelField <pydantic:pydantic.fields.ModelField>`
+      whose SQL type will be returned.
+    :type field: :class:`ModelField <pydantic:pydantic.fields.ModelField>`
+
+    :param type_mapping: Determines how the value type of ``value`` map to
+      SQL column data types. To add a new mapping or override a default, set a
+      key to the name of the value type in Python, and set the value to a
+      :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>`. The following are the
+      default mappings applied:
+
+      .. list-table::
+         :widths: 30 30
+         :header-rows: 1
+
+         * - Python Literal
+           - SQL Column Type
+         * - ``bool``
+           - :class:`Boolean <sqlalchemy:sqlalchemy.types.Boolean>`
+         * - ``str``
+           - :class:`Text <sqlalchemy:sqlalchemy.types.Text>`
+         * - ``int``
+           - :class:`Integer <sqlalchemy:sqlalchemy.types.Integer>`
+         * - ``float``
+           - :class:`Float <sqlalchemy:sqlalchemy.types.Float>`
+         * - ``date``
+           - :class:`Date <sqlalchemy:sqlalchemy.types.Date>`
+         * - ``datetime``
+           - :class:`DateTime <sqlalchemy:sqlalchemy.types.DateTime>`
+         * - ``time``
+           - :class:`Time <sqlalchemy:sqlalchemy.types.Time>`
+         * - ``timedelta``
+           - :class:`Interval <sqlalchemy:sqlalchemy.types.Interval>`
+
+    :type type_mapping: :class:`dict <python:dict>` with type names as keys and
+      column data types as values / :obj:`None <python:None>`
+
+    :param skip_nested: If ``True`` then if ``value`` is a nested item (e.g.
+      iterable, :class:`dict <python:dict>` objects, etc.) it will return
+      :obj:`None <python:None>`. If ``False``, will treat nested items as
+      :class:`str <python:str>`. Defaults to ``True``.
+    :type skip_nested: :class:`bool <python:bool>`
+
+    :param default_to_str: If ``True``, will automatically set a ``value`` whose
+      value type cannot be determined to ``str``
+      (:class:`Text <sqlalchemy:sqlalchemy.types.Text>`). If ``False``, will
+      use the value type's ``__name__`` attribute and attempt to find a mapping.
+      Defaults to ``False``.
+    :type default_to_str: :class:`bool <python:bool>`
+
+    :returns: The :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>` for ``value``, or
+      :obj:`None <python:None>` if the value should be skipped
+    :rtype: :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>` / :obj:`None`
+
+    :raises UnsupportedValueTypeError: when ``value`` does not have corresponding
+      :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>`
+
+    """
+    if not checkers.is_type(field, 'ModelField'):
+        raise UnsupportedValueTypeError('field must be a Pydantic ModelField. '
+                                        'Was: %s' % type(field))
+
+    if not type_mapping:
+        type_mapping = DEFAULT_PYTHON_SQL_TYPE_MAPPING
+
+    for key in DEFAULT_PYTHON_SQL_TYPE_MAPPING:
+        if key not in type_mapping:
+            type_mapping[key] = DEFAULT_PYTHON_SQL_TYPE_MAPPING[key]
+
+    if field.type_ in (list, set, frozenset, Mapping, dict) and skip_nested:
+        return None
+    elif field.type_ in (list, set, frozenset, Any) and default_to_str:
+        target_type = 'str'
+    elif field.type_ is None and default_to_str:
+        target_type = 'str'
+    elif field.type_ == bool or (get_origin(field.type_) in (Union, Optional, List) and
+                                 get_args(field.type_)[0] == str):
+        target_type = 'bool'
+    elif field.type_ == int or (get_origin(field.type_) in (Union, Optional, List) and
+                                get_args(field.type_)[0] == int):
+        target_type = 'int'
+    elif field.type_ in (float, Decimal) or (get_origin(field.type_) in (Union, Optional, List) and
+                                             get_args(field.type_)[0] in (float, Decimal)):
+        target_type = 'float'
+    elif field.type_ == datetime.time or (get_origin(field.type_) in (Union, Optional, List) and
+                                          get_args(field.type_)[0] == datetime.time):
+        target_type = 'time'
+    elif field.type_ == datetime.datetime or (get_origin(field.type_) in (Union, Optional, List) and
+                                              get_args(field.type_)[0] == datetime.datetime):
+        target_type = 'datetime'
+    elif field.type_ == datetime.date or (get_origin(field.type_) in (Union, Optional, List) and
+                                          get_args(field.type_)[0] == datetime.date):
+        target_type = 'date'
+    elif field.type_ == Any:
+        target_type = 'str'
+    elif default_to_str:
+        target_type = 'str'
+    else:
+        target_type = field.type_.__name__
+
+    column_type = type_mapping.get(target_type, None)
+    if not column_type:
+        raise UnsupportedValueTypeError(
+            'field type (%s) is not a supported type (%s)' % (field.type_, target_type)
+        )
+
+    return column_type
 
 
 DEFAULT_DESERIALIZERS = {

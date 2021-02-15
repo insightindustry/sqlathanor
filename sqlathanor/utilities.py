@@ -831,3 +831,158 @@ def read_csv_data(input_data,
             input_data = parsed_data[1]
 
     return input_data
+
+
+def columns_from_pydantic(config_sets,
+                          primary_key,
+                          skip_nested = True,
+                          default_to_str = False,
+                          type_mapping = None,
+                          **kwargs):
+    """Generate a set of :class:`Column <sqlathanor.schema.Column>` instances and a
+    corresponding collection of
+    :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` objects
+    from a set of :term:`Pydantic Models <Pydantic Model>`.
+
+    :param config_sets: A collection of :term:`Pydantic Models <Pydantic Model>` organized
+      into a :class:`dict <python:dict>` whose keys correspond to the name of a
+      :term:`configuration set` and whose values are an iterable of
+      :term:`pydantic.BaseModel <pydantic:pydantic.main.BaseModel>` classes.
+    :type config_sets: :class:`dict <python:dict>` with :class:`str <python:str>` keys
+      and whose values are an iterable of
+      :term:`pydantic.BaseModel <pydantic:pydantic.main.BaseModel>` classes.
+
+    :param primary_key: The name of the column/key that should be used as the table's
+      primary key.
+    :type primary_key: :class:`str <python:str>`
+
+    :param cls: The base class to use when generating a new :term:`model class`.
+      Defaults to :class:`BaseModel` to provide serialization/de-serialization
+      support.
+
+      If a :class:`tuple <python:tuple>` of classes, will include :class:`BaseModel`
+      in that list of classes to mixin serialization/de-serialization support.
+
+      If not :obj:`None <python:None>` and not a :class:`tuple <python:tuple>`, will mixin
+      :class:`BaseModel` with the value passed to provide
+      serialization/de-serialization support.
+    :type cls: :obj:`None <python:None>` / :class:`tuple <python:tuple>` of classes /
+      class object
+
+    :param skip_nested: If ``True`` then any keys in ``serialized_dict`` that
+      feature nested items (e.g. iterables, :class:`dict <python:dict>` objects,
+      etc.) will be ignored. If ``False``, will treat serialized items as
+      :class:`str <python:str>`. Defaults to ``True``.
+    :type skip_nested: :class:`bool <python:bool>`
+
+    :param default_to_str: If ``True``, will automatically set a key/column whose
+      value type cannot be determined to ``str``
+      (:class:`Text <sqlalchemy:sqlalchemy.types.Text>`). If ``False``, will
+      use the value type's ``__name__`` attribute and attempt to find a mapping.
+      Defaults to ``False``.
+    :type default_to_str: :class:`bool <python:bool>`
+
+    :param type_mapping: Determines how value types in ``pydantic_models`` map to
+      SQL column data types. To add a new mapping or override a default, set a
+      key to the name of the value type in Python, and set the value to a
+      :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>`. The following are the
+      default mappings applied:
+
+      .. list-table::
+         :widths: 30 30
+         :header-rows: 1
+
+         * - Python Literal
+           - SQL Column Type
+         * - ``bool``
+           - :class:`Boolean <sqlalchemy:sqlalchemy.types.Boolean>`
+         * - ``str``
+           - :class:`Text <sqlalchemy:sqlalchemy.types.Text>`
+         * - ``int``
+           - :class:`Integer <sqlalchemy:sqlalchemy.types.Integer>`
+         * - ``float``
+           - :class:`Float <sqlalchemy:sqlalchemy.types.Float>`
+         * - ``date``
+           - :class:`Date <sqlalchemy:sqlalchemy.types.Date>`
+         * - ``datetime``
+           - :class:`DateTime <sqlalchemy:sqlalchemy.types.DateTime>`
+         * - ``time``
+           - :class:`Time <sqlalchemy:sqlalchemy.types.Time>`
+
+    :type type_mapping: :class:`dict <python:dict>` with type names as keys and
+      column data types as values.
+
+    :returns: A collection of :class:`Column <sqlathanor.schema.Column>` instances and
+      a meta-style serialization configuration with one or more configuration sets.
+    :rtype: 2-member :class:`tuple <python:tuple>` where the first member is a
+      :class:`list <python:list>` of :class:`Column <sqlathanor.schema.Column>` instances
+      and the second member is a meta-style serialization configuration
+      (:class:`list <python:list` of
+      :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` OR
+      :class:`dict <python:dict>` of config sets)
+    """
+    from sqlathanor.attributes import AttributeConfiguration
+    from sqlathanor.schema import Column
+    from sqlathanor.default_deserializers import get_pydantic_type_mapping
+
+    serialization_config = {}
+    has_multiple_config_sets = True
+    if len(config_sets.keys()) == 1:
+        serialization_config = []
+        has_multiple_config_sets = False
+
+    column_names = []
+    columns = []
+
+    for key in config_sets:
+        models = config_sets[key]
+        set_attribute_configs = []
+        for model in models:
+            attribute_names = [validators.variable_name(x, allow_empty = False)
+                               for x in model.__fields__
+                               if x not in column_names]
+
+            attribute_configs = [AttributeConfiguration.from_pydantic_model(model,
+                                                                            name = x,
+                                                                            **kwargs)
+                                 for x in attribute_names]
+
+            model_columns = []
+            for field_name in attribute_names:
+                if field_name in column_names:
+                    continue
+
+                field = model.__fields__[field_name]
+                column_type = get_pydantic_type_mapping(field,
+                                                        type_mapping = type_mapping,
+                                                        skip_nested = skip_nested,
+                                                        default_to_str = default_to_str)
+                if column_type is None:
+                    continue
+
+                if field_name == primary_key:
+                    column = Column(name = field_name,
+                                    type_ = column_type,
+                                    primary_key = True)
+                else:
+                    column = Column(name = field_name,
+                                    type_ = column_type)
+
+                column.required = bool(field.required)
+                column.nullable = bool(field.allow_none)
+
+                if field.default:
+                    column.default = field.default
+
+                model_columns.append(column)
+                column_names.append(field_name)
+
+            columns.extend(model_columns)
+
+        set_attribute_configs.extend(attribute_configs)
+        if has_multiple_config_sets:
+            serialization_config[key] = set_attribute_configs
+        else:
+            serialization_config.extend(set_attribute_configs)
+
+    return columns, serialization_config
