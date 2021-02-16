@@ -568,8 +568,8 @@ class ConfigurationMixin(object):
 
         :param config_set: If not :obj:`None <python:None>`, will return those
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
-          objects that are contained within the named set. Defaults to
-          :obj:`None <python:None>`.
+          objects that are contained within the named
+          :term:`configuration set`. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: List of attribute configurations.
@@ -648,8 +648,8 @@ class ConfigurationMixin(object):
 
         :param config_set: If not :obj:`None <python:None>`, will return the
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
-          object for ``attribute`` that is contained within the named set. Defaults to
-          :obj:`None <python:None>`.
+          object for ``attribute`` that is contained within the named
+          :term:`configuration set`. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: The
@@ -896,7 +896,8 @@ class ConfigurationMixin(object):
           .. warning::
 
             If the ``config_set`` is not defined on the model, then a
-            :exc:`ValueError <python:ValueError>` will be raised.
+            :exc:`ConfigurationError <sqlathanor.errors.ConfigurationError>` will be
+            raised.
 
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
@@ -1017,7 +1018,8 @@ class ConfigurationMixin(object):
 
         .. caution::
           This method either overwrites the entire configuration (if no ``config_set`` is
-          supplied), or overwrites the entire ``config_set`` indicated.
+          supplied) set for the :term:`model class`, or overwrites the ``config_set``
+          indicated.
 
         .. tip::
 
@@ -1203,10 +1205,10 @@ class ConfigurationMixin(object):
           as keys and values as callables / :obj:`None <python:None>` / ``False``
 
         :param config_set: If not :obj:`None <python:None>`, will apply ``configs`` to the
-          configuration set named. If the class does not use pre-existing configuration sets,
-          will switch the class' meta configuration to use configuration sets, with any
-          pre-existing configuration set assigned to a set named ``_original``. Defaults
-          to :obj:`None <python:None>`.
+          :term:`configuration set` named. If the class does not use pre-existing
+          configuration sets, will switch the class' meta configuration to use
+          configuration sets, with any pre-existing configuration assigned to a set named
+          ``_original``. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         """
@@ -1317,7 +1319,7 @@ class ConfigurationMixin(object):
         :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param config_set: If not :obj:`None <python:None>`, will determine serialization
-          support within the indicated configuration set. Defaults to
+          support within the indicated :term:`configuration set`. Defaults to
           :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
@@ -1433,9 +1435,9 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
-        :param config_set: If not :obj:`None <python:None>`, the named configuration set
-          whose CSV serialization configuration should be returned. Defaults to
-          :obj:`None <python:None>`.
+        :param config_set: If not :obj:`None <python:None>`, the named
+          :term:`configuration set` whose CSV serialization configuration should be
+          returned. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
@@ -1486,9 +1488,9 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
-        :param config_set: If not :obj:`None <python:None>`, the named configuration set
-          whose serialization configuration should be returned. Defaults to
-          :obj:`None <python:None>`.
+        :param config_set: If not :obj:`None <python:None>`, the named
+          :term:`configuration set` whose JSON serialization configuration should be
+          returned. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
@@ -1524,9 +1526,9 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
-        :param config_set: If not :obj:`None <python:None>`, the named configuration set
-          whose serialization configuration should be returned. Defaults to
-          :obj:`None <python:None>`.
+        :param config_set: If not :obj:`None <python:None>`, the named
+          :term:`configuration set`  whose YAML serialization configuration should be
+          returned. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
@@ -1564,9 +1566,9 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
-        :param config_set: If not :obj:`None <python:None>`, the named configuration set
-          whose serialization configuration should be returned. Defaults to
-          :obj:`None <python:None>`.
+        :param config_set: If not :obj:`None <python:None>`, the named
+          :term:`configuration set`  whose :class:`dict <python:dict>` serialization
+          configuration should be returned. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
