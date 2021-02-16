@@ -1581,7 +1581,25 @@ class ConfigurationMixin(object):
                                                         config_set = config_set)], config_set)
 
     @classmethod
-    def _heapable(cls, name, value, config_set=None):
+    def _heapable(cls,
+                  name,
+                  value,
+                  config_set = None):
+        """Cache the serialization configuration in a
+        ``__serialization_cache__<name>_<config_set>`` class attribute.
+
+        :param name: The name to set for the heap.
+        :type name: :class:`str <python:str>`
+
+        :param value: The serialization/de-serialization configuration to cache in the
+          heap.
+
+        :param config_set: If not :obj:`None <python:None>`, the name of the named
+          :term:`configuration set` for which the serialization/deserialization
+          confiugration should be cached. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+        """
+
         _heap_name = '__serialization_cache__%s{name}__%s__' % (name, "default" if config_set is None else config_set)
 
         if not hasattr(cls, _heap_name):
@@ -1594,6 +1612,14 @@ class ConfigurationMixin(object):
 
     @classmethod
     def clear_serialization_cache(cls):
+        """Clears any cached serialization/de-serialization configurations.
+
+        .. note::
+
+          Does not affect the configuration itself - merely clears the heap caches if
+          present.
+
+        """
         for n in list(cls.__dict__.keys()):
             if n.startswith('__serialization_cache__'):
                 delattr(cls, n)
