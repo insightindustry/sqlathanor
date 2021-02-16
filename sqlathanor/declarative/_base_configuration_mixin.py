@@ -1013,8 +1013,11 @@ class ConfigurationMixin(object):
                                 on_serialize = None,
                                 on_deserialize = None,
                                 config_set = None):
-        """Apply configuration settings to the :term:`model class` (overwrites
-        entire configuration).
+        """Apply configuration settings to the :term:`model class`.
+
+        .. caution::
+          This method either overwrites the entire configuration (if no ``config_set`` is
+          supplied), or overwrites the entire ``config_set`` indicated.
 
         .. tip::
 

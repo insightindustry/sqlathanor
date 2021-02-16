@@ -842,9 +842,9 @@ def columns_from_pydantic(config_sets,
     """Generate a set of :class:`Column <sqlathanor.schema.Column>` instances and a
     corresponding collection of
     :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` objects
-    from a set of :term:`Pydantic Models <Pydantic Model>`.
+    from a set of :term:`Pydantic models <Pydantic Model>`.
 
-    :param config_sets: A collection of :term:`Pydantic Models <Pydantic Model>` organized
+    :param config_sets: A collection of :term:`Pydantic models <Pydantic Model>` organized
       into a :class:`dict <python:dict>` whose keys correspond to the name of a
       :term:`configuration set` and whose values are an iterable of
       :term:`pydantic.BaseModel <pydantic:pydantic.main.BaseModel>` classes.

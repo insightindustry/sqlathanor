@@ -31,6 +31,22 @@ Glossary
     with fields (columns) separated by a delimiter character (typically a comma
     ``,`` or pipe ``|``).
 
+  Configuration Set
+    A named set of attribute configurations which determine which :term:`model class`
+    attributes get :term:`serialized <Serialization>` /
+    :term:`de-serialized <De-serialization>` under given circumstances (when indicating
+    the configuration set during the serialization / de-serialization operation).
+
+    .. tip::
+
+      Think of a configuration set as a set of "rules" that determine what gets
+      processed when serializing or de-serializing a :term:`model class`.
+
+    .. note::
+
+      It is possible for a single :term:`model class` to have many different configuration
+      sets, so long as each set has a unique name.
+
   Declarative Configuration
     A way of configuring :term:`serialization` and :term:`de-serialization`
     for particular :term:`model attributes <model attribute>` when defining
@@ -186,6 +202,27 @@ Glossary
     representation. Typically performed using the :doc:`pickle <python:library/pickle>`
     module from the standard Python library, or an outside pickling library like
     `dill <https://github.com/uqfoundation/dill>`_.
+
+  Pydantic Model
+    A Pydantic Model is a representation of a class which contains data and some
+    attributes that inherits from the
+    :class:`pydantic.BaseModel <pydantic:pydantic.main.BaseModel>` class. This model is
+    used by the `Pydantic <https://pydantic-docs.helpmanual.io>`_ library to either
+    validate the typing of data upon deserialization or to serialize data to appropriate
+    types when needed.
+
+    By definition, each Pydantic model is self-contained (though they may inherit across
+    models). Pydantic models are inherently reliant on Python's native typing support,
+    relying on type hints and annotations to provide the canonical instructions against
+    which to validate or based on which to serialize.
+
+    .. seealso::
+
+      * :doc:`SQLAthanor and Pydantic <pydantic>`
+      * :func:`generate_model_from_pydantic() <sqlathanor.declarative.generate_model_from_pydantic>`
+      * :meth:`Table.from_pydantic() <sqlathanor.schema.Table.from_pydantic>`
+      * :meth:`AttributeConfiguration.from_pydantic_model() <sqlathanor.attributes.AttributeConfiguration.from_pydantic_model>`
+
 
   Relationship
     A connection between two database tables or their corresponding

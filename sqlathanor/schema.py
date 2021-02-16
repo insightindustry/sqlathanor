@@ -1041,12 +1041,12 @@ class Table(SA_Table):
                       default_to_str = False,
                       type_mapping = None,
                       **kwargs):
-        """Generate a :class:`Table` object from a one of more
-        :term:`Pydantic Models <Pydantic Model>`.
+        """Generate a :class:`Table` object from one or more
+        :term:`Pydantic models <Pydantic Model>`.
 
         .. versionadded: 0.8.0
 
-        :param models: The :term:`Pydantic Model(s) <Pydantic Model>` which will
+        :param models: The :term:`Pydantic model(s) <Pydantic Model>` which will
           determine the columns/attributes that will be present within the generated
           table.
 

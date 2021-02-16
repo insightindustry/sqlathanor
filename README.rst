@@ -266,8 +266,10 @@ Key SQLAthanor Features
 * Customize the validation used when de-serializing particular columns to match
   your needs.
 * Works with Declarative Reflection and the SQLAlchemy Automap extension.
-* Programmatically generate Declarative Base Models from serialized data.
-* Programmatically generate SQLAlchemy ``Table`` objects from serialized data.
+* Programmatically generate Declarative Base Models from serialized data or Pydantic
+  models.
+* Programmatically generate SQLAlchemy ``Table`` objects from serialized data or Pydantic
+  models.
 
 
 **SQLAthanor** vs Alternatives

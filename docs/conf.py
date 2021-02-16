@@ -227,10 +227,11 @@ epub_exclude_files = ['search.html']
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.6', None),
     'python27': ('https://docs.python.org/2.7', None),
-    'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest/', None),
+    'sqlalchemy': ('http://docs.sqlalchemy.org/en/13/', None),
     'simplejson': ('http://simplejson.readthedocs.io/en/latest/', None),
     'validator-collection': ('http://validator-collection.readthedocs.io/en/latest/', None),
     'flask_sqlalchemy': ('http://flask-sqlalchemy.pocoo.org/2.3/', None),
+    #'pydantic': ('https://pydantic-docs.helpmanual.io/', None),
 }
 
 # -- Options for todo extension ----------------------------------------------

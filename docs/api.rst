@@ -79,6 +79,13 @@ generate_model_from_dict()
 
 ----------------------------------------
 
+generate_model_from_pydantic()
+-------------------------------------
+
+.. autofunction:: generate_model_from_pydantic
+
+--------------------------------------------------------
+
 .. module:: sqlathanor.schema
 
 Schema
@@ -197,6 +204,8 @@ Table
 
   .. automethod:: Table.from_yaml
 
+  .. automethod:: Table.from_pydantic
+
 ----------------------------
 
 .. module:: sqlathanor.attributes
@@ -219,6 +228,8 @@ AttributeConfiguration
   :inherited-members:
 
   .. automethod:: AttributeConfiguration.__init__
+
+  .. automethod:: from_pydantic_model
 
 ----------------------
 
