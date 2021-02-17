@@ -995,7 +995,7 @@ def get_origin(type_):
 
     :returns: The type origin. :obj:`None <python:None>` if on Python 3.4 or 2.7.
     """
-    if is_py2 or is_py34:
+    if is_py2 or is_py34 or is_py35:
         return None
 
     try:
@@ -1021,7 +1021,7 @@ def get_args(type_):
     :returns: The arguments passed to the generic type annotation.
       :obj:`None <python:None>` if on Python 3.4 or 2.7.
     """
-    if is_py2 or is_py34:
+    if is_py2 or is_py34 or is_py35:
         return None
 
     try:
