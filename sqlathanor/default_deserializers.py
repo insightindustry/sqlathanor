@@ -9,13 +9,17 @@ import datetime
 from decimal import Decimal
 import io
 
-from typing import get_origin, get_args, Any, Optional, Union, Mapping, List
+from typing import Any, Optional, Union, Mapping, List
+try:
+    from typing import UnionMeta
+except ImportError:
+    from typing import _GenericAlias as UnionMeta
 
 from validator_collection import validators, checkers
 
 from sqlathanor._compat import json
-from sqlathanor.utilities import format_to_tuple, get_class_type_key, \
-    raise_UnsupportedSerializationError, raise_UnsupportedDeserializationError
+from sqlathanor.utilities import format_to_tuple, get_class_type_key, get_origin, \
+    get_args, raise_UnsupportedSerializationError, raise_UnsupportedDeserializationError
 from sqlathanor.errors import UnsupportedValueTypeError
 
 from sqlalchemy.types import Boolean, Date, DateTime, Float, Integer, Text, Time, Interval
@@ -318,22 +322,25 @@ def get_pydantic_type_mapping(field,
         target_type = 'str'
     elif field.type_ is None and default_to_str:
         target_type = 'str'
-    elif field.type_ == bool or (get_origin(field.type_) in (Union, Optional, List) and
-                                 get_args(field.type_)[0] == str):
+    elif (get_origin(field.type_) in (Union, Optional, List, UnionMeta) and
+          get_args(field.type_)[0] == str):
+        target_type = 'str'
+    elif field.type_ == bool or (get_origin(field.type_) in (Union, Optional, List, UnionMeta) and
+                                 get_args(field.type_)[0] == bool):
         target_type = 'bool'
-    elif field.type_ == int or (get_origin(field.type_) in (Union, Optional, List) and
+    elif field.type_ == int or (get_origin(field.type_) in (Union, Optional, List, UnionMeta) and
                                 get_args(field.type_)[0] == int):
         target_type = 'int'
-    elif field.type_ in (float, Decimal) or (get_origin(field.type_) in (Union, Optional, List) and
+    elif field.type_ in (float, Decimal) or (get_origin(field.type_) in (Union, Optional, List, UnionMeta) and
                                              get_args(field.type_)[0] in (float, Decimal)):
         target_type = 'float'
-    elif field.type_ == datetime.time or (get_origin(field.type_) in (Union, Optional, List) and
+    elif field.type_ == datetime.time or (get_origin(field.type_) in (Union, Optional, List, UnionMeta) and
                                           get_args(field.type_)[0] == datetime.time):
         target_type = 'time'
-    elif field.type_ == datetime.datetime or (get_origin(field.type_) in (Union, Optional, List) and
+    elif field.type_ == datetime.datetime or (get_origin(field.type_) in (Union, Optional, List, UnionMeta) and
                                               get_args(field.type_)[0] == datetime.datetime):
         target_type = 'datetime'
-    elif field.type_ == datetime.date or (get_origin(field.type_) in (Union, Optional, List) and
+    elif field.type_ == datetime.date or (get_origin(field.type_) in (Union, Optional, List, UnionMeta) and
                                           get_args(field.type_)[0] == datetime.date):
         target_type = 'date'
     elif field.type_ == Any:
@@ -341,7 +348,10 @@ def get_pydantic_type_mapping(field,
     elif default_to_str:
         target_type = 'str'
     else:
-        target_type = field.type_.__name__
+        try:
+            target_type = get_args(field.type_)[0]
+        except (AttributeError, IndexError):
+            target_type = field.type_.__name__
 
     column_type = type_mapping.get(target_type, None)
     if not column_type:

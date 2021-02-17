@@ -22,7 +22,7 @@ from sqlalchemy.exc import UnsupportedCompilationError as SA_UnsupportedCompilat
 from validator_collection import validators, checkers
 from validator_collection.errors import NotAnIterableError
 
-from sqlathanor._compat import json, is_py2, is_py36, is_py35, dict as dict_
+from sqlathanor._compat import json, is_py2, is_py34, is_py36, is_py35, dict as dict_
 from sqlathanor.errors import InvalidFormatError, UnsupportedSerializationError, \
     UnsupportedDeserializationError, MaximumNestingExceededError, \
     MaximumNestingExceededWarning, DeserializationError, CSVStructureError
@@ -986,3 +986,56 @@ def columns_from_pydantic(config_sets,
             serialization_config.extend(set_attribute_configs)
 
     return columns, serialization_config
+
+
+def get_origin(type_):
+    """Retrieve the base type annotation of ``type_``.
+
+    :param type_: The full generic type annotation to parse.
+
+    :returns: The type origin. :obj:`None <python:None>` if on Python 3.4 or 2.7.
+    """
+    if is_py2 or is_py34:
+        return None
+
+    try:
+        from typing import get_origin as get_origin_
+        return_value = get_origin_(type_)
+    except ImportError:
+        try:
+            return_value = type_.__extra__
+        except AttributeError:
+            try:
+                return_value = type_.__origin__
+            except AttributeError:
+                return_value = type_.__class__
+
+    return return_value
+
+
+def get_args(type_):
+    """Retrieve the arguments passed to a generic type annotation of ``type_``.
+
+    :param type_: The full generic type annotation to parse.
+
+    :returns: The arguments passed to the generic type annotation.
+      :obj:`None <python:None>` if on Python 3.4 or 2.7.
+    """
+    if is_py2 or is_py34:
+        return None
+
+    try:
+        from typing import get_args as get_args_
+        return_value = get_args_(type_)
+    except ImportError:
+        try:
+            return_value = type_.__args__
+        except AttributeError:
+            try:
+                return_value = type_.__parameters__
+            except AttributeError:
+                for attr in dir(type_):
+                    if '_params__' in attr and '_set_params__' not in attr:
+                        return_value = getattr(type_, attr, None)
+
+    return return_value
