@@ -9,7 +9,15 @@ import datetime
 from decimal import Decimal
 import io
 
-from typing import Any, Optional, Union, Mapping, List
+try:
+    from typing import Any, Optional, Union, Mapping, List
+except ImportError:
+    Any = 'Any'
+    Optional = 'Optional'
+    Union = 'Union'
+    Mapping = 'Mapping'
+    List = 'List'
+
 try:
     from typing import UnionMeta
 except ImportError:
