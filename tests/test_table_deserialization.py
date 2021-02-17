@@ -768,7 +768,7 @@ def test_from_csv(input_files,
       'primary_key': 'id'}, 7, None),
 ])
 def test_from_pydantic(kwargs, expected_columns, error):
-    if not error:
+    if not error and not isinstance(PydanticModel, str):
         tablename = kwargs.get('tablename', None)
         primary_key = kwargs.get('primary_key', None)
 
@@ -780,7 +780,8 @@ def test_from_pydantic(kwargs, expected_columns, error):
         assert result.name == tablename
 
         assert len(result.c) == expected_columns
-
+    elif not error:
+        pass
     else:
         with pytest.raises(error):
             result = Table.from_pydantic(**kwargs)

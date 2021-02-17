@@ -724,7 +724,7 @@ def test_generate_model_from_csv(input_files,
       'primary_key': 'id'}, None),
 ])
 def test_generate_model_from_pydantic(kwargs, error):
-    if not error:
+    if not error and not isinstance(PydanticModel, str):
         tablename = kwargs.get('tablename', None)
         primary_key = kwargs.get('primary_key', None)
         base_model_attrs = kwargs.get('base_model_attrs', None)
@@ -742,6 +742,8 @@ def test_generate_model_from_pydantic(kwargs, error):
             for key in base_model_attrs:
                 assert hasattr(result, key) is True
                 assert getattr(result, key) == base_model_attrs[key]
+    elif not error:
+        pass
     else:
         with pytest.raises(error):
             result = generate_model_from_pydantic(**kwargs)
