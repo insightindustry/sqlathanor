@@ -348,10 +348,14 @@ def get_pydantic_type_mapping(field,
     elif default_to_str:
         target_type = 'str'
     else:
-        try:
-            target_type = get_args(field.type_)[0]
-        except (AttributeError, IndexError):
-            target_type = field.type_.__name__
+        prelim_target_type = get_args(field.type_)
+        if prelim_target_type:
+            try:
+                target_type = get_args(field.type_)[0]
+            except (AttributeError, IndexError):
+                target_type = field.type_.__name__
+        else:
+            target_type = prelim_target_type
 
     column_type = type_mapping.get(target_type, None)
     if not column_type:
