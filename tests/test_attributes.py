@@ -8,7 +8,10 @@ tests.test_attributes
 Tests for the schema extensions written in :ref:`sqlathanor.attributes`.
 
 """
-from typing import Any
+try:
+    from typing import Any
+except ImportError:
+    Any = 'Any'
 
 import pytest
 

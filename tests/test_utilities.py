@@ -9,7 +9,12 @@ Tests for the schema extensions written in :ref:`sqlathanor.utilities`.
 
 """
 import os
-from typing import Any, Union, Optional
+try:
+    from typing import Any, Union, Optional
+except ImportError:
+    Any = 'Any'
+    Union = 'Union'
+    Optional = 'Optional'
 
 import pytest
 import sqlalchemy

@@ -9,7 +9,12 @@ Tests for functions which programmatically generate declarative models.
 
 """
 from datetime import datetime
-from typing import Any, Union, Optional
+try:
+    from typing import Any, Union, Optional
+except ImportError:
+    Any = 'Any'
+    Union = 'Union'
+    Optional = 'Optional'
 
 import pytest
 
