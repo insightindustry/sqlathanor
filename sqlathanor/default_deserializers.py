@@ -325,6 +325,9 @@ def get_pydantic_type_mapping(field,
     elif (get_origin(field.type_) in (Union, Optional, List, UnionMeta) and
           get_args(field.type_)[0] == str):
         target_type = 'str'
+    elif field.type_ == str or (get_origin(field.type_) in (Union, Optional, List, UnionMeta) and
+                                get_args(field.type_)[0] == str):
+        target_type = 'str'
     elif field.type_ == bool or (get_origin(field.type_) in (Union, Optional, List, UnionMeta) and
                                  get_args(field.type_)[0] == bool):
         target_type = 'bool'
@@ -355,7 +358,7 @@ def get_pydantic_type_mapping(field,
             except (AttributeError, IndexError):
                 target_type = field.type_.__name__
         else:
-            target_type = prelim_target_type
+            return None
 
     column_type = type_mapping.get(target_type, None)
     if not column_type:
