@@ -1034,8 +1034,10 @@ def get_args(type_):
             try:
                 return_value = type_.__parameters__
             except AttributeError:
+                return_value = None
                 for attr in dir(type_):
                     if '_params__' in attr and '_set_params__' not in attr:
                         return_value = getattr(type_, attr, None)
+                        break
 
     return return_value
