@@ -22,13 +22,20 @@ from sqlathanor.errors import InvalidFormatError, ValueDeserializationError, \
 from sqlathanor._compat import is_py36
 
 if is_py36:
-    from pydantic import BaseModel
-    from pydantic.fields import Field, ModelField
+    class_def = """
+from pydantic import BaseModel
+from pydantic.fields import Field, ModelField
 
-    class PydanticModel(BaseModel):
-        id: datetime.timedelta
+class PydanticModel(BaseModel):
+    id: datetime.timedelta
 
-    pydantic_field = PydanticModel.__fields__.get('id', None)
+pydantic_field = PydanticModel.__fields__.get('id', None)
+"""
+    try:
+        exec(class_def)
+    except SyntaxError:
+        pydantic_field = None
+        PydanticModel = 'Python <3.6'
 
 else:
     pydantic_field = None

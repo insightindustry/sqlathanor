@@ -32,29 +32,41 @@ from tests.fixtures import check_input_file, input_files
 
 
 if is_py36:
-    from pydantic import BaseModel
-    from pydantic.fields import Field, ModelField
+    class_def = """
+from pydantic import BaseModel
+from pydantic.fields import Field, ModelField
 
-    class PydanticModel(BaseModel):
-        id: int
-        field_1: str
-        field_2: str
+class PydanticModel(BaseModel):
+    id: int
+    field_1: str
+    field_2: str
 
-    class PydanticModel2(BaseModel):
-        id: int
-        field_1: str
-        field_2: str
-        field_3: Any
+class PydanticModel2(BaseModel):
+    id: int
+    field_1: str
+    field_2: str
+    field_3: Any
 
-    class PydanticModel3(BaseModel):
-        id: int
-        field_4: Optional[str]
-        field_5: bool
-        field_6: Union[str, int]
+class PydanticModel3(BaseModel):
+    id: int
+    field_4: Optional[str]
+    field_5: bool
+    field_6: Union[str, int]
+"""
+    try:
+        exec(class_def)
+    except SyntaxError:
+        def Field(*args, **kwargs):
+            return None
+        PydanticModel = 'Python <3.6'
+        PydanticModel2 = 'Python <3.6'
+        PydanticModel3 = 'Python <3.6'
 else:
     def Field(*args, **kwargs):
         return None
     PydanticModel = 'Python <3.6'
+    PydanticModel2 = 'Python <3.6'
+    PydanticModel3 = 'Python <3.6'
 
 
 def test_func():

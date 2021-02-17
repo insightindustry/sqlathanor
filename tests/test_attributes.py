@@ -15,13 +15,21 @@ import pytest
 from sqlathanor._compat import is_py36
 
 if is_py36:
-    from pydantic import BaseModel
-    from pydantic.fields import Field, ModelField
+    class_def = """
+from pydantic import BaseModel
+from pydantic.fields import Field, ModelField
 
-    class PydanticModel(BaseModel):
-        field_1: int
-        field_2: str
-        field_3: Any
+class PydanticModel(BaseModel):
+    field_1: int
+    field_2: str
+    field_3: Any
+"""
+    try:
+        exec(class_def)
+    except SyntaxError:
+        def Field(*args, **kwargs):
+            return None
+        PydanticModel = 'Python <3.6'
 else:
     def Field(*args, **kwargs):
         return None
