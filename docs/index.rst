@@ -42,6 +42,7 @@ SQLAthanor
  Home <self>
  Quickstart: Patterns and Best Practices <quickstart>
  Using SQLAthanor <using>
+ SQLAthanor and Pydantic <pydantic>
  API Reference <api>
  Default Serialization Functions <default_serialization_functions>
  Default De-serialization Functions <default_deserialization_functions>
@@ -175,9 +176,9 @@ Key SQLAthanor Features
   your needs.
 * Works with :ref:`Declarative Reflection <using_reflection>` and the
   :ref:`Automap Extension <using_automap>`.
-* Programmatically :ref:`generate Declarative Base Models from serialized data <defining_models>`.
+* Programmatically :ref:`generate Declarative Base Models from serialized data or Pydantic models <defining_models>`.
 * Programmatically create :ref:`SQLAlchemy Table objects <generating_tables>` from
-  serialized data.
+  serialized data or :term:`Pydantic models <Pydantic Model>`.
 
 |
 

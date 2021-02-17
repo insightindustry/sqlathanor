@@ -347,7 +347,8 @@ Password De-serialization
 Programmatically Generating Models
 =====================================
 
-.. versionadded:: 0.3.0
+.. versionadded:: 0.3.0 generation from CSV, JSON, YAML, or :class:`dict <python:dict>`
+.. versionadded:: 0.8.0 generation from Pydantic models
 
 .. seealso::
 
@@ -355,6 +356,7 @@ Programmatically Generating Models
   * :func:`generate_model_from_json() <sqlathanor.declarative.generate_model_from_json>`
   * :func:`generate_model_from_yaml() <sqlathanor.declarative.generate_model_from_yaml>`
   * :func:`generate_model_from_dict() <sqlathanor.declarative.generate_model_from_dict>`
+  * :func:`generate_model_from_pydantic() <sqlathanor.declarative.generate_model_from_pydantic>`
 
 .. tabs::
 
@@ -403,6 +405,17 @@ Programmatically Generating Models
                                             tablename = 'my_table_name',
                                             primary_key = 'id')
 
+  .. tab:: Pydantic
+
+    .. code-block:: python
+
+      from sqlathanor import generate_model_from_pydantic
+
+      # Assumes that "PydanticReadModel" and "PydanticWriteModel" contain the Pydantic
+      # models for the object/resource you are representing.
+      PydanticModel = generate_model_from_pydantic([PydanticReadModel, PydanticWriteModel],
+                                                   tablename = 'my_table_name',
+                                                   primary_key = 'id')
 
 
 ----------------------------
@@ -672,10 +685,11 @@ Using SQLAthanor with Flask-SQLAlchemy
 
 ----------------------------
 
-Generating SQLAlchemy Tables from Serialized Data
+Generating SQLAlchemy Tables Programmatically
 ====================================================
 
-.. versionadded:: 0.3.0
+.. versionadded:: 0.3.0 CSV, JSON, YAML, and :class:`dict <python:dict>` support
+.. versionadded:: 0.8.0 Pydantic model support
 
 .. seealso::
 
@@ -683,6 +697,7 @@ Generating SQLAlchemy Tables from Serialized Data
   * :meth:`Table.from_json() <sqlathanor.schema.Table.from_json>`
   * :meth:`Table.from_yaml() <sqlathanor.schema.Table.from_yaml>`
   * :meth:`Table.from_dict() <sqlathanor.schema.Table.from_dict>`
+  * :meth:`Table.from_pydantic() <sqlathanor.schema.Table.from_pydantic>`
 
 .. tabs::
 
@@ -749,3 +764,35 @@ Generating SQLAlchemy Tables from Serialized Data
                                    skip_nested = True,
                                    default_to_str = False,
                                    type_mapping = None)
+
+  .. tab:: Pydantic
+
+    .. versionadded:: 0.8.0
+
+    .. code-block:: python
+
+      from pydantic import BaseModel
+      from sqlathanor import Table
+
+      # Define Your Pydantic Models
+      class UserWriteModel(BaseModel):
+          id: int
+          username: str
+          email: str
+          password: str
+
+      class UserReadModel(BaseModel):
+          id: int
+          username: str
+          email: str
+
+      # Create Your Table
+      pydantic_table = Table.from_pydantic([UserWriteModel, UserReadModel],
+                                           tablename = 'my_tablename_goes_here',
+                                           primary_key = 'id')
+
+    .. seealso::
+
+      * :class:`Table <sqlathanor.schema.Table>`
+      * :meth:`Table.from_pydantic() <sqlathanor.schema.Table.from_pydantic>`
+      * :doc:`SQLAthanor and Pydantic <pydantic>`
