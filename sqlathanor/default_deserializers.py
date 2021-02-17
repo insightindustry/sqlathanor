@@ -13,7 +13,10 @@ from typing import Any, Optional, Union, Mapping, List
 try:
     from typing import UnionMeta
 except ImportError:
-    from typing import _GenericAlias as UnionMeta
+    try:
+        from typing import _GenericAlias as UnionMeta
+    except ImportError:
+        UnionMeta = Union
 
 from validator_collection import validators, checkers
 
