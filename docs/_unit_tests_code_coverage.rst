@@ -18,20 +18,33 @@
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=latest
          :alt: Documentation Status (ReadTheDocs)
 
-* - `v.0.7 <https://github.com/insightindustry/sqlathanor/tree/v.0.7.0>`_
-  -
-    .. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.7.0
-      :target: https://travis-ci.com/insightindustry/sqlathanor
-      :alt: Build Status (Travis CI)
+   * - `v.0.8 <https://github.com/insightindustry/sqlathanor/tree/v.0.8.0>`_
+     -
+       .. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.8.0
+         :target: https://travis-ci.com/insightindustry/sqlathanor
+         :alt: Build Status (Travis CI)
 
-    .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.7.0/graph/badge.svg
-      :target: https://codecov.io/gh/insightindustry/sqlathanor
-      :alt: Code Coverage Status (Codecov)
+       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.8.0/graph/badge.svg
+         :target: https://codecov.io/gh/insightindustry/sqlathanor
+         :alt: Code Coverage Status (Codecov)
 
-    .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.7.0
-      :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.7.0
-      :alt: Documentation Status (ReadTheDocs)
+       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.8.0
+         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.8.0
+         :alt: Documentation Status (ReadTheDocs)
 
+   * - `v.0.7 <https://github.com/insightindustry/sqlathanor/tree/v.0.7.0>`_
+     -
+       .. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.7.0
+         :target: https://travis-ci.com/insightindustry/sqlathanor
+         :alt: Build Status (Travis CI)
+
+       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.7.0/graph/badge.svg
+         :target: https://codecov.io/gh/insightindustry/sqlathanor
+         :alt: Code Coverage Status (Codecov)
+
+       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.7.0
+         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.7.0
+         :alt: Documentation Status (ReadTheDocs)
 
    * - `v.0.6 <https://github.com/insightindustry/sqlathanor/tree/v.0.6.0>`_
      -

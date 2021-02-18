@@ -1,5 +1,40 @@
 -----------
 
+Release 0.8.0
+=========================================
+
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.8.0
+  :target: https://travis-ci.com/insightindustry/sqlathanor
+  :alt: Build Status (Travis CI)
+
+.. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.8.0/graph/badge.svg
+  :target: https://codecov.io/gh/insightindustry/sqlathanor
+  :alt: Code Coverage Status (Codecov)
+
+.. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.8.0
+  :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.8.0
+  :alt: Documentation Status (ReadTheDocs)
+
+New Features
+-----------------
+
+* #99: Added `Pydantic <https://pydantic-docs.helpmanual.io/>`_ support. This includes:
+
+  * the ability to generate **SQLAthanor** model classes from Pydantic models
+    (``generate_model_from_pydantic()``)
+  * the ability to generate ``Table`` objects from Pydantic models
+    (``Table.from_pydantic()``)
+  * the ability to create ``AttributeConfiguration`` instances from fields in a Pydantic
+    model (``AttributeConfiguration.from_pydantic_model()``)
+  * updates to documentation to reflect new functionality
+
+Other Changes
+------------------
+
+* #100: Fixed missing documentation.
+
+-----------
+
 Release 0.7.0
 =========================================
 
