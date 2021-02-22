@@ -1,3 +1,16 @@
+.. sidebar:: Some Caveats
+
+  I'm a big fan of `Pydantic`_. Its authors have made different choices, but
+  that doesn't diminish my respect for their work, and that's one of the main reasons why
+  I have decided to extend **SQLAthanor** with built-in support for `Pydantic`_.
+
+  My interpretation of the priorities below is my subjective evaluation of the library and
+  its API semantics, and from my experience using the library in a number of web
+  application projects of varying complexity. These observations are not meant to be a
+  criticism: They are merely my thoughts on where the libraries have taken different
+  philosophical and stylistic paths.
+
+
 ******************************************
 SQLAthanor and Pydantic
 ******************************************
@@ -22,24 +35,12 @@ SQLAthanor and Pydantic
 SQLAthanor, Pydantic, and FastAPI
 =====================================
 
-.. sidebar:: Some Caveats
-
-  I'm a huge fan of the `Pydantic`_ library. Its authors have made many choices that I
-  would not have made, but that does not change my immense respect for the work they have
-  done. My interpretation of "priorities" below reflects my subjective evaluation of the
-  library and its API semantics, and from my experience using the library in a number of
-  web application projects of varying complexity.
-
-  My observations are in no way meant to be a criticism: They are merely an observation of
-  where the libraries have taken different philosophical and stylistic paths.
-
-  My respect for `Pydantic`_ is one of the main reasons why I have decided to extend
-  **SQLAthanor** with built-in support for the `Pydantic`_ library.
-
 **SQLAthanor** and `Pydantic`_ are both concerned with the serialization and
 deserialization of data. However, they approach the topic from different angles and have
-made a variety of (very different) architectural and stylistic choices. These choices
-reflect a different set of priorities:
+made a variety of (very different) architectural and stylistic choices.
+
+To be clear, neither set of choices is "better" or "worse", but they do reflect the
+authors' different priorities and stylistic preferences:
 
 .. list-table::
    :widths: 50 50
@@ -49,12 +50,18 @@ reflect a different set of priorities:
      - Pydantic Priorities
    * - Database/ORM compatibility with `SQLAlchemy`_
      - Database/ORM agnosticism
-   * - The maintenance of a single representation of your data model, tied to its database implementation
-     - Multiple representations of your data model, each of which is tied to its usage in your code
-   * - Explicit reference and conceptual documentation
+   * - | The maintenance of a single representation
+       | of your data model, tied to its database
+       | implementation
+     - | Multiple representations of your data model,
+       | each of which is tied to its usage in
+       | your code
+   * - | Explicit reference and conceptual
+       | documentation
      - Documentation by example / in code
    * - Explicit APIs for the data model's lifecycle
-     - Implicit APIs relying on the Python standard library
+     - | Implicit APIs relying on the Python standard
+       | library
 
 Both libraries have their place: in general terms, if I were working on a simple web
 application, on a microservice, or on a relatively simple data model I would consider
@@ -122,21 +129,135 @@ generate your **SQLAthanor** :term:`model classes <model class>`. Your `FastAPI`
 still validate based on your `Pydantic`_ models, even if you choose to drive
 serialization/deserialization from your `SQLAlchemy`_ :term:`model classes <model class>`.
 
-In other words: It saves you code! Just look at the example below:
+In other words: It saves you code! And maintenance!
+
+Just look at the example below. Not only does it save you a couple of lines, but most
+importantly when in the future you need to modify your data model (and let's face it, that
+is one of the most common modifications in real applications) you make your changes in one
+place rather than two:
 
 .. tabs::
 
   .. tab:: FastAPI with Pydantic only
 
-    .. todo::
+    .. code-block:: python
+      :linenos:
 
-      Add an example
+      # THIS CODE SNIPPET HAS BEEN ADAPTED FROM THE OFFICIAL FASTAPI DOCUMENTATION:
+      # https://fastapi.tiangolo.com/tutorial/sql-databases/
+
+      # Assumes that there is a "database" module that defines your SQLAlchemy BaseModel.
+      from typing import List, Optional
+      from pydantic import BaseModel
+
+      from .database import Base
+
+      class User(Base):
+          __tablename__ = "users"
+
+          id = Column(Integer, primary_key=True, index=True)
+          email = Column(String, unique=True, index=True)
+          hashed_password = Column(String)
+          is_active = Column(Boolean, default=True)
+
+          items = relationship("Item", back_populates="owner")
+
+      class Item(Base):
+          __tablename__ = "items"
+
+          id = Column(Integer, primary_key=True, index=True)
+          title = Column(String, index=True)
+          description = Column(String, index=True)
+          owner_id = Column(Integer, ForeignKey("users.id"))
+
+          owner = relationship("User", back_populates="items")
+
+      class ItemBase(BaseModel):
+          title: str
+          description: Optional[str] = None
+
+      class ItemCreate(ItemBase):
+          pass
+
+      class Item(ItemBase):
+          id: int
+          owner_id: int
+
+          class Config:
+              orm_mode = True
+
+      class UserBase(BaseModel):
+          email: str
+
+      class UserCreate(UserBase):
+          password: str
+
+      class User(UserBase):
+          id: int
+          is_active: bool
+          items: List[Item] = []
+
+          class Config:
+              orm_mode = True
 
   .. tab:: FastAPI with SQLAthanor/Pydantic
 
-   .. todo::
+   .. code-block:: python
+     :linenos:
 
-     Add an example
+     from typing import List, Optional
+     from pydantic import BaseModel as PydanticBase
+
+     from sqlathanor import BaseModel, Column, generate_model_from_pydantic
+     from sqlalchemy.types import String
+
+     class ItemBase(PydanticBase):
+         title: str
+         description: Optional[str] = None
+
+     class ItemCreate(ItemBase):
+         pass
+
+     class ItemRead(ItemBase):
+         id: int
+         owner_id: int
+
+         class Config:
+             orm_mode = True
+
+     class UserBase(PydanticBase):
+         email: str
+
+     class UserCreate(UserBase):
+         password: str
+
+     class UserRead(UserBase):
+         id: int
+         is_active: bool
+         items: List[Item] = []
+
+         class Config:
+             orm_mode = True
+
+     User = generate_model_from_pydantic({ 'create': UserCreate
+                                           'read': UserRead },
+                                         tablename = 'users',
+                                         primary_key = 'id')
+
+
+     Item = generate_model_from_pydantic({ 'create': ItemCreate,
+                                           'read': ItemRead },
+                                         tablename = 'items',
+                                         primary_key = 'id')
+
+     Item.owner = relationship("User", back_populates="items")
+     User.items = relationship("Item", back_populates="owner")
+     User.hashed_password = Column(String,
+                                   supports_csv = False,
+                                   supports_json = False,
+                                   supports_yaml = False,
+                                   supports_dict = False)
+
 
 ----------------
 
