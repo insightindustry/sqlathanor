@@ -120,7 +120,9 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8'
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10'
     ],
 
     zip_safe = False,
@@ -154,7 +156,7 @@ setup(
         'validator-collection>=1.4.0',
         'simplejson>=3.0',
         'PyYAML>=3.10;python_version<"3.7"',
-        'PyYAML>=3.13;python_version>"3.6"'
+        'PyYAML>=5.4;python_version>"3.6"'
     ],
 
     # List additional groups of dependencies here (e.g. development
