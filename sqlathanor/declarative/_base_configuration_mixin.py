@@ -1214,8 +1214,19 @@ class ConfigurationMixin(object):
         """
         cls.clear_serialization_cache()
 
-        config = validate_serialization_config(configs)
-        config_attributes = [x.name for x in config]
+        new_attribute_configs = []
+        if configs:
+            config = validate_serialization_config(configs)
+            new_attribute_configs = [x.name for x in configs]
+        elif not configs and config_set is not None:
+            configs = cls.__serialization__.get(config_set, [])
+            config = validate_serialization_config(configs)
+        elif not configs and not isinstance(cls.__serialization__, list):
+            raise ValueError('If the model class has configuration sets, '
+                             'configure_serialization() needs for either configs or '
+                             'config_sets to be supplied. Both were empty.')
+        elif not configs:
+            configs = [x for x in cls.__serialization__]
 
         if not attributes:
             attributes = []
@@ -1228,7 +1239,12 @@ class ConfigurationMixin(object):
                                              on_serialize = on_serialize,
                                              on_deserialize = on_deserialize)
                       for x in attributes
-                      if x not in config_attributes]
+                      if x not in new_attribute_configs]
+
+        attribute_names = [x.name for x in attributes]
+
+        config = [x for x in configs
+                  if x.name not in attribute_names]
 
         config.extend(attributes)
 

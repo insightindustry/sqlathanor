@@ -700,7 +700,7 @@ def test_instance_configure_serialization(request,
         for key in new_config_set[1]:
             expected_results[key] = new_config_set[1][key]
 
-    print('PARAMS: %s' % params)
+#    print('PARAMS: %s' % params)
 
     target.configure_serialization(**params)
 
