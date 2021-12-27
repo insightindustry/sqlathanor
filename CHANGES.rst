@@ -1,5 +1,33 @@
 -----------
 
+Release 0.8.1
+=========================================
+
+.. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.8.1
+  :target: https://travis-ci.com/insightindustry/sqlathanor
+  :alt: Build Status (Travis CI)
+
+.. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.8.1/graph/badge.svg
+  :target: https://codecov.io/gh/insightindustry/sqlathanor
+  :alt: Code Coverage Status (Codecov)
+
+.. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.8.1
+  :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.8.1
+  :alt: Documentation Status (ReadTheDocs)
+
+Significant Changes
+----------------------
+
+* Updated PyYAML requirement to v.5.4 to address security vulnerability.
+
+Other Changes
+------------------
+
+* Minor bug fixes.
+* Cleaned up ``requirements.txt`` to reduce dependencies.
+
+-----------
+
 Release 0.8.0
 =========================================
 
