@@ -9,6 +9,284 @@ env:
 
 matrix:
   include:
+## PYTHON 3.10
+## SIMPLEJSON
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson30
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson31
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson32
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson33
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson34
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson35
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson36
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson37
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson38
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson39
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson310
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson311
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson312
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson313
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson314
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson315
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson316
+# PYYAML
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson316
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml54-simplejson316
+#### SQLALCHEMY
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml313-simplejson316
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy11-pyyaml313-simplejson316
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy12-pyyaml313-simplejson316
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy12-pyyaml42b1-simplejson316
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy12-pyyaml42b2-simplejson316
+    - python: '3.10'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python310-sqlalchemy12-pyyaml54-simplejson316
+## PYTHON 3.9
+## SIMPLEJSON
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson30
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson31
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson32
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson33
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson34
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson35
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson36
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson37
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson38
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson39
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson310
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson311
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson312
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson313
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson314
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson315
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson316
+# PYYAML
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson316
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml54-simplejson316
+#### SQLALCHEMY
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml313-simplejson316
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy11-pyyaml313-simplejson316
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy12-pyyaml313-simplejson316
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy12-pyyaml42b1-simplejson316
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy12-pyyaml42b2-simplejson316
+    - python: '3.9'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python39-sqlalchemy12-pyyaml54-simplejson316
 ## PYTHON 3.8
 ## SIMPLEJSON
     - python: '3.8'
@@ -107,6 +385,11 @@ matrix:
       sudo: true
       env:
         - TOXENV=.python38-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '3.8'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python38-sqlalchemy10-pyyaml54-simplejson316
 #### SQLALCHEMY
     - python: '3.8'
       dist: bionic
@@ -138,6 +421,11 @@ matrix:
       sudo: true
       env:
         - TOXENV=.python38-sqlalchemy12-pyyaml42b2-simplejson316
+    - python: '3.8'
+      dist: bionic
+      sudo: true
+      env:
+        - TOXENV=.python38-sqlalchemy12-pyyaml54-simplejson316
 ## PYTHON 3.7
 ## SIMPLEJSON
     - python: '3.7'
@@ -236,6 +524,11 @@ matrix:
       sudo: true
       env:
         - TOXENV=.python37-sqlalchemy10-pyyaml42b2-simplejson316
+    - python: '3.7'
+      dist: xenial
+      sudo: true
+      env:
+        - TOXENV=.python37-sqlalchemy10-pyyaml54-simplejson316
 #### SQLALCHEMY
     - python: '3.7'
       dist: xenial
@@ -267,6 +560,11 @@ matrix:
       sudo: true
       env:
         - TOXENV=.python37-sqlalchemy12-pyyaml42b2-simplejson316
+    - python: '3.7'
+      dist: xenial
+      sudo: true
+      env:
+        - TOXENV=.python37-sqlalchemy12-pyyaml54-simplejson316
 ## PYTHON 3.6
 ## SIMPLEJSON
     - python: '3.6'
