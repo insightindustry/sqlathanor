@@ -97,3 +97,9 @@ class ExtraKeyError(DeserializationError):
 class UnsupportedValueTypeError(DeserializationError):
     """Error raised when a value type found in a serialized string is not supported."""
     pass
+
+class FieldNotFoundError(SQLAthanorError):
+    """Error raised when a Pydantic :class:`Field <pydantic:pydantic.fields.Field>` name
+    is not found within a Pydantic :class:`BaseModel <pydantic:pydantic.main.BaseModel>`.
+    """
+    pass

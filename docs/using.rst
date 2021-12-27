@@ -148,6 +148,8 @@ SQLAthanor Features
   :doc:`SQLAlchemy ORM <sqlalchemy:orm/tutorial>`.
 * Maintain all of the existing APIs, methods, functions, and functionality of
   :doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`.
+* Drive the definition and configuration of your data model from your
+  :term:`Pydantic models <Pydantic Model>`.
 
 ---------------
 
@@ -260,7 +262,7 @@ Dependencies
 
 .. tabs::
 
-  .. tab:: Standard Approach
+  .. tab:: Normally
 
     Because **SQLAthanor** is a drop-in replacement for `SQLAlchemy`_ and its
     :doc:`Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`, you can
@@ -272,7 +274,36 @@ Dependencies
       * :doc:`SQLAlchemy ORM Tutorial <sqlalchemy:orm/tutorial>`
       * :doc:`Flask-SQLAlchemy: Declaring Models <flask_sqlalchemy:models>`
 
-  .. tab:: Declarative Reflection
+  .. tab:: from Pydantic
+
+    .. versionadded:: 0.8.0
+
+    If your application is using `Pydantic`_ as a parsing/validation library, then you
+    can programmatically generate a pre-configured
+    :doc:`SQLAlchemy Declarative <sqlalchemy:orm/extensions/declarative/index>`
+    :term:`model class` using **SQLAthanor** with the syntax
+    ``generate_model_from_pydantic()``.
+
+    This function can accept one or more :term:`Pydantic models <Pydantic Model>`, and
+    will consolidate them into a single **SQLAthanor** :term:`model class`, with
+    each underlying :term:`Pydantic model` corresponding to a :term:`configuration set`
+    for easy serialization / deserialization:
+
+    .. code-block:: python
+
+      from sqlathanor import generate_model_from_pydantic
+
+      # Assuming that "PydanticBaseModel" is a
+      PydanticDBModel = generate_model_from_pydantic([PydanticReadModel, PydanticWriteModel],
+                                                     tablename = 'my_table_name',
+                                                     primary_key = 'id')
+
+    .. seealso::
+
+      * :func:`generate_model_from_pydantic() <sqlathanor.declarative.generate_model_from_pydantic>`
+      * :doc:`SQLAthanor and Pydantic Support <pydantic>`
+
+  .. tab:: via Reflection
 
     `SQLAlchemy`_ supports the use of `reflection`_ with the
     :doc:`SQLAlchemy Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`.
@@ -293,7 +324,7 @@ Dependencies
       * **SQLAlchemy**: :doc:`Reflecting Database Objects <sqlalchemy:core/reflection>`
       * **SQLAlchemy**: `Using Reflection with Declarative <http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/table_config.html#using-reflection-with-declarative>`_
 
-  .. tab:: Using Automap
+  .. tab:: via Automap
 
     .. versionadded:: 0.2.0
 
@@ -314,7 +345,7 @@ Dependencies
       * :ref:`Using Automap with SQLAthanor <using_automap>`
       * **SQLAlchemy**: :doc:`Automap Extension <sqlalchemy:orm/extensions/automap>`
 
-  .. tab:: Programmatically
+  .. tab:: from Serialized Data
 
     .. versionadded:: 0.3.0
 
@@ -1054,6 +1085,8 @@ Why Two Configuration Approaches?
   and "data scientists", I've tried to design an interface that will feel "natural"
   to both communities.
 
+.. _configuring_at_runtime:
+
 Configuring at Runtime
 -------------------------------------
 
@@ -1632,20 +1665,22 @@ expect it in inbound data to de-serialize.
   * **SQLAlchemy**: :doc:`Automap Extension <sqlalchemy:orm/extensions/automap>`
   * :ref:`Using Declarative Reflection with SQLAthanor <using_reflection>`
 
-.. _SQLAlchemy: http://www.sqlalchemy.org
-.. _Flask-SQLAlchemy:  http://flask-sqlalchemy.pocoo.org/
 .. _reflection: http://docs.sqlalchemy.org/en/latest/orm/extensions/declarative/table_config.html#using-reflection-with-declarative
 
 ----------------------------
 
 .. _generating_tables:
 
-Generating SQLAlchemy Tables from Serialized Data
+Generating SQLAlchemy Tables...
 ====================================================
+
+...from Serialized Data
+-------------------------------
 
 .. versionadded:: 0.3.0
 
-If you are **not** using `SQLAlchemy`_'s :doc:`Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`
+If you are **not** using `SQLAlchemy`_'s
+:doc:`Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`
 but would like to generate SQLAlchemy :class:`Table <sqlalchemy:sqlalchemy.schema.Table>`
 objects programmatically based on serialized data, you can do so by importing the
 **SQLAthanor** :class:`Table <sqlathanor.schema.Table>` object and calling a
@@ -1724,3 +1759,42 @@ objects programmatically based on serialized data, you can do so by importing th
   * :meth:`Table.from_json() <sqlathanor.schema.Table.from_json>`
   * :meth:`Table.from_yaml() <sqlathanor.schema.Table.from_yaml>`
   * :meth:`Table.from_dict() <sqlathanor.schema.Table.from_dict>`
+
+... from Pydantic Models
+--------------------------------
+
+If you are **not** using `SQLAlchemy`_'s
+:doc:`Declarative ORM <sqlalchemy:orm/extensions/declarative/index>`
+but would like to generate SQLAlchemy :class:`Table <sqlalchemy:sqlalchemy.schema.Table>`
+objects programmatically based on :term:`Pydantic models <Pydantic Model>`, you can do so
+by importing the **SQLAthanor** :class:`Table <sqlathanor.schema.Table>` class and calling
+the :meth:`from_pydantic() <sqlathanor.schema.Table.from_pydantic>` class
+method:
+
+.. code-block:: python
+
+  from pydantic import BaseModel
+  from sqlathanor import Table
+
+  # Define Your Pydantic Models
+  class PydanticWriteModel(BaseModel):
+      id: int
+      username: str
+      email: str
+      password: str
+
+  class PydanticReadModel(BaseModel):
+      id: int
+      username: str
+      email: str
+
+  # Create Your Table
+  pydantic_table = Table.from_pydantic([PydanticWriteModel, PydanticReadModel],
+                                       tablename = 'my_tablename_goes_here',
+                                       primary_key = 'id')
+
+.. seealso::
+
+  * :class:`Table <sqlathanor.schema.Table>`
+  * :meth:`Table.from_pydantic() <sqlathanor.schema.Table.from_pydantic>`
+  * :doc:`SQLAthanor and Pydantic <pydantic>`

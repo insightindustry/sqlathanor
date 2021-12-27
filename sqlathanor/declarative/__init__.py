@@ -8,7 +8,8 @@
 from sqlathanor.declarative.base_model import BaseModel
 from sqlathanor.declarative.declarative_base import declarative_base, as_declarative
 from sqlathanor.declarative.generate_model import generate_model_from_csv, \
-    generate_model_from_json, generate_model_from_yaml, generate_model_from_dict
+    generate_model_from_json, generate_model_from_yaml, generate_model_from_dict, \
+    generate_model_from_pydantic
 
 
 __all__ = [
@@ -18,5 +19,6 @@ __all__ = [
     'generate_model_from_csv',
     'generate_model_from_json',
     'generate_model_from_yaml',
-    'generate_model_from_dict'
+    'generate_model_from_dict',
+    'generate_model_from_pydantic'
 ]

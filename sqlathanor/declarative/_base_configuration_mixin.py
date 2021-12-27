@@ -568,8 +568,8 @@ class ConfigurationMixin(object):
 
         :param config_set: If not :obj:`None <python:None>`, will return those
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
-          objects that are contained within the named set. Defaults to
-          :obj:`None <python:None>`.
+          objects that are contained within the named
+          :term:`configuration set`. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: List of attribute configurations.
@@ -648,8 +648,8 @@ class ConfigurationMixin(object):
 
         :param config_set: If not :obj:`None <python:None>`, will return the
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
-          object for ``attribute`` that is contained within the named set. Defaults to
-          :obj:`None <python:None>`.
+          object for ``attribute`` that is contained within the named
+          :term:`configuration set`. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: The
@@ -698,7 +698,8 @@ class ConfigurationMixin(object):
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
           to apply. If :obj:`None <python:None>`, will set particular values based
           on their corresponding keyword arguments.
-        :type config: :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>`
+        :type config: :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` /
+          / Pydantic :class:`ModelField <pydantic:pydantic.fields.ModelField>` object /
           / :obj:`None <python:None>`
 
         :param supports_csv: Determines whether the column can be serialized to or
@@ -888,6 +889,18 @@ class ConfigurationMixin(object):
         :type csv_sequence: :class:`int <python:int>` / :obj:`None <python:None>` /
           ``False``
 
+        :param config_set: The name of the :term:`configuration set` where the
+          serialization/de-serialization configuration for ``attribute`` should be
+          updated. Defaults to :obj:`None <python:None>`
+
+          .. warning::
+
+            If the ``config_set`` is not defined on the model, then a
+            :exc:`ConfigurationError <sqlathanor.errors.ConfigurationError>` will be
+            raised.
+
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+
         :raises ConfigurationError: if ``config_set`` is not empty and there are no
           configuration sets defined on ``cls`` or if there are configuration sets defined
           but no ``config_set`` is specified
@@ -921,7 +934,11 @@ class ConfigurationMixin(object):
         if config is None:
             new_config = AttributeConfiguration(name = attribute)
         else:
-            new_config = config
+            if checkers.is_type(config, 'ModelField'):
+                new_config = AttributeConfiguration(name = attribute,
+                                                    pydantic_field = config)
+            else:
+                new_config = config
 
         if attribute != new_config.name:
             raise ValueError(
@@ -997,8 +1014,12 @@ class ConfigurationMixin(object):
                                 on_serialize = None,
                                 on_deserialize = None,
                                 config_set = None):
-        """Apply configuration settings to the :term:`model class` (overwrites
-        entire configuration).
+        """Apply configuration settings to the :term:`model class`.
+
+        .. caution::
+          This method either overwrites the entire configuration (if no ``config_set`` is
+          supplied) set for the :term:`model class`, or overwrites the ``config_set``
+          indicated.
 
         .. tip::
 
@@ -1013,6 +1034,7 @@ class ConfigurationMixin(object):
           objects to apply to the class. Defaults to :obj:`None <python:None>`.
         :type configs: iterable of
           :class:`AttributeConfiguration <sqlathanor.attributes.AttributeConfiguration>` /
+          :class:`pydantic.main.ModelMetaclass` /
           :obj:`None <python:None>`
 
         :param attributes: Collection of :term:`model attribute` names to which
@@ -1183,17 +1205,28 @@ class ConfigurationMixin(object):
           as keys and values as callables / :obj:`None <python:None>` / ``False``
 
         :param config_set: If not :obj:`None <python:None>`, will apply ``configs`` to the
-          configuration set named. If the class does not use pre-existing configuration sets,
-          will switch the class' meta configuration to use configuration sets, with any
-          pre-existing configuration set assigned to a set named ``_original``. Defaults
-          to :obj:`None <python:None>`.
+          :term:`configuration set` named. If the class does not use pre-existing
+          configuration sets, will switch the class' meta configuration to use
+          configuration sets, with any pre-existing configuration assigned to a set named
+          ``_original``. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         """
         cls.clear_serialization_cache()
 
-        config = validate_serialization_config(configs)
-        config_attributes = [x.name for x in config]
+        new_attribute_configs = []
+        if configs:
+            config = validate_serialization_config(configs)
+            new_attribute_configs = [x.name for x in configs]
+        elif not configs and config_set is not None:
+            configs = cls.__serialization__.get(config_set, [])
+            config = validate_serialization_config(configs)
+        elif not configs and not isinstance(cls.__serialization__, list):
+            raise ValueError('If the model class has configuration sets, '
+                             'configure_serialization() needs for either configs or '
+                             'config_sets to be supplied. Both were empty.')
+        elif not configs:
+            configs = [x for x in cls.__serialization__]
 
         if not attributes:
             attributes = []
@@ -1206,7 +1239,12 @@ class ConfigurationMixin(object):
                                              on_serialize = on_serialize,
                                              on_deserialize = on_deserialize)
                       for x in attributes
-                      if x not in config_attributes]
+                      if x not in new_attribute_configs]
+
+        attribute_names = [x.name for x in attributes]
+
+        config = [x for x in configs
+                  if x.name not in attribute_names]
 
         config.extend(attributes)
 
@@ -1297,7 +1335,7 @@ class ConfigurationMixin(object):
         :type from_dict: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
         :param config_set: If not :obj:`None <python:None>`, will determine serialization
-          support within the indicated configuration set. Defaults to
+          support within the indicated :term:`configuration set`. Defaults to
           :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
@@ -1413,9 +1451,9 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
-        :param config_set: If not :obj:`None <python:None>`, the named configuration set
-          whose CSV serialization configuration should be returned. Defaults to
-          :obj:`None <python:None>`.
+        :param config_set: If not :obj:`None <python:None>`, the named
+          :term:`configuration set` whose CSV serialization configuration should be
+          returned. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
@@ -1466,9 +1504,9 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
-        :param config_set: If not :obj:`None <python:None>`, the named configuration set
-          whose serialization configuration should be returned. Defaults to
-          :obj:`None <python:None>`.
+        :param config_set: If not :obj:`None <python:None>`, the named
+          :term:`configuration set` whose JSON serialization configuration should be
+          returned. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
@@ -1504,9 +1542,9 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
-        :param config_set: If not :obj:`None <python:None>`, the named configuration set
-          whose serialization configuration should be returned. Defaults to
-          :obj:`None <python:None>`.
+        :param config_set: If not :obj:`None <python:None>`, the named
+          :term:`configuration set`  whose YAML serialization configuration should be
+          returned. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
@@ -1544,9 +1582,9 @@ class ConfigurationMixin(object):
           Defaults to :obj:`None <python:None>`.
         :type serialize: :class:`bool <python:bool>` / :obj:`None <python:None>`
 
-        :param config_set: If not :obj:`None <python:None>`, the named configuration set
-          whose serialization configuration should be returned. Defaults to
-          :obj:`None <python:None>`.
+        :param config_set: If not :obj:`None <python:None>`, the named
+          :term:`configuration set`  whose :class:`dict <python:dict>` serialization
+          configuration should be returned. Defaults to :obj:`None <python:None>`.
         :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
 
         :returns: Set of attribute serialization configurations that match the
@@ -1559,7 +1597,25 @@ class ConfigurationMixin(object):
                                                         config_set = config_set)], config_set)
 
     @classmethod
-    def _heapable(cls, name, value, config_set=None):
+    def _heapable(cls,
+                  name,
+                  value,
+                  config_set = None):
+        """Cache the serialization configuration in a
+        ``__serialization_cache__<name>_<config_set>`` class attribute.
+
+        :param name: The name to set for the heap.
+        :type name: :class:`str <python:str>`
+
+        :param value: The serialization/de-serialization configuration to cache in the
+          heap.
+
+        :param config_set: If not :obj:`None <python:None>`, the name of the named
+          :term:`configuration set` for which the serialization/deserialization
+          confiugration should be cached. Defaults to :obj:`None <python:None>`.
+        :type config_set: :class:`str <python:str>` / :obj:`None <python:None>`
+        """
+
         _heap_name = '__serialization_cache__%s{name}__%s__' % (name, "default" if config_set is None else config_set)
 
         if not hasattr(cls, _heap_name):
@@ -1572,6 +1628,14 @@ class ConfigurationMixin(object):
 
     @classmethod
     def clear_serialization_cache(cls):
+        """Clears any cached serialization/de-serialization configurations.
+
+        .. note::
+
+          Does not affect the configuration itself - merely clears the heap caches if
+          present.
+
+        """
         for n in list(cls.__dict__.keys()):
             if n.startswith('__serialization_cache__'):
                 delattr(cls, n)

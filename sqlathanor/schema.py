@@ -23,7 +23,8 @@ from validator_collection import checkers, validators
 from sqlathanor import attributes
 from sqlathanor._serialization_support import SerializationMixin
 from sqlathanor.default_deserializers import get_type_mapping
-from sqlathanor.utilities import parse_json, parse_yaml, parse_csv, read_csv_data
+from sqlathanor.utilities import parse_json, parse_yaml, parse_csv, read_csv_data, \
+    columns_from_pydantic
 from sqlathanor.errors import SQLAthanorError
 
 
@@ -1029,3 +1030,150 @@ class Table(SA_Table):
                               **kwargs)
 
         return table
+
+    @classmethod
+    def from_pydantic(cls,
+                      models,
+                      tablename,
+                      metadata,
+                      primary_key,
+                      skip_nested = True,
+                      default_to_str = False,
+                      type_mapping = None,
+                      **kwargs):
+        """Generate a :class:`Table` object from one or more
+        :term:`Pydantic models <Pydantic Model>`.
+
+        .. versionadded: 0.8.0
+
+        :param models: The :term:`Pydantic model(s) <Pydantic Model>` which will
+          determine the columns/attributes that will be present within the generated
+          table.
+
+          .. hint::
+
+            If supplying an iterable of :term:`Pydantic models <Pydantic Model>`, then all
+            models will be coalesced into a single
+            :class:`Table <sqlathanor.schema.Table>`. If supplying a
+            :class:`dict <python:dict>` whose values are separate
+            :term:`Pydantic models <Pydantic Model>`, then each :class:`dict <python:dict>`
+            key will correspond to a single serialization/de-serialization
+            :term:`configuration set` in the resulting :term:`model class`.
+
+        :type models: :class:`pydantic.BaseModel <pydantic:pydantic.main.BaseModel>`
+          / iterable of :class:`pydantic.BaseModel <pydantic:pydantic.main.BaseModel>` /
+          :class:`dict <python:dict>` whose keys correspond to :term:`configuration set` names
+          and whose value must be a
+          :class:`pydantic.BaseModel <pydantic:pydantic.main.BaseModel>`
+
+        :type serialized: :class:`dict <python:dict>`
+
+        :param tablename: The name of the SQL table to which the model corresponds.
+        :type tablename: :class:`str <python:str>`
+
+        :param metadata: a :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
+          object which will contain this table. The metadata is used as a point of
+          association of this table with other tables which are referenced via foreign
+          key. It also may be used to associate this table with a particular
+          :class:`Connectable <sqlalchemy:sqlalchemy.engine.Connectable>`.
+        :type metadata: :class:`MetaData <sqlalchemy:sqlalchemy.schema.MetaData>`
+
+        :param primary_key: The name of the column/key that should be used as the table's
+          primary key.
+        :type primary_key: :class:`str <python:str>`
+
+        :param skip_nested: If ``True`` then any keys in ``serialized`` that
+          feature nested items (e.g. iterables, :class:`dict <python:dict>` objects,
+          etc.) will be ignored. If ``False``, will treat nested items as
+          :class:`str <python:str>`. Defaults to ``True``.
+        :type skip_nested: :class:`bool <python:bool>`
+
+        :param default_to_str: If ``True``, will automatically set a key/column whose
+          value type cannot be determined to ``str``
+          (:class:`Text <sqlalchemy:sqlalchemy.types.Text>`). If ``False``, will
+          use the value type's ``__name__`` attribute and attempt to find a mapping.
+          Defaults to ``False``.
+        :type default_to_str: :class:`bool <python:bool>`
+
+        :param type_mapping: Determines how value types in ``serialized`` map to
+          SQL column data types. To add a new mapping or override a default, set a
+          key to the name of the value type in Python, and set the value to a
+          :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>`. The following are the
+          default mappings applied:
+
+          .. list-table::
+             :widths: 30 30
+             :header-rows: 1
+
+             * - Python Literal
+               - SQL Column Type
+             * - ``bool``
+               - :class:`Boolean <sqlalchemy:sqlalchemy.types.Boolean>`
+             * - ``str``
+               - :class:`Text <sqlalchemy:sqlalchemy.types.Text>`
+             * - ``int``
+               - :class:`Integer <sqlalchemy:sqlalchemy.types.Integer>`
+             * - ``float``
+               - :class:`Float <sqlalchemy:sqlalchemy.types.Float>`
+             * - ``date``
+               - :class:`Date <sqlalchemy:sqlalchemy.types.Date>`
+             * - ``datetime``
+               - :class:`DateTime <sqlalchemy:sqlalchemy.types.DateTime>`
+             * - ``time``
+               - :class:`Time <sqlalchemy:sqlalchemy.types.Time>`
+
+        :type type_mapping: :class:`dict <python:dict>` with type names as keys and
+          column data types as values.
+
+        :param kwargs: Any additional keyword arguments will be passed to the
+          :class:`Table` constructor. For a full list of options, please see
+          :class:`sqlalchemy.schema.Table <sqlalchemy:sqlalchemy.schema.Table>`.
+
+        :returns: A :class:`Table <sqlathanor.schema.Table>` object.
+        :rtype: :class:`Table <sqlathanor.schema.Table>`
+
+        :raises UnsupportedValueTypeError: when a value in ``serialized`` does not
+          have a corresponding key in ``type_mapping``
+        :raises ValueError: if ``models`` is empty or is not an acceptable type
+        :raises ValueError: if ``tablename`` is empty
+        :raises ValueError: if ``primary_key`` is empty
+
+        """
+        if not tablename:
+            raise ValueError('tablename cannot be empty')
+        if not primary_key:
+            raise ValueError('primary_key cannot be empty')
+
+        if not models:
+            raise ValueError('models cannot be empty')
+        if checkers.is_iterable(models, forbid_literals = (str, bytes, dict)):
+            for item in models:
+                if not checkers.is_type(item, 'ModelMetaclass'):
+                    raise ValueError('models must contain Pydantic BaseModel classes. '
+                                     'Found: %s' % type(item))
+        elif not checkers.is_type(models, ('ModelMetaclass', dict)):
+            raise ValueError('models must be a Pydantic BaseModel or a dict. '
+                             'Was: %s' % type(models))
+        elif isinstance(models, dict):
+            for key in models:
+                value = models[key]
+                if checkers.is_iterable(value, forbid_literals = (str, bytes, dict)):
+                    for item in value:
+                        if not checkers.is_type(item, 'ModelMetaclass'):
+                            raise ValueError('models must contain Pydantic BaseModel classes. '
+                                             'Found: %s' % type(item))
+                elif not checkers.is_type(value, 'ModelMetaclass'):
+                    raise ValueError('models must contain Pydantic BaseModel classes. '
+                                     'Found: %s' % type(value))
+
+        columns, serialization_config = columns_from_pydantic(models,
+                                                              primary_key = primary_key,
+                                                              skip_nested = skip_nested,
+                                                              default_to_str = default_to_str,
+                                                              type_mapping = type_mapping,
+                                                              **kwargs)
+
+        return cls(tablename,
+                   metadata,
+                   *columns,
+                   **kwargs)

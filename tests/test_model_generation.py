@@ -9,6 +9,12 @@ Tests for functions which programmatically generate declarative models.
 
 """
 from datetime import datetime
+try:
+    from typing import Any, Union, Optional
+except ImportError:
+    Any = 'Any'
+    Union = 'Union'
+    Optional = 'Optional'
 
 import pytest
 
@@ -18,14 +24,55 @@ import yaml
 from sqlalchemy.types import Integer, Text, Float, DateTime, Date, Time, Boolean
 from validator_collection import checkers
 
+from sqlathanor._compat import is_py36
+
 from sqlathanor.declarative import generate_model_from_dict, generate_model_from_json, \
-    generate_model_from_yaml, generate_model_from_csv
+    generate_model_from_yaml, generate_model_from_csv, generate_model_from_pydantic
 from sqlathanor.attributes import AttributeConfiguration
 from sqlathanor.errors import UnsupportedValueTypeError, CSVStructureError
 
 from tests.fixtures import check_input_file, input_files
 
 # pylint: disable=line-too-long
+
+
+if is_py36:
+    class_def = """
+from pydantic import BaseModel
+from pydantic.fields import Field, ModelField
+
+class PydanticModel(BaseModel):
+    id: int
+    field_1: str
+    field_2: str
+
+class PydanticModel2(BaseModel):
+    id: int
+    field_1: str
+    field_2: str
+    field_3: Any
+
+class PydanticModel3(BaseModel):
+    id: int
+    field_4: Optional[str]
+    field_5: bool
+    field_6: Union[str, int]
+"""
+    try:
+        exec(class_def)
+    except SyntaxError:
+        def Field(*args, **kwargs):
+            return None
+        PydanticModel = 'Python <3.6'
+        PydanticModel2 = 'Python <3.6'
+        PydanticModel3 = 'Python <3.6'
+else:
+    def Field(*args, **kwargs):
+        return None
+    PydanticModel = 'Python <3.6'
+    PydanticModel2 = 'Python <3.6'
+    PydanticModel3 = 'Python <3.6'
+
 
 def test_func():
     pass
@@ -646,3 +693,62 @@ def test_generate_model_from_csv(input_files,
             for key in base_model_attrs:
                 assert hasattr(result, key) is True
                 assert getattr(result, key) == base_model_attrs[key]
+
+
+@pytest.mark.parametrize('kwargs, error', [
+    ({}, (TypeError, ValueError)),
+    ('invalid-type', (TypeError, ValueError)),
+    ({'primary_key': 'id'}, (TypeError, ValueError)),
+    ({'tablename': 'some_tablename'}, (TypeError, ValueError)),
+    ({'pydantic_models': 'invalid-type',
+      'tablename': 'some_tablename',
+      'primary_key': 'id'}, (TypeError, ValueError)),
+    ({'pydantic_models': {
+        '_single': [PydanticModel]
+      },
+      'tablename': 'some_tablename',
+      'primary_key': 'id'}, None),
+    ({'pydantic_models': {
+        'set_one': [PydanticModel],
+        'set_two': [PydanticModel2, PydanticModel3]
+      },
+      'tablename': 'some_tablename',
+      'primary_key': 'id'}, None),
+    ({'pydantic_models': {
+        'set_one': [PydanticModel],
+        'set_two': [PydanticModel2]
+      },
+      'tablename': 'some_tablename',
+      'primary_key': 'id'}, None),
+    ({'pydantic_models': {
+        'set_one': [PydanticModel],
+        'set_two': [PydanticModel2],
+        'set_three': [PydanticModel3]
+      },
+      'tablename': 'some_tablename',
+      'primary_key': 'id'}, None),
+])
+def test_generate_model_from_pydantic(kwargs, error):
+    if not error and not isinstance(PydanticModel, str):
+        tablename = kwargs.get('tablename', None)
+        primary_key = kwargs.get('primary_key', None)
+        base_model_attrs = kwargs.get('base_model_attrs', None)
+
+        result = generate_model_from_pydantic(**kwargs)
+
+        assert hasattr(result, 'to_json') is True
+        assert hasattr(result, 'new_from_json') is True
+        assert hasattr(result, 'update_from_json') is True
+        assert hasattr(result, '__serialization__') is True
+
+        assert result.__tablename__ == tablename
+
+        if base_model_attrs:
+            for key in base_model_attrs:
+                assert hasattr(result, key) is True
+                assert getattr(result, key) == base_model_attrs[key]
+    elif not error:
+        pass
+    else:
+        with pytest.raises(error):
+            result = generate_model_from_pydantic(**kwargs)

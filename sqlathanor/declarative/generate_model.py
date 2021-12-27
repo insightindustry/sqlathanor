@@ -5,14 +5,16 @@
 # extension, and its member function documentation is automatically incorporated
 # there as needed.
 
-from validator_collection import checkers
+from validator_collection import checkers, validators
 
 from sqlathanor.declarative.base_model import BaseModel
 from sqlathanor.declarative.declarative_base import declarative_base
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config
-from sqlathanor.utilities import parse_yaml, parse_json, parse_csv, read_csv_data
+from sqlathanor.utilities import parse_yaml, parse_json, parse_csv, read_csv_data, \
+    columns_from_pydantic
 from sqlathanor.default_deserializers import get_type_mapping
 from sqlathanor.schema import Column
+
 
 def generate_model_from_dict(serialized_dict,
                              tablename,
@@ -723,3 +725,190 @@ def generate_model_from_csv(serialized,
                                                **kwargs)
 
     return generated_model
+
+
+def generate_model_from_pydantic(pydantic_models,
+                                 tablename,
+                                 primary_key,
+                                 cls = BaseModel,
+                                 skip_nested = True,
+                                 default_to_str = False,
+                                 type_mapping = None,
+                                 base_model_attrs = None,
+                                 **kwargs):
+    """Generate a :term:`model class` from one or more
+    :term:`Pydantic models <Pydantic Model>`.
+
+    .. versionadded: 0.8.0
+
+    .. note::
+
+      This function *cannot* programmatically create
+      :term:`relationships <relationship>`, :term:`hybrid properties <hybrid property>`,
+      or :term:`association proxies <association proxy>`.
+
+    :param pydantic_models: The :term:`Pydantic Model(s) <Pydantic Model>` which will
+      determine the ORM columns/attributes that will be present within the generated
+      :term:`model class`.
+
+      .. hint::
+
+        If supplying an iterable of :term:`Pydantic models <Pydantic Model>`, then all
+        models will be coalesced into a single :term:`model class`. If supplying a
+        :class:`dict <python:dict>` whose values are separate
+        :term:`Pydantic models <Pydantic Model>`, then each :class:`dict <python:dict>`
+        key will correspond to a single serialization/de-serialization
+        :term:`configuration set` in the resulting :term:`model class`.
+
+    :type pydantic_models: :class:`pydantic.BaseModel <pydantic:pydantic.main.BaseModel>`
+      / iterable of :class:`pydantic.BaseModel <pydantic:pydantic.main.BaseModel>` /
+      :class:`dict <python:dict>` whose keys correspond to :term:`configuration set` names
+      and whose value must be a
+      :class:`pydantic.BaseModel <pydantic:pydantic.main.BaseModel>`
+
+    :param tablename: The name of the SQL table to which the model corresponds.
+    :type tablename: :class:`str <python:str>`
+
+    :param primary_key: The name of the column/key that should be used as the table's
+      primary key.
+    :type primary_key: :class:`str <python:str>`
+
+    :param cls: The base class to use when generating a new :term:`model class`.
+      Defaults to :class:`BaseModel` to provide serialization/de-serialization
+      support.
+
+      If a :class:`tuple <python:tuple>` of classes, will include :class:`BaseModel`
+      in that list of classes to mixin serialization/de-serialization support.
+
+      If not :obj:`None <python:None>` and not a :class:`tuple <python:tuple>`, will mixin
+      :class:`BaseModel` with the value passed to provide
+      serialization/de-serialization support.
+    :type cls: :obj:`None <python:None>` / :class:`tuple <python:tuple>` of classes /
+      class object
+
+    :param skip_nested: If ``True`` then any keys in ``serialized_dict`` that
+      feature nested items (e.g. iterables, :class:`dict <python:dict>` objects,
+      etc.) will be ignored. If ``False``, will treat serialized items as
+      :class:`str <python:str>`. Defaults to ``True``.
+    :type skip_nested: :class:`bool <python:bool>`
+
+    :param default_to_str: If ``True``, will automatically set a key/column whose
+      value type cannot be determined to ``str``
+      (:class:`Text <sqlalchemy:sqlalchemy.types.Text>`). If ``False``, will
+      use the value type's ``__name__`` attribute and attempt to find a mapping.
+      Defaults to ``False``.
+    :type default_to_str: :class:`bool <python:bool>`
+
+    :param type_mapping: Determines how value types in ``pydantic_models`` map to
+      SQL column data types. To add a new mapping or override a default, set a
+      key to the name of the value type in Python, and set the value to a
+      :doc:`SQLAlchemy Data Type <sqlalchemy:core/types>`. The following are the
+      default mappings applied:
+
+      .. list-table::
+         :widths: 30 30
+         :header-rows: 1
+
+         * - Python Literal
+           - SQL Column Type
+         * - ``bool``
+           - :class:`Boolean <sqlalchemy:sqlalchemy.types.Boolean>`
+         * - ``str``
+           - :class:`Text <sqlalchemy:sqlalchemy.types.Text>`
+         * - ``int``
+           - :class:`Integer <sqlalchemy:sqlalchemy.types.Integer>`
+         * - ``float``
+           - :class:`Float <sqlalchemy:sqlalchemy.types.Float>`
+         * - ``date``
+           - :class:`Date <sqlalchemy:sqlalchemy.types.Date>`
+         * - ``datetime``
+           - :class:`DateTime <sqlalchemy:sqlalchemy.types.DateTime>`
+         * - ``time``
+           - :class:`Time <sqlalchemy:sqlalchemy.types.Time>`
+
+    :type type_mapping: :class:`dict <python:dict>` with type names as keys and
+      column data types as values.
+
+    :param base_model_attrs: Optional :class:`dict <python:dict>` of special
+      attributes that will be applied to the generated
+      :class:`BaseModel <sqlathanor.declarative.BaseModel>` (e.g.
+      ``__table_args__``). Keys will correspond to the attribute name, while the
+      value is the value that will be applied. Defaults to :obj:`None <python:None>`.
+    :type base_model_attrs: :class:`dict <python:dict>` / :obj:`None <python:None>`
+
+    :param kwargs: Any additional keyword arguments will be passed to
+      :func:`declarative_base() <sqlathanor.declarative.declarative_base>` when
+      generating the programmatic :class:`BaseModel <sqlathanor.declarative.BaseModel>`.
+
+    :returns: :term:`Model class` whose structure matches ``pydantic_models`` and whose
+      serialization/de-serialization configuration corresponds to the pattern implied by
+      ``pydantic_models`` structure
+    :rtype: :class:`BaseModel`
+
+    :raises UnsupportedValueTypeError: when a value in ``pydantic_models`` does not
+      have a corresponding key in ``type_mapping``
+    :raises ValueError: if ``pydantic_models`` is not a supported type or is empty
+    :raises ValueError: if ``tablename`` is empty
+    :raises ValueError: if ``primary_key`` is empty
+
+    """
+    # pylint: disable=too-many-branches
+    if not pydantic_models:
+        raise ValueError('pydantic_models cannot be empty')
+    if not tablename:
+        raise ValueError('tablename cannot be empty')
+    if not primary_key:
+        raise ValueError('primary_key cannot be empty')
+
+    config_sets = {}
+    if checkers.is_type(pydantic_models, 'ModelMetaclass'):
+        config_sets['_single'] = pydantic_models
+    elif checkers.is_iterable(pydantic_models, forbid_literals = (str, bytes, dict)):
+        config_sets['_single'] = [x for x in pydantic_models]
+    elif checkers.is_dict(pydantic_models):
+        for key in pydantic_models:
+            value = pydantic_models[key]
+            key = validators.string(key, allow_empty = False)
+            if not checkers.is_iterable(value, forbid_literals = (str, bytes, dict)):
+                value = [value]
+            for item in value:
+                if not checkers.is_type(item, 'ModelMetaclass'):
+                    raise ValueError('pydantic_models must contain Pydantic BaseModel '
+                                     'values. Contained: %s' % type(value))
+            config_sets[key] = [x for x in value]
+    else:
+        raise ValueError('pydantic_models must either be a Pydantic BaseModel, an '
+                         'iterable of Pydantic BaseModels, or a dict whose value is a '
+                         'Pydantic BaseModel or an iterable of Pydantic BaseModels')
+
+    GeneratedBaseModel = declarative_base(cls = cls, **kwargs)
+
+    class InterimGeneratedModel(object):
+        # pylint: disable=too-few-public-methods,missing-docstring,invalid-variable-name
+        __tablename__ = tablename
+
+    columns, serialization_config = columns_from_pydantic(config_sets,
+                                                          primary_key = primary_key,
+                                                          type_mapping = type_mapping,
+                                                          skip_nested = skip_nested,
+                                                          default_to_str = default_to_str)
+
+    for column in columns:
+        setattr(InterimGeneratedModel, column.name, column)
+
+    if base_model_attrs:
+        for key in base_model_attrs:
+            setattr(InterimGeneratedModel, key, base_model_attrs[key])
+
+    class GeneratedModel(GeneratedBaseModel, InterimGeneratedModel):
+        # pylint: disable=missing-docstring,too-few-public-methods
+        pass
+
+    if isinstance(serialization_config, list):
+        GeneratedModel.configure_serialization(configs = serialization_config)
+    else:
+        for config_set in serialization_config:
+            GeneratedModel.configure_serialization(configs = serialization_config[config_set],
+                                                   config_set = config_set)
+
+    return GeneratedModel

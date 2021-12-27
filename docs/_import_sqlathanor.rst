@@ -164,3 +164,6 @@ The table below shows how `SQLAlchemy`_ classes and functions map to their
       .. code-block:: python
 
         from sqlathanor.automap import automap_base
+
+.. _SQLAlchemy: http://www.sqlalchemy.org
+.. _Flask-SQLAlchemy: http://flask-sqlalchemy.pocoo.org/2.3/

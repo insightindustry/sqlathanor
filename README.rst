@@ -29,6 +29,20 @@ SQLAthanor
          :target: http://sqlathanor.readthedocs.io/en/latest/?badge=latest
          :alt: Documentation Status (ReadTheDocs)
 
+   * - `v.0.8 <https://github.com/insightindustry/sqlathanor/tree/v.0.8.0>`_
+     -
+       .. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.8.0
+         :target: https://travis-ci.com/insightindustry/sqlathanor
+         :alt: Build Status (Travis CI)
+
+       .. image:: https://codecov.io/gh/insightindustry/sqlathanor/branch/v.0.8.0/graph/badge.svg
+         :target: https://codecov.io/gh/insightindustry/sqlathanor
+         :alt: Code Coverage Status (Codecov)
+
+       .. image:: https://readthedocs.org/projects/sqlathanor/badge/?version=v.0.8.0
+         :target: http://sqlathanor.readthedocs.io/en/latest/?badge=v.0.8.0
+         :alt: Documentation Status (ReadTheDocs)
+
    * - `v.0.7 <https://github.com/insightindustry/sqlathanor/tree/v.0.7.0>`_
      -
        .. image:: https://travis-ci.com/insightindustry/sqlathanor.svg?branch=v.0.7.0
@@ -148,7 +162,7 @@ easy-to-use record serialization/de-serialization with support for:
   * JSON
   * CSV
   * YAML
-  * Python dict
+  * Python ``dict``
 
 The library works as a drop-in extension - change one line of existing code, and
 it should just work. Furthermore, it has been extensively tested on Python 2.7,
@@ -183,11 +197,11 @@ Dependencies
    * - Python 3.x
      - Python 2.7
    * - | * `SQLAlchemy v.0.9 <https://www.sqlalchemy.org>`_ or higher
-       | * `PyYAML v3.10 <https://github.com/yaml/pyyaml>`_ or higher
+       | * `PyYAML v5.4 <https://github.com/yaml/pyyaml>`_ or higher
        | * `simplejson v3.0 <https://simplejson.readthedocs.io/en/latest/>`_ or higher
        | * `Validator-Collection v1.4.0 <https://github.com/insightindustry/validator-collection>`_ or higher
      - | * `SQLAlchemy v.0.9 <https://www.sqlalchemy.org>`_ or higher
-       | * `PyYAML v3.10 <https://github.com/yaml/pyyaml>`_ or higher
+       | * `PyYAML v5.4 <https://github.com/yaml/pyyaml>`_ or higher
        | * `simplejson v3.0 <https://simplejson.readthedocs.io/en/latest/>`_ or higher
        | * `Validator-Collection v1.4.0 <https://github.com/insightindustry/validator-collection>`_ or higher
 
@@ -266,8 +280,10 @@ Key SQLAthanor Features
 * Customize the validation used when de-serializing particular columns to match
   your needs.
 * Works with Declarative Reflection and the SQLAlchemy Automap extension.
-* Programmatically generate Declarative Base Models from serialized data.
-* Programmatically generate SQLAlchemy ``Table`` objects from serialized data.
+* Programmatically generate Declarative Base Models from serialized data or Pydantic
+  models.
+* Programmatically generate SQLAlchemy ``Table`` objects from serialized data or Pydantic
+  models.
 
 
 **SQLAthanor** vs Alternatives

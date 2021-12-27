@@ -8,12 +8,42 @@ tests.test_attributes
 Tests for the schema extensions written in :ref:`sqlathanor.attributes`.
 
 """
+try:
+    from typing import Any
+except ImportError:
+    Any = 'Any'
 
 import pytest
+
+from sqlathanor._compat import is_py36
+
+if is_py36:
+    class_def = """
+from pydantic import BaseModel
+from pydantic.fields import Field, ModelField
+
+class PydanticModel(BaseModel):
+    field_1: int
+    field_2: str
+    field_3: Any
+"""
+    try:
+        exec(class_def)
+    except SyntaxError:
+        def Field(*args, **kwargs):
+            return None
+        PydanticModel = 'Python <3.6'
+else:
+    def Field(*args, **kwargs):
+        return None
+    PydanticModel = 'Python <3.6'
+
 
 from sqlathanor.attributes import AttributeConfiguration, validate_serialization_config, \
     BLANK_ON_SERIALIZE
 from sqlathanor.utilities import bool_to_tuple, callable_to_dict
+from sqlathanor.errors import FieldNotFoundError
+
 
 @pytest.mark.parametrize('kwargs', [
     (None),
@@ -48,6 +78,18 @@ from sqlathanor.utilities import bool_to_tuple, callable_to_dict
         'on_deserialize': None,
         'display_name': 'some_display_name'
     }),
+    ({
+        'name': 'test_pydantic_field',
+        'supports_csv': False,
+        'csv_sequence': None,
+        'supports_json': False,
+        'supports_yaml': False,
+        'supports_dict': False,
+        'on_serialize': None,
+        'on_deserialize': None,
+        'pydantic_field': Field(alias = 'test_pydantic_field',
+                                title = 'Test Pydantic Field')
+    })
 ])
 def test_AttributeConfiguration__init__(kwargs):
     if kwargs is None:
@@ -58,6 +100,7 @@ def test_AttributeConfiguration__init__(kwargs):
 
     assert result.name == kwargs.get('name', None)
     assert result.display_name == kwargs.get('display_name', None)
+    assert result.pydantic_field == kwargs.get('pydantic_field', None)
     assert result.supports_csv == bool_to_tuple(kwargs.get('supports_csv',
                                                            (False, False)))
     assert result.csv_sequence == kwargs.get('csv_sequence', None)
@@ -145,6 +188,7 @@ def test_AttributeConfiguration_keys():
     assert keys is not None
     assert len(keys) == len(config)
 
+
 def test_AttributeConfiguration__iterate__():
     config = AttributeConfiguration()
     length = len(config)
@@ -157,6 +201,22 @@ def test_AttributeConfiguration__iterate__():
     assert len(config.values()) == len(config) == len(config.keys()) == index
 
 
+if is_py36:
+    @pytest.mark.parametrize('model, name, error', [
+        (PydanticModel, 'field_1', None),
+        (PydanticModel, 'missing_field', FieldNotFoundError),
+    ])
+    def test_AttributeConfiguration_from_pydantic_model(model, name, error):
+        if not error:
+            result = AttributeConfiguration.from_pydantic_model(model, name)
+            assert result.name == name
+            assert result.pydantic_field is not None
+            assert isinstance(result.pydantic_field, ModelField)
+        else:
+            with pytest.raises(error):
+                result = AttributeConfiguration.from_pydantic_model(model, name)
+
+
 @pytest.mark.parametrize('config, expected_length', [
     ([], 0),
     (None, 0),
@@ -165,8 +225,12 @@ def test_AttributeConfiguration__iterate__():
     ([AttributeConfiguration(), AttributeConfiguration()], 1),
     ({ 'name': 'test_1' }, 1),
     ([{ 'name': 'test_2' }, {'name': 'test_3'}], 2),
+    (PydanticModel, 3),
 ])
 def test_validate_serialization_config(config, expected_length):
+    if config == 'Python <3.6':
+        config = None
+        expected_length = 0
     result = validate_serialization_config(config)
     assert len(result) == expected_length
     if len(result) > 0:

@@ -28,6 +28,72 @@ it might be helpful to compare **SQLAthanor** to some commonly-used alternatives
       find that I never really roll my own serialization/de-serialization approach
       when working `SQLAlchemy`_ models any more.
 
+  .. tab:: Pydantic
+
+    .. tip::
+
+      Because `Pydantic`_ is growing in popularity, we have decided to integrate `Pydantic`_
+      support within **SQLAthanor**.
+
+      Using
+      :func:`generate_model_from_pydantic() <sqlathanor.declarative.generate_model_from_pydantic>`,
+      you can now programmatically generate a **SQLAthanor**
+      :class:`BaseModel <sqlathanor.declarative.BaseModel>` from your
+      :term:`Pydantic models <Pydantic Model>`.
+
+      This allows you to only maintain *one* representation of your data model (the
+      `Pydantic`_ one), while still being able to use SQLAthanor's rich serialization /
+      de-serialization configuration functionality.
+
+    `Pydantic`_ is an amazing object parsing library that leverages native Python typing
+    to provide simple syntax and rich functionality. While I have philosophical quibbles
+    about some of its API semantics and architectural choices, I cannot deny that it is
+    elegant, extremely performant, and all around excellent.
+
+    Since `FastAPI`_, one of the fastest-growing web application frameworks in the Python
+    ecosystem is tightly coupled with `Pydantic`_, it has gained significant ground within
+    the community.
+
+    However, when compared to **SQLAthanor** it has a number of architectural limitations:
+
+    While `Pydantic`_ has excellent serialization and deserialization functionality to
+    JSON, it is extremely limited with its serialization/deserialization support for other
+    common data formats like CSV or YAML.
+
+    Second, by its design `Pydantic`_ forces you to maintain **multiple** representations
+    of your data model. On the one hand, you will need your `SQLAlchemy`_ ORM
+    representation, but then you will *also* need one or more `Pydantic`_ models that will
+    be used to serialize/de-serialize your model instances.
+
+    Third, by its design, `Pydantic`_ tends to lead to significant amounts of duplicate
+    code, maintaining similar-but-not-quite-identical versions of your data models (with
+    one `Pydantic`_ schema for each context in which you might serialize/de-serialize your
+    data model).
+
+    Fourth, its API semantics can get extremely complicated when trying to use it as a
+    true serialization/de-serialization library.
+
+    While `Pydantic`_ has made efforts to integrate ORM support into its API, that
+    functionality is relatively limited in its current form.
+
+    .. tip::
+
+      **When to use it?**
+
+      `Pydantic`_ is easy to use when building simple web applications due to its
+      reliance on native Python typing. The need to maintain multiple representations
+      of your data models is a trivial burden with small applications or relatively
+      simple data models.
+
+      `Pydantic`_ is also practically required when building applications using the
+      excellent `FastAPI`_ framework.
+
+      So given these two things, we recommend using `Pydantic`_ *in combination* with
+      **SQLAthanor** to get the best of both words: native Python typing for validation
+      against your Python model (via `Pydantic`_) with rich configurable
+      serialization/de-serialization logic (via **SQLAthanor**), all integrated into
+      the underlying `SQLAlchemy`_ ORM.
+
   .. tab:: Marshmallow
 
     The `Marshmallow`_ library and its `Marshmallow-SQLAlchemy`_ extension are
@@ -161,6 +227,9 @@ it might be helpful to compare **SQLAthanor** to some commonly-used alternatives
 
 .. _Marshmallow: https://marshmallow.readthedocs.io/en/3.0/
 .. _Marshmallow-SQLAlchemy: https://marshmallow-sqlalchemy.readthedocs.io/en/latest/
+.. _Pydantic: https://pydantic-docs.helpmanual.io/
+.. _FastAPI: https://fastapi.tiangolo.com/
 .. _Colander: https://docs.pylonsproject.org/projects/colander/en/latest/
 .. _ColanderAlchemy: https://colanderalchemy.readthedocs.io/en/latest/
 .. _pandas: http://pandas.pydata.org/
+.. _SQLAlchemy: http://www.sqlalchemy.org

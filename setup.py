@@ -120,7 +120,9 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8'
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10'
     ],
 
     zip_safe = False,
@@ -172,14 +174,16 @@ setup(
                 'sphinx-tabs',
                 'readme-renderer',
                 'restview',
-                'Flask-SQLAlchemy'],
+                'Flask-SQLAlchemy',
+                'pydantic;python_version>"3.6"'],
         'test': ['coverage',
                  'pytest',
                  'pytest-benchmark',
                  'pytest-cov',
                  'tox',
                  'codecov',
-                 'Flask-SQLAlchemy'],
+                 'Flask-SQLAlchemy',
+                 'pydantic;python_version>="3.6"'],
     },
 
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4',
