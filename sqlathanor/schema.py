@@ -34,6 +34,8 @@ class Column(SerializationMixin, SA_Column):
 
     # pylint: disable=too-many-ancestors, W0223
 
+    inherit_cache = True
+
     def __init__(self, *args, **kwargs):
         """Construct a new ``Column`` object.
 
@@ -185,6 +187,8 @@ class RelationshipProperty(SA_RelationshipProperty):
 
     Public constructor is the :func:`sqlathanor.schema.relationship` function.
     """
+
+    inherit_cache = True
 
     def __init__(self,
                  argument,
